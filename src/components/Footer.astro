@@ -1,7 +1,6 @@
 ---
-import { site } from '../data/site';
-import { categories } from '../data/categories';
-import { nav } from '../data/site';
+import { site, nav } from '../data/site';
+import { fixedCategories, topics } from '../data/collections';
 import { u } from '../lib/url';
 
 const year = new Date().getFullYear();
@@ -26,11 +25,27 @@ const build = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 13);
       <h2 class="mb-4 text-[11.5px] font-medium tracking-[0.2em] text-ink-3">分类</h2>
       <ul class="grid gap-2.5">
         {
-          categories.map((cat) => (
+          fixedCategories.map((col) => (
             <li>
-              <a href={u(`/categories/${cat.slug}/`)} class="flex items-baseline gap-2 text-[13.5px] text-ink-2 transition-colors hover:text-jade">
-                {cat.name}
-                <span class="font-mono text-[10.5px] text-ink-3">/ {cat.en}</span>
+              <a href={u(`/categories/${col.slug}/`)} class="flex items-baseline gap-2 text-[13.5px] text-ink-2 transition-colors hover:text-jade">
+                {col.name}
+                <span class="font-mono text-[10.5px] text-ink-3">/ {col.en}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-[11.5px] font-medium tracking-[0.2em] text-ink-3">专题</h2>
+      <ul class="grid gap-2.5">
+        {
+          topics.map((topic) => (
+            <li>
+              <a href={u(`/topics/${topic.slug}/`)} class="flex items-baseline gap-2 text-[13.5px] text-ink-2 transition-colors hover:text-jade">
+                {topic.name}
+                <span class="font-mono text-[10.5px] text-ink-3">/ {topic.en}</span>
               </a>
             </li>
           ))
@@ -50,6 +65,12 @@ const build = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 13);
             </li>
           ))
         }
+        <li>
+          <a href={u('/stats/')} class="text-[13.5px] text-ink-2 transition-colors hover:text-jade">藏经概览</a>
+        </li>
+        <li>
+          <a href={u('/browse/')} class="text-[13.5px] text-ink-2 transition-colors hover:text-jade">大藏目录</a>
+        </li>
       </ul>
     </div>
 

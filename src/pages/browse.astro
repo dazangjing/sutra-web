@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import DocCard from '../components/DocCard.astro';
-import { categories } from '../data/categories';
+import { fixedCategories, topics } from '../data/collections';
 import { u } from '../lib/url';
 
 const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
@@ -40,9 +40,16 @@ const total = docs.length;
         <div id="filter-chips" class="flex flex-wrap gap-2">
           <button class="filter-chip is-active" data-filter="all" type="button">全部</button>
           {
-            categories.map((cat) => (
-              <button class="filter-chip" data-filter={cat.slug} type="button">
-                {cat.name}
+            fixedCategories.map((col) => (
+              <button class="filter-chip" data-filter={`cat:${col.slug}`} type="button">
+                {col.name}
+              </button>
+            ))
+          }
+          {
+            topics.map((topic) => (
+              <button class="filter-chip" data-filter={`topic:${topic.slug}`} type="button">
+                {topic.name}
               </button>
             ))
           }
@@ -109,6 +116,8 @@ const total = docs.length;
     s: string;
     j: number;
     z: number;
+    /** 所属集合（三大固定分类 + 专题） */
+    m: string[];
   };
 
   const input = document.getElementById('search-input') as HTMLInputElement | null;
@@ -152,7 +161,7 @@ const total = docs.length;
     </li>`;
 
   const matches = (entry: Entry) => {
-    if (activeCat !== 'all' && entry.k !== activeCat) return false;
+    if (activeCat !== 'all' && !entry.m.includes(activeCat)) return false;
     if (!keyword) return true;
     const hay = normalize(`${entry.t} ${entry.x} ${entry.a} ${entry.c} ${entry.n} ${entry.v} ${entry.g} ${entry.s}`);
     return hay.includes(keyword);
@@ -173,6 +182,14 @@ const total = docs.length;
     // 重新触发进场动效
     list.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-in'));
   };
+
+  // URL 参数预填：/browse/?q=般若部
+  const params = new URLSearchParams(window.location.search);
+  const prefill = params.get('q');
+  if (prefill && input) {
+    input.value = prefill;
+    keyword = normalize(prefill);
+  }
 
   const load = async () => {
     if (loading) return;

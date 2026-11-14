@@ -5,8 +5,9 @@ import { stripBase, u } from '../lib/url';
 
 const current = stripBase(Astro.url.pathname);
 const isActive = (item: (typeof nav)[number]) => {
-  if (item.match) return current.startsWith(item.match === 'tripitaka' ? '/categories/tripitaka' : `/categories/${item.match}`);
-  return current === item.path;
+  if (!item.match) return current === item.path;
+  if (item.match === 'topics') return current.startsWith('/topics');
+  return current.startsWith(`/categories/${item.match}`);
 };
 ---
 

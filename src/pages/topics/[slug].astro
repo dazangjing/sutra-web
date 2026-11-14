@@ -1,0 +1,85 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import DocCard from '../../components/DocCard.astro';
+import { topics, fixedCategories } from '../../data/collections';
+import { collectDocs, groupByDivision } from '../../lib/collections';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  return topics.map((topic) => ({ params: { slug: topic.slug }, props: { topic } }));
+}
+
+const { topic } = Astro.props;
+const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
+const list = collectDocs(docs, topic);
+const divisions = groupByDivision(list);
+---
+
+<BaseLayout title={`${topic.name}专题`} description={topic.desc} bodyClass="page-topic">
+  <PageHero kicker={`/ ${topic.en}`} title={topic.name} glyph={topic.glyph} desc={topic.desc} count={`${list.length.toLocaleString('en-US')} 篇`} />
+
+  {
+    divisions.length > 1 && (
+      <section class="mx-auto max-w-[1260px] px-4 pb-10 sm:px-8">
+        <ul class="reveal flex flex-wrap gap-2">
+          {divisions.map(([name, count]) => (
+            <li class="rounded-full border border-line bg-panel px-3 py-1 font-mono text-[11px] tracking-[0.06em] text-ink-2">
+              {name}
+              <span class="text-ink-3">{count}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="mx-auto max-w-[1260px] px-4 pb-14 sm:px-8 sm:pb-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">篇目一览</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{list.length.toLocaleString('en-US')} ITEMS</span>
+    </div>
+
+    <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {list.slice(0, 300).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+    </ol>
+
+    {list.length > 300 && (
+      <p class="reveal mt-7 text-center font-mono text-[11.5px] text-ink-3">
+        共 {list.length.toLocaleString('en-US')} 篇，此处列出前 300 篇；完整目录请见
+        <a href={u('/browse/')} class="text-jade hover:underline">大藏目录</a>
+      </p>
+    )}
+  </section>
+
+  <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">
+    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">相关专题与分类</p>
+    <div class="flex flex-wrap justify-center gap-2.5">
+      {
+        topics
+          .filter((t) => t.slug !== topic.slug)
+          .map((t) => (
+            <a
+              href={u(`/topics/${t.slug}/`)}
+              class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+            >
+              <span class="font-serif text-jade">{t.glyph}</span>
+              {t.name}
+            </a>
+          ))
+      }
+      {
+        fixedCategories.map((c) => (
+          <a
+            href={u(`/categories/${c.slug}/`)}
+            class="rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+          >
+            {c.name}
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

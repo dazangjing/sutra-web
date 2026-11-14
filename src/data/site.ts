@@ -27,13 +27,9 @@ export type NavItem = {
 
 export const nav: NavItem[] = [
   { title: '首页', path: '/' },
-  { title: '经', path: '/categories/sutra/', match: 'sutra' },
-  { title: '律', path: '/categories/vinaya/', match: 'vinaya' },
-  { title: '论', path: '/categories/shastra/', match: 'shastra' },
-  { title: '注疏史料', path: '/categories/commentary/', match: 'commentary' },
-  { title: '南传其他', path: '/categories/other/', match: 'other' },
-  { title: '近代著述', path: '/categories/modern/', match: 'modern' },
-  { title: '藏经概览', path: '/stats/' },
-  { title: '大藏目录', path: '/browse/' },
+  { title: '大藏经', path: '/categories/tripitaka/', match: 'tripitaka' },
+  { title: '禅宗', path: '/categories/chan/', match: 'chan' },
+  { title: '近代著作', path: '/categories/modern/', match: 'modern' },
+  { title: '专题', path: '/topics/', match: 'topics' },
   { title: '关于', path: '/about/' },
 ];
