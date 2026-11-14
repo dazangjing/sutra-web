@@ -1,10 +1,8 @@
 # 阅藏经 · Yuezangjing
 
-> 次第禅心 · 遍阅大藏
+> 遍阅大藏 · 云水禅心
 
-一个面向中文读者的**开放佛经阅读站点**：以「大藏经 / 禅宗 / 近代著作」三大分类为骨，
-首页以**大藏经部卷统计表格**为经纬，正文页面嵌入 Markdown 书写的经典文本（含标题、译者、佛经正文），
-整体视觉取**科技感的网格与光晕**，配**禅宗的留白、圆相与素纸质感**。
+**佛经从第一次结集至今，历朝历代东西国别，都有整理和翻译，本站按照经律论和近现代著述分类，转为 markdown 格式阅读。**
 
 ![首页 · 墨夜](docs/preview-home.jpg)
 
@@ -16,31 +14,28 @@
 
 | 层 | 选型 | 理由 |
 |---|---|---|
-| **前端框架** | **Astro 5**（静态输出 + Content Layer） | 内容型站点的最优解：Markdown 内容集合原生支持、零框架运行时、静态 HTML 输出、GitHub Pages 一等公民 |
+| **前端框架** | **Astro 5**（静态输出 + Content Layer） | 内容型站点的最优解：Markdown 内容集合原生支持、构建期 zod 校验、零框架运行时、GitHub Pages 一等公民 |
 | **样式** | **Tailwind CSS 4**（`@theme` 设计令牌） | 令牌驱动双主题，工具类消灭手写 CSS 的层叠冲突；仅构建期依赖，运行时不增体积 |
-| **内容** | Markdown + Content Collections（zod 校验） | front matter 由 schema 强校验，字段缺失即构建失败，不再出现「渲染成空」 |
-| **数据** | TypeScript 模块 | 统计表格/分类等结构化数据有类型，编辑器可补全 |
+| **内容** | Markdown + Content Collections | front matter 由 schema 强校验，字段缺失即构建失败 |
+| **语料** | CBETA 佛典数据库（中华电子佛典协会） | 逐档元数据权威、编号通用（`T0235` / `X1565`），繁体底本可逐字核对 |
+| **数据** | TypeScript 模块 | 统计与分类有类型保障，编辑器可补全 |
 | **交互** | 原生 TypeScript（无 UI 框架） | 主题、目录高亮、检索、进度条均为十余行原生 JS，零 hydration 成本 |
 | **部署** | GitHub Pages（Actions） | `configure-pages` 自动注入 base 路径，项目页/用户页都不会样式错乱 |
 
-> 相比 Jekyll：Jekyll 的 Liquid 模板易出现「筛选器不存在 → 渲染为空」「样式层叠互相覆盖」等问题；
-> Astro + Tailwind 以编译期校验、类型化数据与令牌化样式从根上消除这类问题。
-
 ---
 
-## ✦ 功能一览
+## ✦ 内容规模
 
-| 模块 | 说明 |
-|---|---|
-| **通用 Layout** | `BaseLayout`（header / content / footer / 导航栏），组件化拆分 |
-| **首页** | 圆相 Hero + 数据滚动 → **大藏经统计表格**（部卷分类 + 占比条 + SVG 环形图）→ **分类内容**（三大分类卡片）→ 经藏一览 → 禅意引文 |
-| **正文页** | Markdown 渲染；显示**标题 / 译者（著者）/ 年代 / 藏经编号 / 篇幅 / 标签**；构建期生成篇目目录（滚动高亮）、阅读进度条、字号调节、复制链接、上下篇导航 |
-| **分类页** | `/categories/tripitaka/`、`/categories/chan/`、`/categories/modern/` |
-| **藏经概览** | `/stats/` — 部卷分类统计 + 历代刻藏概览 + 构成占比 |
-| **经藏目录** | `/browse/` — 即时关键词检索 + 分类筛选（纯前端，无需索引服务） |
-| **双主题** | 「墨夜」（科技）↔「素白」（禅纸），右上角切换，选择记入 `localStorage` |
-| **响应式** | 桌面三栏 / 平板双栏 / 手机单栏 + 抽屉式导航 |
-| **无障碍** | 语义化标签、跳转链接、键盘可达、`prefers-reduced-motion` 降级 |
+| 分类 | 篇数 | 说明 |
+|---|---|---|
+| 经 | 1,7xx | 阿含、般若、法华、华严、涅槃、本缘、宝积、大集、经集、密教 |
+| 律 | 65 | 四分律、毗奈耶诸部 |
+| 论 | 223 | 释经论、毗昙、中观、瑜伽、论集 |
+| 注疏与史料 | 1,591 | 经疏、律疏、论疏、诸宗、史传、事汇、目录、古逸、疑似 |
+| 南传与其他 | 120 | 南传三藏及大藏经补编 |
+| 近代著作 | 7 | 赵朴初、汤用彤、印顺、黄夏年、丁福保等导读 |
+
+合计 **3,7xx 篇**、**5,3xx 卷**、约 **4,670 万字**（数字由语料实算，见 `src/data/corpus-stats.ts`）。
 
 ---
 
@@ -49,21 +44,25 @@
 ```
 yuezangjing/
 ├── astro.config.mjs          # 站点配置（base / site / tailwind / sitemap / rehype-slug）
+├── scripts/import-sutra.py   # ★ 语料导入器：CBETA → Astro 内容集合
 ├── src/
 │   ├── content.config.ts     # 内容集合 schema（zod 校验 front matter）
-│   ├── content/sutra/*.md    # ★ 经文正文（23 篇）
-│   ├── data/                 # 站点常量 / 导航 / 分类 / 大藏经统计（TypeScript）
+│   ├── content/sutra/*.md    # ★ 经文正文（3,7xx 篇，由导入器生成）
+│   ├── content/guide/*.md    # 本站导读（23 篇，人工撰写，合并入正文）
+│   ├── data/                 # 站点常量 / 导航 / 分类 / 语料统计
 │   ├── lib/url.ts            # base 前缀安全的站内链接
 │   ├── scripts/              # app.ts（全局交互）/ reader.ts（正文页交互）
 │   ├── styles/global.css     # Tailwind 令牌 + 双主题 + 组件层
 │   ├── components/           # Header / Footer / SealMark / StatTable / DonutChart / DocCard / CategoryCard / PageHero
 │   ├── layouts/BaseLayout.astro
 │   └── pages/
-│       ├── index.astro       # 首页
+│       ├── index.astro       # 首页（统计表格 + 分类内容）
 │       ├── stats.astro       # 藏经概览
-│       ├── browse.astro      # 经藏目录（检索）
+│       ├── browse.astro      # 大藏目录（即时检索）
 │       ├── about.astro       # 关于
 │       ├── 404.astro
+│       ├── rss.xml.ts        # RSS
+│       ├── search-index.json.ts
 │       ├── categories/[slug].astro
 │       └── read/[id].astro   # 正文页
 ├── public/seal.svg
@@ -79,9 +78,33 @@ yuezangjing/
 ```bash
 pnpm install
 pnpm dev          # http://127.0.0.1:4321
-pnpm build        # 输出至 dist/
+pnpm build        # 输出至 dist/（3,7xx 页，约 1.5 分钟）
 pnpm preview      # 预览构建产物
 ```
+
+---
+
+## ✦ 更新经藏内容
+
+正文由导入器从 CBETA 语料生成（语料默认位于 `../sutra_json_zh`）：
+
+```bash
+python3 scripts/import-sutra.py \
+    --source ../sutra_json_zh \
+    --out src/content/sutra \
+    --guide src/content/guide \
+    --max-bytes 150000
+
+pnpm build
+```
+
+导入器要点：
+
+- 元数据以 `sutra_meta.jsonl` 为准，文件头为辅（语料两种版本皆兼容）。
+- 剥离语料自带的文件头与「目录」区块，站点目录由正文标题自动生成。
+- `src/content/guide/` 下的人工导读按**档号**显式映射并入对应经典正文末尾（见脚本内 `GUIDE_TO_CANON_ID`）。
+- 统计表 `src/data/corpus-stats.ts` 由语料实算，重新导入即刷新。
+- 单档体量上限默认 150 KB；导读对应的经典无论体量一律完整收录。
 
 ---
 
@@ -91,14 +114,12 @@ pnpm preview      # 预览构建产物
 2. **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
 3. 推送即自动构建部署。
 
-工作流会用 `actions/configure-pages` 自动取得 `base_path`：
+工作流用 `actions/configure-pages` 自动取得 `base_path`：
 
 - **用户站点** `https://<user>.github.io` → `base_path` 为空 → 资源路径 `/…`
 - **项目站点** `https://<user>.github.io/<repo>` → `base_path` 为 `/<repo>` → 资源路径 `/<repo>/…`
 
-两者都已实测通过（本地以 `BASE_PATH=/yuezangjing/ astro build && astro preview` 复现项目站点）。
-**这是旧版「样式错乱」的根因**：资源以绝对路径 `/assets/...` 输出，在子路径下 404，页面便完全失去样式。
-现在所有资源与站内链接都由 `import.meta.env.BASE_URL` 统一生成，不会再错。
+两者均已实测通过。**这是旧版「样式错乱」的根因**：资源以绝对路径 `/assets/...` 输出，在子路径下 404，页面便完全失去样式；现在所有资源与站内链接都由 `import.meta.env.BASE_URL` 统一生成。
 
 本地手动指定：
 
@@ -108,47 +129,33 @@ BASE_PATH=/yuezangjing/ SITE_URL=https://<user>.github.io/yuezangjing pnpm build
 
 ---
 
-## ✦ 新增一篇经文
+## ✦ 新增一篇导读
 
-在 `src/content/sutra/` 下新建 Markdown，文件名即 URL 片段（`xin-jing.md` → `/read/xin-jing/`）：
+在 `src/content/guide/` 下新建 Markdown，再于 `scripts/import-sutra.py` 的 `GUIDE_TO_CANON_ID` 中登记其**档号**（如 `xin-jing.md` → `T0251`）：
 
 ```markdown
 ---
-title: 般若波罗蜜多心经          # 标题
-subtitle: 略称《心经》
-translator: 玄奘 译              # 译者（无译者时用 author / author_label）
-translator_label: 译者
-category: tripitaka             # tripitaka | chan | modern
+title: 般若波罗蜜多心经
+translator: 玄奘 译
 category_name: 大藏经
-order: 10                       # 排序（首页与上下篇依此）
-dynasty: 唐
-canon: 大正藏 T0251
-length: 260 字
-tags: [般若, 心经, 大乘, 玄奘]
 summary: 一句话提要，显示于卡片与导语。
-verse:
-  - 照见五蕴皆空                # 正文前的竖排金句
-  - 度一切苦厄
 ---
 
-正文以 Markdown 书写。## 二级标题会自动进入左侧目录；
-> 引用块用于经文原文；| 表格 | 用于版本对照。
+## 一、传译与底本
+…
+
+## 三、义理提要
+…（此节起并入正文末尾）
 ```
 
-**体例**：标题 → 译者/著者 → 年代与藏经编号 → 正文（传译与底本 / 正文 / 义理提要 / 诵读或阅读提示）。
-字段由 `src/content.config.ts` 的 zod schema 校验，**写错字段名或漏填必填项会直接构建失败并给出提示**。
+重新导入后，导读的「义理提要」会自动附于该经正文之后。
 
 ---
 
 ## ✦ 修改统计数据
 
-编辑 `src/data/tripitaka.ts` 即可，首页表格、环形图与 `/stats/` 页面会同步更新：
-
-- `classification.rows` — 大藏经部卷分类（类别 / 部数 / 卷数 / 说明）
-- `canons.rows` — 历代刻藏概览（藏经 / 时代 / 刊刻年代 / 规模 / 特色）
-- `distribution.rows` — 经、论、律、杂的构成占比
-
-> 统计数字依公开目录学文献与刻本著录整理，各藏本编次略有出入，页面下方已注明「仅供浏览参考」。
+`src/data/tripitaka.ts`（历代刻藏概览）可手工维护；
+`src/data/corpus-stats.ts` 由导入器实算生成，请勿手改。
 
 ---
 
@@ -165,4 +172,4 @@ verse:
 ## ✦ 许可与声明
 
 代码以 MIT 许可开源（见 `LICENSE`）。
-经典正文（`src/content/sutra/`）依公有领域之整理本录入，仅供学习与研究参考；不同版本字句或有出入，引用时请核对原典。
+经文正文依 CBETA 中華電子佛典協會 整理本录入，仅供学习与研究参考；不同版本字句或有出入，引用时请核对原典。

@@ -1,39 +1,87 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import StatTable from '../components/StatTable.astro';
 import DonutChart from '../components/DonutChart.astro';
-import { classification, canons, distribution, distributionTotal } from '../data/tripitaka';
+import { corpusStats, corpusTotals } from '../data/corpus-stats';
+import { canons } from '../data/tripitaka';
+import { categories } from '../data/categories';
+import { u } from '../lib/url';
+
+const docs = await getCollection('sutra');
+const maxChars = Math.max(...corpusStats.map((c) => c.chars));
+
+const donutRows = corpusStats
+  .filter((c) => c.slug !== 'modern')
+  .map((c) => ({
+    name: c.name,
+    key: (['sutra', 'vinaya', 'shastra', 'commentary', 'other'].includes(c.slug)
+      ? c.slug
+      : 'misc') as 'sutra' | 'vinaya' | 'shastra' | 'commentary' | 'misc',
+    value: c.works,
+    desc: c.divisions.map((d) => d.name).join('、'),
+  }));
+const donutTotal = donutRows.reduce((s, r) => s + r.value, 0);
 ---
 
-<BaseLayout title="藏经概览" description="大藏经部卷分类统计与历代刻藏概览。" bodyClass="page-stats">
+<BaseLayout title="藏经概览" description="大藏经部类统计、藏经源流与历代刻藏概览。" bodyClass="page-stats">
   <PageHero
     kicker="/ STATISTICS"
     title="藏经概览"
-    desc="一部大藏经，是两千余年间无数译经、刻经、印经者留下的体量。以下以部、卷为经纬，勾勒其构成与流变。"
-    count="大藏经数据"
+    desc="一部大藏经，是两千余年间无数译经、刻经、印经者留下的体量。以下以篇、卷、字为经纬，勾勒其构成与流变。"
+    count={`${corpusTotals.works.toLocaleString('en-US')} 篇入库`}
   />
 
   <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
     <div class="reveal mb-8.5 flex items-center gap-4">
-      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">{classification.title}</h2>
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">分类总览</h2>
       <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
       <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">
-        {classification.totalParts} 部 / {classification.totalVolumes} 卷
+        {corpusTotals.juan.toLocaleString('en-US')} 卷 · {corpusTotals.chars.toLocaleString('en-US')} 字
       </span>
     </div>
 
-    <div class="reveal">
-      <StatTable
-        rows={classification.rows}
-        totalParts={classification.totalParts}
-        totalVolumes={classification.totalVolumes}
-        showAverage
-      />
-      <p class="mt-3.5 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
-        ※ 部卷分类统计依《大藏经》部卷分类通例整理；各刻本编次略有出入，仅供浏览参考。
-      </p>
+    <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
+      <div class="reveal">
+        <DonutChart rows={donutRows} total={donutTotal} />
+      </div>
+
+      <div class="reveal grid gap-4">
+        {
+          corpusStats.map((cat) => (
+            <a
+              href={u(`/categories/${cat.slug}/`)}
+              class="group flex items-center gap-4 rounded-card border border-line bg-panel px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:bg-panel-2"
+            >
+              <span class="w-20 shrink-0 font-serif text-[16px] font-semibold tracking-[0.1em] text-ink group-hover:text-jade">
+                {cat.name}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="bar block">
+                  <i style={`--w:${((cat.chars / maxChars) * 100).toFixed(1)}%`}></i>
+                </span>
+                <span class="mt-2 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[11px] text-ink-3">
+                  {cat.divisions.map((d) => (
+                    <span>
+                      {d.name}
+                      <span class="text-ink-2">{d.works}</span>
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <span class="w-24 shrink-0 text-right font-mono text-[12px] tabular-nums text-ink-2">
+                {cat.works} 篇
+                <span class="block text-[11px] text-ink-3">{cat.chars.toLocaleString('en-US')} 字</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
     </div>
+
+    <p class="mt-4 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
+      ※ 统计依 CBETA 佛典数据库语料实算；单档体量上限 150 KB，另完整收录经典导读所必需的整部大藏。
+    </p>
   </section>
 
   <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
@@ -83,42 +131,28 @@ import { classification, canons, distribution, distributionTotal } from '../data
     </p>
   </section>
 
-  <section class="mx-auto grid max-w-[1260px] gap-6 px-4 py-14 sm:px-8 sm:py-20 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-    <div class="reveal">
-      <DonutChart rows={distribution.rows} total={distributionTotal} />
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">本站收录</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
     </div>
-
-    <div class="reveal">
-      <h2 class="mb-6 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">{distribution.title}</h2>
-      <div class="grid gap-4">
-        {
-          distribution.rows.map((row) => {
-            const pct = (row.value / distributionTotal) * 100;
-            const color =
-              row.key === 'sutra'
-                ? 'var(--yzj-jade)'
-                : row.key === 'shastra'
-                  ? 'var(--yzj-violet)'
-                  : row.key === 'vinaya'
-                    ? 'var(--yzj-gold)'
-                    : 'var(--yzj-cinnabar)';
-            return (
-              <div class="flex items-center gap-4">
-                <span class="w-28 shrink-0 text-[14px] text-ink">
-                  {row.name}
-                  <em class="block font-mono text-[11px] text-ink-3 not-italic">{row.desc}</em>
+    <ul class="reveal grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        categories.map((cat) => {
+          const stat = corpusStats.find((c) => c.slug === cat.slug);
+          return (
+            <li class="rounded-card border border-line bg-panel px-5 py-4">
+              <a href={u(`/categories/${cat.slug}/`)} class="group flex items-baseline justify-between gap-3">
+                <span class="font-serif text-[16px] font-semibold tracking-[0.08em] text-ink group-hover:text-jade">
+                  {cat.name}
                 </span>
-                <span class="bar flex-1">
-                  <i style={`--w:${pct.toFixed(1)}%;background:${color}`}></i>
-                </span>
-                <span class="w-24 shrink-0 text-right font-mono text-[12px] tabular-nums text-ink-2">
-                  {row.value} · {pct.toFixed(1)}%
-                </span>
-              </div>
-            );
-          })
-        }
-      </div>
-    </div>
+                <span class="font-mono text-[12px] tabular-nums text-ink-2">{stat?.works ?? 0} 篇</span>
+              </a>
+              <p class="mt-2 text-[12.5px] leading-relaxed text-ink-3">{cat.desc}</p>
+            </li>
+          );
+        })
+      }
+    </ul>
   </section>
 </BaseLayout>

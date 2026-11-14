@@ -21,12 +21,17 @@ const next = index < all.length - 1 ? all[index + 1] : undefined;
 
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const byline = data.translator ?? data.author ?? '';
-const bylineLabel = data.translator ? (data.translator_label ?? '译者') : (data.author_label ?? '著者');
+const bylineLabel = data.translator ? (data.translator_label ?? '著者·译者') : (data.author_label ?? '著者');
 
 const facts = [
-  { label: '年代', value: data.dynasty },
-  { label: '藏经编号', value: data.canon },
+  { label: '藏经', value: data.canon },
+  { label: '藏名', value: data.canon_name },
+  { label: '册次', value: data.volume },
+  { label: '部类', value: data.division },
+  { label: '卷数', value: data.juan_count ? `${data.juan_count} 卷` : undefined },
+  { label: '字数', value: data.text_length ? `${data.text_length.toLocaleString('en-US')} 字` : undefined },
   { label: '篇幅', value: data.length },
+  { label: '时代', value: data.dynasty },
 ].filter((f) => f.value);
 ---
 
@@ -39,7 +44,7 @@ const facts = [
           toc.length > 0 && (
             <nav aria-label="篇目目录" class="min-w-0 flex-1">
               <p class="mb-3 font-mono text-[10.5px] tracking-[0.22em] text-ink-3">CONTENTS</p>
-              <ol class="border-l border-line">
+              <ol class="max-h-[52vh] overflow-y-auto border-l border-line pr-1">
                 {toc.map((h) => (
                   <li>
                     <a
@@ -72,31 +77,31 @@ const facts = [
               byline && (
                 <div class="flex items-baseline gap-2.5">
                   <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">{bylineLabel}</dt>
-                  <dd class="text-[12px] text-ink-2">{byline}</dd>
+                  <dd class="text-[12px] leading-relaxed text-ink-2">{byline}</dd>
                 </div>
               )
             }
             {
-              data.dynasty && (
+              data.division && (
                 <div class="flex items-baseline gap-2.5">
-                  <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">年代</dt>
-                  <dd class="text-[12px] text-ink-2">{data.dynasty}</dd>
+                  <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">部类</dt>
+                  <dd class="text-[12px] text-ink-2">{data.division}</dd>
                 </div>
               )
             }
             {
               data.canon && (
                 <div class="flex items-baseline gap-2.5">
-                  <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">藏经</dt>
+                  <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">编号</dt>
                   <dd class="text-[12px] text-ink-2">{data.canon}</dd>
                 </div>
               )
             }
             {
-              data.length && (
+              data.text_length && (
                 <div class="flex items-baseline gap-2.5">
-                  <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">篇幅</dt>
-                  <dd class="text-[12px] text-ink-2">{data.length}</dd>
+                  <dt class="w-[52px] shrink-0 text-[10.5px] tracking-[0.1em] text-ink-3">字数</dt>
+                  <dd class="text-[12px] text-ink-2">{data.text_length.toLocaleString('en-US')}</dd>
                 </div>
               )
             }
@@ -122,19 +127,24 @@ const facts = [
               cat.accent === 'jade' && 'border-jade/30 bg-jade/10 text-jade',
               cat.accent === 'gold' && 'border-gold/30 bg-gold/10 text-gold',
               cat.accent === 'violet' && 'border-violet/30 bg-violet/10 text-violet',
+              cat.accent === 'cinnabar' && 'border-cinnabar/30 bg-cinnabar/10 text-cinnabar',
+              cat.accent === 'slate' && 'border-ink-3/40 bg-ink-3/10 text-ink-2',
             ]}
           >
             <i class="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_8px_currentColor]"></i>
             {cat.name}
           </a>
           {
-            data.tags.length > 0 && (
-              <span class="font-mono text-[11px] tracking-[0.08em] text-ink-3">{data.tags.join(' · ')}</span>
+            data.division && (
+              <span class="font-mono text-[11px] tracking-[0.08em] text-ink-3">{data.division}</span>
             )
           }
         </div>
 
-        <h1 class="font-serif text-[clamp(28px,4.6vw,44px)] leading-[1.3] font-semibold tracking-[0.08em] text-ink">{data.title}</h1>
+        <h1 class="font-serif text-[clamp(26px,4.4vw,42px)] leading-[1.35] font-semibold tracking-[0.06em] text-ink">
+          {data.title}
+        </h1>
+        {data.title_trad && <p class="mt-2 font-serif text-[17px] tracking-[0.1em] text-ink-3">{data.title_trad}</p>}
         {data.subtitle && <p class="mt-3 text-[15px] text-ink-2">{data.subtitle}</p>}
 
         {
@@ -143,14 +153,14 @@ const facts = [
               <span class="rounded-[5px] border border-gold/28 bg-gold/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.18em] text-gold">
                 {bylineLabel}
               </span>
-              <span class="font-serif text-[16px] tracking-[0.06em] text-ink">{byline}</span>
+              <span class="font-serif text-[15px] tracking-[0.06em] text-ink">{byline}</span>
             </p>
           )
         }
 
         {
           data.summary && (
-            <p class="mt-5 rounded-r-chip border-l-2 border-line bg-panel py-3.5 pr-4 pl-4.5 text-[14px] leading-[1.95] text-ink-2">
+            <p class="mt-5 rounded-r-chip border-l-2 border-line bg-panel py-3.5 pr-4 pl-4.5 text-[13.5px] leading-[1.95] text-ink-2">
               {data.summary}
             </p>
           )
@@ -170,16 +180,6 @@ const facts = [
         }
       </header>
 
-      {
-        data.verse.length > 0 && (
-          <blockquote class="reveal mb-8.5 grid gap-2 rounded-card border border-gold/24 bg-gold/6 px-6 py-5.5 text-center">
-            {data.verse.map((line) => (
-              <span class="font-serif text-[17px] tracking-[0.18em] text-gold">{line}</span>
-            ))}
-          </blockquote>
-        )
-      }
-
       <div id="article-body" class="prose-zen">
         <Content />
       </div>
@@ -188,7 +188,8 @@ const facts = [
         <div class="mb-7 flex gap-3.5">
           <span class="h-fit shrink-0 rounded-[5px] border border-gold/26 bg-gold/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.16em] text-gold">NOTE</span>
           <p class="m-0 text-[12px] leading-[1.9] text-ink-3">
-            本站文本依公有领域整理排版，仅供学习与研究参考；不同版本字句或有出入，引用请核对原典。
+            本页正文依 CBETA 佛典数据库（中华电子佛典协会）整理本录入，仅供学习与研究参考；
+            不同版本字句或有出入，引用时请核对原典。
           </p>
         </div>
 

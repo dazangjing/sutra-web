@@ -16,6 +16,11 @@ const docs = (await getCollection('sutra'))
   .sort((a, b) => a.data.order - b.data.order);
 
 const others = categories.filter((c) => c.slug !== cat.slug);
+const divisionCounts = docs.reduce<Record<string, number>>((acc, d) => {
+  const key = d.data.division ?? '其他';
+  acc[key] = (acc[key] ?? 0) + 1;
+  return acc;
+}, {});
 ---
 
 <BaseLayout title={cat.name} description={cat.desc} bodyClass="page-category">
@@ -28,9 +33,27 @@ const others = categories.filter((c) => c.slug !== cat.slug);
       <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{docs.length} ITEMS</span>
     </div>
 
+    <ul class="reveal mb-7 flex flex-wrap gap-2">
+      {Object.entries(divisionCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => (
+          <li class="rounded-full border border-line bg-panel px-3 py-1 font-mono text-[11px] tracking-[0.06em] text-ink-2">
+            {name}
+            <span class="text-ink-3">{count}</span>
+          </li>
+        ))}
+    </ul>
+
     <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {docs.map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+      {docs.slice(0, 300).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
     </ol>
+
+    {docs.length > 300 && (
+      <p class="reveal mt-7 text-center font-mono text-[11.5px] text-ink-3">
+        本类共 {docs.length} 篇，此处列出前 300 篇；完整目录请见
+        <a href={u('/browse/')} class="text-jade hover:underline">大藏目录</a>
+      </p>
+    )}
   </section>
 
   <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">

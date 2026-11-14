@@ -1,31 +1,46 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
+import { corpusStats, corpusTotals } from '../data/corpus-stats';
+import { categories } from '../data/categories';
 ---
 
-<BaseLayout title="关于阅藏经" description="关于阅藏经 —— 站点缘起、结构体例与收录原则。" bodyClass="page-about">
+<BaseLayout title="关于阅藏经" description="关于阅藏经 —— 站点缘起、内容来源、结构体例与收录原则。" bodyClass="page-about">
   <PageHero kicker="/ ABOUT" title="关于阅藏经" desc="「阅藏」二字，取「披阅藏经」之意；亦暗合「阅读、藏经」之双关。" count="缘起与体例" />
 
   <section class="mx-auto max-w-[880px] px-4 py-14 sm:px-8 sm:py-20">
     <div class="prose-zen reveal">
       <h2 id="origin">缘起</h2>
-      <p>大藏经浩瀚，起于一枚巴梨陀、共誦之结集，终于宋元明清数千卷的雕版、印本。其量之大，非一目可尽；其义之深，非一读可穷。</p>
-      <p>阅藏经取三事为纲：其一，以统计为骨，让读者先见其大体；其二，以原典为肉，逐篇录入正文，可读可校；其三，以目录学与近代教史为睛，为旧典开出新的读法。</p>
+      <p>佛经从第一次结集至今，历朝历代东西国别，都有整理和翻译，本站按照经律论和近现代著述分类，转为 markdown 格式阅读。</p>
+      <p>大藏经浩瀚，起于一枚巴梨陀、共诵之结集，终于宋元明清数千卷的雕版、印本。其量之大，非一目可尽；其义之深，非一读可穷。阅藏经取三事为纲：其一，以统计为骨，让读者先见其大体；其二，以原典为肉，逐篇录入正文，可读可校；其三，以目录学与近代教史为睛，为旧典开出新的读法。</p>
+
+      <h2 id="corpus">内容来源</h2>
+      <p>正文依 <strong>CBETA 中華電子佛典協會</strong> 整理本录入，逐档元数据（题名、题署、藏经编号、册次、卷数、字数）取自 CBETA 大藏经数据库。每档一篇，以 Markdown 承载，页面自动生成篇目目录、阅读进度与上下篇导航。</p>
+      <ul>
+        <li>藏经编号采用国际通行写法，如 T0235（大正藏第 8 册第 235 号）、X1565（卍续藏第 1565 号）。</li>
+        <li>繁体底本保持原貌，不作简化，以便按原典核对。</li>
+        <li>部分经典另附本站「义理提要」，以导读补其法义。</li>
+      </ul>
+      <p>目前共入库 <em>{corpusTotals.works.toLocaleString('en-US')}</em> 篇、<em>{corpusTotals.juan.toLocaleString('en-US')}</em> 卷、正文约 <em>{(corpusTotals.chars / 1e8).toFixed(2)}</em> 亿字。</p>
 
       <h2 id="structure">结构</h2>
-      <p>全站分为三个分类，互为表里：</p>
+      <p>全站分为六个分类，互为表里：</p>
       <ul>
-        <li><strong>大藏经</strong> —— 经、律、论三藏分科，取其代表典籍，标明译者与藏经编号。</li>
-        <li><strong>禅宗</strong> —— 语录、颂古与公案，保留祖师问答的机锋与脉络。</li>
-        <li><strong>近代著作</strong> —— 教史、目录学与常识类著作，以导读与提要的方式呈现其学术脉络。</li>
+        {
+          categories.map((cat) => {
+            const stat = corpusStats.find((c) => c.slug === cat.slug);
+            return (
+              <li>
+                <strong>{cat.name}</strong>
+                {stat && <em>（{stat.works} 篇）</em>} —— {cat.desc}
+              </li>
+            );
+          })
+        }
       </ul>
 
       <h2 id="convention">体例</h2>
-      <p>每篇正文皆依统一格式：<em>标题</em>、<em>译者（或著者）</em>、<em>年代与藏经编号</em>、<em>正文</em>、<em>注解</em>。正文以 Markdown 书写，页面自动生成篇目目录、阅读进度与上下篇导航。</p>
-
-      <h2 id="source">底本与体例说明</h2>
-      <p>经典正文依公有领域之通行整理本录入，标点与断句仅供参考；不同版本字句或有出入，引用时请核对原典。近代著作部分受篇幅所限，以导读、提要与节要呈现其要义，并注明著者与成书年代。</p>
-      <p>统计表数据依公开目录学文献与刻本著录整理，部分卷数为概数，已在表下注明。</p>
+      <p>每篇正文皆依统一格式：<em>标题</em>、<em>著者·译者</em>、<em>藏经编号与藏名</em>、<em>册次与部类</em>、<em>卷数与字数</em>、<em>正文</em>。正文以 Markdown 书写，目录层级与滚动高亮由构建期与浏览器共同完成。</p>
 
       <h2 id="tech">技术</h2>
       <p>本站由 <a href="https://astro.build/" rel="noopener" target="_blank">Astro</a> 构建，托管于 GitHub Pages；内容以 Markdown 内容集合（Content Collections）与 TypeScript 数据模块维护，静态输出，无追踪脚本。</p>

@@ -7,7 +7,7 @@ interface Props {
   name: string;
   en: string;
   glyph: string;
-  accent: 'jade' | 'gold' | 'violet';
+  accent: 'jade' | 'gold' | 'violet' | 'cinnabar' | 'slate';
   desc: string;
   docs: CollectionEntry<'sutra'>[];
 }
@@ -38,6 +38,22 @@ const accentClass = {
     glow: 'hover:shadow-[0_0_0_1px_rgb(155_140_245/0.2),0_26px_60px_-30px_rgb(155_140_245/0.55)]',
     wash: 'from-violet/20',
     ring: 'border-violet/35',
+  },
+  cinnabar: {
+    text: 'text-cinnabar',
+    border: 'border-cinnabar/35',
+    bg: 'bg-cinnabar/10',
+    glow: 'hover:shadow-[0_0_0_1px_rgb(224_100_79/0.2),0_26px_60px_-30px_rgb(224_100_79/0.55)]',
+    wash: 'from-cinnabar/20',
+    ring: 'border-cinnabar/35',
+  },
+  slate: {
+    text: 'text-ink-2',
+    border: 'border-ink-3/45',
+    bg: 'bg-ink-3/10',
+    glow: 'hover:shadow-[0_0_0_1px_rgb(109_124_121/0.25),0_26px_60px_-30px_rgb(109_124_121/0.5)]',
+    wash: 'from-ink-3/20',
+    ring: 'border-ink-3/45',
   },
 }[accent];
 ---

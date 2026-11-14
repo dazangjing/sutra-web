@@ -7,14 +7,16 @@ import { categories } from '../data/categories';
 import { u } from '../lib/url';
 
 const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
+const initial = docs.slice(0, 60);
+const total = docs.length;
 ---
 
-<BaseLayout title="经藏目录" description="阅藏经全站篇目索引，支持关键词检索与分类筛选。" bodyClass="page-browse">
+<BaseLayout title="大藏目录" description="阅藏经全站篇目索引，支持关键词检索与分类筛选。" bodyClass="page-browse">
   <PageHero
     kicker="/ BROWSE"
-    title="经藏目录"
-    desc="以关键词检索全站篇目，或按分类、译者、朝代过滤。索引随正文即时生成。"
-    count={`${docs.length} 篇`}
+    title="大藏目录"
+    desc="以关键词检索全站篇目，或按分类、部类、译者、朝代过滤。索引随正文即时生成。"
+    count={`${total.toLocaleString('en-US')} 篇`}
   />
 
   <section class="mx-auto max-w-[1260px] px-4 pt-2 pb-16 sm:px-8 sm:pb-24">
@@ -24,7 +26,7 @@ const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data
         <input
           id="search-input"
           type="search"
-          placeholder="检索篇名、译者、藏经编号、关键词…"
+          placeholder="检索篇名、译者、藏经编号、部类…"
           autocomplete="off"
           spellcheck="false"
           aria-label="检索篇目"
@@ -45,23 +47,24 @@ const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data
             ))
           }
         </div>
-        <span id="result-count" class="ml-auto font-mono text-[11.5px] tracking-[0.14em] text-ink-3">{docs.length} / {docs.length}</span>
+        <span id="result-count" class="ml-auto font-mono text-[11.5px] tracking-[0.14em] text-ink-3">{total.toLocaleString('en-US')} / {total.toLocaleString('en-US')}</span>
       </div>
     </div>
 
     <ol id="browse-list" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {
-        docs.map((doc, i) => (
-          <DocCard
-            doc={doc}
-            index={i + 1}
-            showCategory
-            filterCategory={doc.data.category}
-            filterText={`${doc.data.title} ${doc.data.translator ?? doc.data.author ?? ''} ${doc.data.canon ?? ''} ${doc.data.tags.join(' ')} ${doc.data.summary ?? ''}`.toLowerCase()}
-          />
-        ))
-      }
+      {initial.map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
     </ol>
+
+    <div class="reveal mt-9 flex flex-col items-center gap-3">
+      <button
+        id="load-more"
+        type="button"
+        class="rounded-full border border-line bg-panel px-7 py-3 text-[14px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]"
+      >
+        载入更多
+      </button>
+      <p id="browse-hint" class="font-mono text-[11.5px] text-ink-3"></p>
+    </div>
 
     <p id="browse-empty" class="hidden py-16 text-center text-[14px] text-ink-3">未检索到匹配篇目，请尝试更换关键词。</p>
   </section>
@@ -90,59 +93,113 @@ const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data
   :global([data-theme='paper']) .filter-chip.is-active {
     color: #f2fbf7;
   }
-  /* :global 必需：is-hidden 由脚本在运行时添加，否则 Astro 会把该规则当作未使用样式删除 */
-  :global(.browse-item.is-hidden) {
-    display: none;
-  }
 </style>
 
-<script>
+<script define:vars={{ base: import.meta.env.BASE_URL.replace(/\/+$/, '') }}>
+  type Entry = {
+    id: string;
+    t: string;
+    x: string;
+    a: string;
+    c: string;
+    n: string;
+    v: string;
+    g: string;
+    k: string;
+    s: string;
+    j: number;
+    z: number;
+  };
+
   const input = document.getElementById('search-input') as HTMLInputElement | null;
   const clear = document.getElementById('search-clear');
   const chips = document.getElementById('filter-chips');
   const count = document.getElementById('result-count');
   const empty = document.getElementById('browse-empty');
-  const items = Array.from(document.querySelectorAll<HTMLElement>('.browse-item'));
+  const list = document.getElementById('browse-list');
+  const loadMore = document.getElementById('load-more');
+  const hint = document.getElementById('browse-hint');
 
+  let index: Entry[] = [];
   let activeCat = 'all';
   let keyword = '';
+  let shown = 60;
+  let loading = false;
 
   const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, '');
 
-  const apply = () => {
-    const kw = normalize(keyword);
-    let shown = 0;
-    items.forEach((item) => {
-      const cat = item.dataset.category ?? '';
-      const hay = normalize(item.dataset.search ?? '');
-      const ok = (activeCat === 'all' || cat === activeCat) && (!kw || hay.includes(kw));
-      item.classList.toggle('is-hidden', !ok);
-      if (ok) {
-        // 命中项若尚未进场，直接无动画呈现，避免筛选后还要等一次淡入
-        if (!item.classList.contains('is-in')) {
-          item.style.transition = 'none';
-          item.classList.add('is-in');
-          requestAnimationFrame(() => {
-            item.style.transition = '';
-          });
-        }
-        shown += 1;
-      }
-    });
-    if (count) count.textContent = `${shown} / ${items.length}`;
-    empty?.classList.toggle('hidden', shown !== 0);
+  const esc = (value: string) =>
+    value.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
+
+  const card = (entry: Entry, no: number) => `
+    <li class="reveal flex">
+      <a href="${base}/read/${encodeURIComponent(entry.id)}/" class="group relative flex w-full items-start gap-4 overflow-hidden rounded-card border border-line bg-panel px-5 py-5 transition-all duration-300 hover:-translate-y-[3px] hover:border-line-2 hover:bg-panel-2 hover:shadow-panel">
+        <span class="absolute inset-y-0 left-0 w-[2px] origin-top scale-y-0 bg-[linear-gradient(var(--yzj-jade),transparent)] transition-transform duration-300 group-hover:scale-y-100"></span>
+        <span class="shrink-0 pt-0.5 font-mono text-[11.5px] tabular-nums text-ink-3">${String(no).padStart(3, '0')}</span>
+        <span class="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span class="font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">${esc(entry.t)}</span>
+          <span class="font-mono text-[11.5px] text-ink-3">${esc(entry.a)}${entry.v ? ` · ${esc(entry.v)}` : ''}</span>
+          <span class="line-clamp-2 text-[13px] leading-relaxed text-ink-2">${esc(entry.s)}</span>
+          <span class="mt-0.5 flex flex-wrap gap-1.5">
+            <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">${esc(entry.c)}</i>
+            ${entry.j ? `<i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">${entry.j} 卷</i>` : ''}
+          </span>
+        </span>
+        <span class="mt-1 h-5 w-5 shrink-0 self-center text-ink-3 transition-all duration-300 group-hover:translate-x-1 group-hover:text-jade">
+          <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </span>
+      </a>
+    </li>`;
+
+  const matches = (entry: Entry) => {
+    if (activeCat !== 'all' && entry.k !== activeCat) return false;
+    if (!keyword) return true;
+    const hay = normalize(`${entry.t} ${entry.x} ${entry.a} ${entry.c} ${entry.n} ${entry.v} ${entry.g} ${entry.s}`);
+    return hay.includes(keyword);
+  };
+
+  const render = () => {
+    if (!list) return;
+    const hits = index.filter(matches);
+    const slice = hits.slice(0, shown);
+    list.innerHTML = slice.map((entry, i) => card(entry, i + 1)).join('');
+
+    if (count) count.textContent = `${hits.length.toLocaleString('en-US')} / ${index.length.toLocaleString('en-US')}`;
+    empty?.classList.toggle('hidden', hits.length !== 0);
+    loadMore?.classList.toggle('hidden', hits.length <= shown);
+    if (hint) {
+      hint.textContent = hits.length > shown ? `已显示 ${shown} / ${hits.length.toLocaleString('en-US')} 篇` : '';
+    }
+    // 重新触发进场动效
+    list.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-in'));
+  };
+
+  const load = async () => {
+    if (loading) return;
+    loading = true;
+    try {
+      const res = await fetch(`${base}/search-index.json`);
+      index = (await res.json()) as Entry[];
+      render();
+    } catch {
+      if (hint) hint.textContent = '索引载入失败，请刷新重试。';
+    } finally {
+      loading = false;
+    }
   };
 
   input?.addEventListener('input', () => {
-    keyword = input.value;
-    apply();
+    keyword = normalize(input.value);
+    shown = 60;
+    render();
   });
 
   input?.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       input.value = '';
       keyword = '';
-      apply();
+      shown = 60;
+      render();
     }
   });
 
@@ -152,7 +209,8 @@ const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data
       input.focus();
     }
     keyword = '';
-    apply();
+    shown = 60;
+    render();
   });
 
   chips?.addEventListener('click', (event) => {
@@ -161,7 +219,13 @@ const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data
     chips.querySelectorAll('.filter-chip').forEach((el) => el.classList.remove('is-active'));
     chip.classList.add('is-active');
     activeCat = chip.dataset.filter ?? 'all';
-    apply();
+    shown = 60;
+    render();
+  });
+
+  loadMore?.addEventListener('click', () => {
+    shown += 60;
+    render();
   });
 
   document.addEventListener('keydown', (event) => {
@@ -171,5 +235,5 @@ const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data
     }
   });
 
-  apply();
+  load();
 </script>

@@ -9,7 +9,8 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "import:sutra": "python3 scripts/import-sutra.py --source ../sutra_json_zh --out src/content/sutra --guide src/content/guide --max-bytes 150000"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
