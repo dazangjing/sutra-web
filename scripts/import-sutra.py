@@ -314,19 +314,28 @@ def main() -> int:
         gpath = args.guide / gfile
         if not rec or not gpath.exists():
             continue
-        _, gbody = guide_sections(gpath)
+        gtitle, gbody = guide_sections(gpath)
         if not gbody:
             continue
         rec.setdefault('guides', []).append(gfile)
-        rec.setdefault('guide_bodies', []).append(gbody)
+        rec.setdefault('guide_bodies', []).append((gtitle, gbody))
         merged += 1
         used_guides.add(gfile)
 
-    # 同一档的多篇导读合为一个「义理提要」章节
+    # 同一档的多篇导读合为一个「义理提要」章节；
+    # 第二篇起加「篇名」前缀，避免小节标题重复
     for rec in records:
-        if rec.get('guide_bodies'):
-            sections = '\n\n'.join(rec['guide_bodies'])
-            rec['body'] = rec['body'].rstrip() + f'\n\n## 义理提要（本站导读）\n\n{sections}\n'
+        if not rec.get('guide_bodies'):
+            continue
+        parts = []
+        for n, (gtitle, gbody) in enumerate(rec['guide_bodies']):
+            if n == 0:
+                parts.append(gbody)
+                continue
+            label = gtitle.split('·')[-1].strip() or f'导读 {n + 1}'
+            gbody = re.sub(r'^(#{3,4})\s', lambda mm: f'{mm.group(1)} {label} · ', gbody, flags=re.M)
+            parts.append(gbody)
+        rec['body'] = rec['body'].rstrip() + '\n\n## 义理提要（本站导读）\n\n' + '\n\n'.join(parts) + '\n'
 
     # 未被合并的导读（近代佛学著作等）独立成篇
     for gfile in sorted(guides):
