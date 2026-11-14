@@ -6,6 +6,10 @@
 首页以**大藏经部卷统计表格**为经纬，正文页面嵌入 Markdown 书写的经典文本（含标题、译者、佛经正文），
 整体视觉取**科技感的网格与光晕**，配**禅宗的留白、圆相与素纸质感**。
 
+![首页 · 墨夜](docs/preview-home.jpg)
+
+<p align="center"><img src="docs/preview-reading.jpg" alt="正文页 · 篇目目录与元信息" width="820"></p>
+
 ---
 
 ## ✦ 功能一览
