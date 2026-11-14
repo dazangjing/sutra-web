@@ -1,0 +1,71 @@
+---
+layout: default
+---
+<section class="page-hero page-hero-slim" data-reveal>
+  <div class="page-hero-inner">
+    <p class="page-kicker mono">
+      <span class="kicker-index">/ BROWSE</span>
+      <span class="kicker-line"></span>
+      <span>{{ site.sutra | size }} 篇</span>
+    </p>
+    <h1 class="page-title">经藏目录</h1>
+    <p class="page-desc">以关键词检索全站篇目，或按分类、译者、朝代过滤。索引随正文即时生成。</p>
+  </div>
+  <div class="page-hero-glow" aria-hidden="true"></div>
+</section>
+
+<section class="browse">
+  <div class="browse-tools" data-reveal>
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.8 12.8 L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="searchInput" type="search" placeholder="检索篇名、译者、藏经编号、关键词…" autocomplete="off" spellcheck="false" aria-label="检索篇目">
+      <button class="search-clear" id="searchClear" type="button" aria-label="清空">✕</button>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label mono">FILTER</span>
+      <div class="filter-chips" id="filterChips">
+        <button class="filter-chip is-active" data-filter="all" type="button">全部</button>
+        {%- for cat in site.data.categories %}
+        <button class="filter-chip" data-filter="{{ cat.slug }}" type="button">{{ cat.name }}</button>
+        {%- endfor %}
+      </div>
+      <span class="filter-count mono" id="resultCount">{{ site.sutra | size }} / {{ site.sutra | size }}</span>
+    </div>
+  </div>
+
+  <ol class="doc-grid browse-grid" id="browseList">
+    {%- assign docs = site.sutra | sort: "order" -%}
+    {%- for doc in docs %}
+    <li class="doc-card" data-reveal
+        data-category="{{ doc.category }}"
+        data-title="{{ doc.title }}"
+        data-translator="{{ doc.translator | default: doc.author }}"
+        data-canon="{{ doc.canon }}"
+        data-tags="{{ doc.tags | join: ' ' }}"
+        data-summary="{{ doc.summary }}">
+      <a class="doc-link" href="{{ doc.url | relative_url }}">
+        <span class="doc-no mono">{{ forloop.index | prepend: "00" | slice: -3, 3 }}</span>
+        <span class="doc-main">
+          <span class="doc-title">{{ doc.title }}</span>
+          <span class="doc-byline mono">
+            {%- if doc.translator %}{{ doc.translator }}{% else %}{{ doc.author }}{% endif -%}
+            {%- if doc.dynasty %} · {{ doc.dynasty }}{% endif -%}
+          </span>
+          <span class="doc-summary">{{ doc.summary | default: doc.subtitle }}</span>
+          <span class="doc-tags mono">
+            <i class="tag-cat tag-{{ doc.category }}">{{ doc.category_name }}</i>
+            {%- if doc.canon %}<i>{{ doc.canon }}</i>{% endif -%}
+            {%- if doc.length %}<i>{{ doc.length }}</i>{% endif -%}
+          </span>
+        </span>
+        <span class="doc-arrow" aria-hidden="true">
+          <svg viewBox="0 0 20 20"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+    </li>
+    {%- endfor %}
+  </ol>
+
+  <p class="browse-empty" id="browseEmpty" hidden>未检索到匹配篇目，请尝试更换关键词。</p>
+</section>

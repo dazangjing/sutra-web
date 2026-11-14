@@ -1,0 +1,124 @@
+---
+layout: default
+title: 藏经概览
+permalink: /stats/
+body_class: page-stats
+description: 大藏经部卷分类统计与历代刻藏概览。
+---
+
+{%- assign t = site.data.tripitaka -%}
+
+<section class="page-hero page-hero-slim" data-reveal>
+  <div class="page-hero-inner">
+    <p class="page-kicker mono"><span class="kicker-index">/ STATISTICS</span><span class="kicker-line"></span><span>大藏经数据</span></p>
+    <h1 class="page-title">藏经概览</h1>
+    <p class="page-desc">一部大藏经，是两千余年间无数译经、刻经、印经者留下的体量。以下以部、卷为经纬，勾勒其构成与流变。</p>
+  </div>
+  <div class="page-hero-glow" aria-hidden="true"></div>
+</section>
+
+<section class="section">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">{{ t.classification.title }}</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+    <span class="section-count mono">{{ t.classification.total_parts }} 部 / {{ t.classification.total_volumes }} 卷</span>
+  </div>
+
+  <div class="table-wrap" data-reveal>
+    <table class="stats-table stats-table-full">
+      <thead>
+        <tr>
+          <th scope="col" class="col-cat">类别</th>
+          <th scope="col" class="col-name">分部</th>
+          <th scope="col" class="col-num">部数</th>
+          <th scope="col" class="col-num">卷数</th>
+          <th scope="col" class="col-num">均卷/部</th>
+          <th scope="col" class="col-bar">卷数占比</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for r in t.classification.rows %}
+        {%- assign avg = r.volumes | times: 1.0 | divided_by: r.parts | round: 2 %}
+        {%- assign pct = r.volumes | times: 100.0 | divided_by: t.classification.total_volumes %}
+        <tr>
+          <td class="col-cat"><span class="tag-chip tag-{{ r.tag }}">{{ r.tag }}</span></td>
+          <td class="col-name"><strong>{{ r.name }}</strong><em>{{ r.scope }}</em></td>
+          <td class="col-num mono">{{ r.parts }}</td>
+          <td class="col-num mono">{{ r.volumes }}</td>
+          <td class="col-num mono">{{ avg }}</td>
+          <td class="col-bar">
+            <span class="bar-track"><i class="bar-fill" style="--w: {{ pct | round: 2 }}%"></i></span>
+            <span class="bar-pct mono">{{ pct | round: 1 }}%</span>
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="col-cat"></td>
+          <td class="col-name"><strong>合计</strong><em>大藏经主体全部分类</em></td>
+          <td class="col-num mono">{{ t.classification.total_parts }}</td>
+          <td class="col-num mono">{{ t.classification.total_volumes }}</td>
+          <td class="col-num mono">{{ t.classification.total_volumes | times: 1.0 | divided_by: t.classification.total_parts | round: 2 }}</td>
+          <td class="col-bar"><span class="bar-track"><i class="bar-fill bar-fill-total" style="--w: 100%"></i></span><span class="bar-pct mono">100%</span></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <p class="table-note mono">※ 部卷分类统计依《大藏经》部卷分类通例整理；各刻本编次略有出入，仅供浏览参考。</p>
+</section>
+
+<section class="section">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">{{ t.canons.title }}</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+    <span class="section-count mono">{{ t.canons.rows | size }} 藏</span>
+  </div>
+
+  <div class="table-wrap" data-reveal>
+    <table class="stats-table stats-table-full canon-table">
+      <thead>
+        <tr>
+          <th scope="col" class="col-cat">时代</th>
+          <th scope="col" class="col-name">藏经</th>
+          <th scope="col" class="col-num">刊刻年代</th>
+          <th scope="col" class="col-num">部数</th>
+          <th scope="col" class="col-num">卷数</th>
+          <th scope="col" class="col-bar">特色与流布</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for c in t.canons.rows %}
+        <tr>
+          <td class="col-cat"><span class="tag-chip tag-era">{{ c.dynasty }}</span></td>
+          <td class="col-name"><strong>{{ c.name }}</strong></td>
+          <td class="col-num mono">{{ c.year }}</td>
+          <td class="col-num mono">{{ c.parts }}</td>
+          <td class="col-num mono">{{ c.volumes }}</td>
+          <td class="col-bar"><span class="canon-feature">{{ c.feature }}</span></td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note mono">※ 部分藏本卷数依帙号、函次统计口径不同而有出入，「约」字表示概数。</p>
+</section>
+
+<section class="section">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">{{ t.distribution.title }}</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+  </div>
+  <div class="dist-list" data-reveal>
+    {%- assign total = 0 -%}
+    {%- for r in t.distribution.rows -%}{%- assign total = total | plus: r.value -%}{%- endfor -%}
+    {%- for row in t.distribution.rows %}
+    {%- assign pct = row.value | times: 100.0 | divided_by: total %}
+    <div class="dist-row">
+      <span class="dist-name">{{ row.name }}<em class="mono">{{ row.desc }}</em></span>
+      <span class="bar-track"><i class="bar-fill dot-{{ row.key }}" style="--w: {{ pct | round: 1 }}%"></i></span>
+      <span class="dist-val mono">{{ row.value }} · {{ pct | round: 1 }}%</span>
+    </div>
+    {%- endfor %}
+  </div>
+</section>

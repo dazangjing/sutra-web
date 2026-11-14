@@ -1,0 +1,246 @@
+---
+layout: default
+title: 阅藏经
+body_class: page-home
+description: 阅藏经 —— 大藏经统计、禅宗典籍与近代佛学著作的在线阅读站点。
+---
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero">
+  <div class="hero-inner">
+
+    <p class="hero-kicker mono">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      OPEN CANON · 开放佛经库 · 次第禅心
+    </p>
+
+    <h1 class="hero-title" aria-label="阅藏经">
+      <span class="hero-char">阅</span><span class="hero-char">藏</span><span class="hero-char">经</span>
+      <span class="hero-seal" aria-hidden="true">藏</span>
+    </h1>
+
+    <p class="hero-motto">行到水穷处，坐看云起时</p>
+
+    <p class="hero-desc">
+      自经、律、论三藏分科，遍阅大藏要典；就禅门语录与公案，寻祖师一盏茶烟；
+      旁及近代教史与目录学著述，为旧典开出新读法。
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ '/categories/tripitaka/' | relative_url }}">
+        <span>开始阅读</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn btn-ghost" href="{{ '/stats/' | relative_url }}">藏经统计</a>
+      <a class="btn btn-ghost" href="{{ '/browse/' | relative_url }}">检索目录</a>
+    </div>
+
+    <ul class="hero-stats" id="heroStats">
+      <li><b class="mono" data-count="{{ site.site_stats.canon_parts }}">0</b><span>部</span></li>
+      <li><b class="mono" data-count="{{ site.site_stats.canon_volumes }}">0</b><span>卷</span></li>
+      <li><b class="mono" data-count="{{ site.sutra | size }}">0</b><span>篇在线</span></li>
+      <li><b class="mono" data-count="{{ site.data.categories | size }}">0</b><span>分类</span></li>
+    </ul>
+
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <svg class="hero-enso" viewBox="0 0 200 200">
+      <circle class="enso-track" cx="100" cy="100" r="78" fill="none" stroke="currentColor" stroke-width="1" opacity=".25"/>
+      <circle class="enso-stroke" cx="100" cy="100" r="78" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" pathLength="100" stroke-dasharray="88 12" stroke-dashoffset="100"/>
+    </svg>
+    <div class="hero-rings">
+      <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
+    </div>
+  </div>
+
+  <a class="hero-scroll mono" href="#stats">
+    <span>SCROLL</span>
+    <svg viewBox="0 0 16 24" aria-hidden="true"><path d="M8 3v16M3 14l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</section>
+
+<!-- ══════════ 大藏经统计表格 ══════════ -->
+{%- assign t = site.data.tripitaka -%}
+{%- assign max_vol = 0 -%}
+{%- for r in t.classification.rows -%}
+  {%- if r.volumes > max_vol -%}{%- assign max_vol = r.volumes -%}{%- endif -%}
+{%- endfor -%}
+
+<section class="section stats-section" id="stats">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">大藏经统计</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+    <span class="section-count mono">{{ t.classification.caption }}</span>
+  </div>
+
+  <div class="stats-layout">
+
+    <div class="stats-main" data-reveal>
+      <div class="table-wrap">
+        <table class="stats-table">
+          <caption class="sr-only">{{ t.classification.title }}</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="col-cat">类别</th>
+              <th scope="col" class="col-name">分部</th>
+              <th scope="col" class="col-num">部数</th>
+              <th scope="col" class="col-num">卷数</th>
+              <th scope="col" class="col-bar">卷数占比</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%- for r in t.classification.rows %}
+            {%- assign pct = r.volumes | times: 100.0 | divided_by: max_vol %}
+            <tr>
+              <td class="col-cat"><span class="tag-chip tag-{{ r.tag }}">{{ r.tag }}</span></td>
+              <td class="col-name">
+                <strong>{{ r.name }}</strong>
+                <em>{{ r.scope }}</em>
+              </td>
+              <td class="col-num mono">{{ r.parts }}</td>
+              <td class="col-num mono">{{ r.volumes }}</td>
+              <td class="col-bar">
+                <span class="bar-track"><i class="bar-fill" style="--w: {{ pct | round: 1 }}%"></i></span>
+                <span class="bar-pct mono">{{ r.volumes | times: 100.0 | divided_by: t.classification.total_volumes | round: 1 }}%</span>
+              </td>
+            </tr>
+            {%- endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="col-cat"></td>
+              <td class="col-name"><strong>合计</strong><em>大藏经主体全部分类</em></td>
+              <td class="col-num mono">{{ t.classification.total_parts }}</td>
+              <td class="col-num mono">{{ t.classification.total_volumes }}</td>
+              <td class="col-bar"><span class="bar-track"><i class="bar-fill bar-fill-total" style="--w: 100%"></i></span><span class="bar-pct mono">100%</span></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="table-note mono">※ 部卷分类统计依《大藏经》部卷分类通例整理；各刻本编次略有出入，仅供浏览参考。</p>
+    </div>
+
+    <aside class="stats-side" data-reveal>
+      <div class="donut-card">
+        <p class="aside-label mono">DISTRIBUTION</p>
+        {%- assign total = 0 -%}
+        {%- for r in t.distribution.rows -%}{%- assign total = total | plus: r.value -%}{%- endfor -%}
+        {%- assign cum = 0 -%}
+        <svg class="donut" viewBox="0 0 140 140" role="img" aria-label="藏经构成占比图">
+          <circle cx="70" cy="70" r="52" fill="none" stroke="currentColor" stroke-width="10" opacity=".08"/>
+          {%- for row in t.distribution.rows -%}
+          {%- assign frac = row.value | times: 100.0 | divided_by: total -%}
+          {%- assign off = cum | times: -1 -%}
+          <circle class="donut-seg donut-{{ row.key }}" cx="70" cy="70" r="52" fill="none" stroke-width="10"
+                  pathLength="100" stroke-dasharray="{{ frac | round: 3 }} {{ 100 | minus: frac | round: 3 }}"
+                  stroke-dashoffset="{{ off }}" stroke-linecap="butt"/>
+          {%- assign cum = cum | plus: frac -%}
+          {%- endfor %}
+          <text x="70" y="66" text-anchor="middle" class="donut-num mono">{{ total }}</text>
+          <text x="70" y="84" text-anchor="middle" class="donut-label mono">部</text>
+        </svg>
+        <ul class="donut-legend mono">
+          {%- for row in t.distribution.rows %}
+          <li><span class="legend-dot dot-{{ row.key }}"></span><span class="legend-name">{{ row.name }}</span><span class="legend-val">{{ row.value }}</span></li>
+          {%- endfor %}
+        </ul>
+      </div>
+
+      <div class="canon-card">
+        <p class="aside-label mono">CANON LINEAGE</p>
+        <ul class="canon-line">
+          {%- for c in t.canons.rows limit: 6 %}
+          <li>
+            <span class="canon-dyn">{{ c.dynasty }}</span>
+            <span class="canon-name">{{ c.name }}</span>
+            <span class="canon-year mono">{{ c.year }}</span>
+          </li>
+          {%- endfor %}
+        </ul>
+        <a class="mini-link mono" href="{{ '/stats/' | relative_url }}">查看历代刻藏概览 →</a>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ══════════ 分类内容 ══════════ -->
+<section class="section cats-section" id="categories">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">分类内容</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+    <span class="section-count mono">THREE PATHS · 三条路径</span>
+  </div>
+
+  <div class="cats-grid">
+    {%- for cat in site.data.categories -%}
+    {%- assign docs = site.sutra | where: "category", cat.slug | sort: "order" -%}
+    <article class="cat-card cat-{{ cat.accent }}" data-reveal>
+      <div class="cat-card-top">
+        <span class="cat-glyph" aria-hidden="true">{{ cat.glyph }}</span>
+        <span class="cat-count mono">{{ docs | size }} 篇</span>
+      </div>
+      <h3 class="cat-name">{{ cat.name }}</h3>
+      <p class="cat-en mono">{{ cat.en }}</p>
+      <p class="cat-desc">{{ cat.desc }}</p>
+
+      <ul class="cat-featured">
+        {%- for doc in docs limit: 3 %}
+        <li><a href="{{ doc.url | relative_url }}"><span>{{ doc.title }}</span><em class="mono">{% if doc.translator %}{{ doc.translator }}{% else %}{{ doc.author }}{% endif %}</em></a></li>
+        {%- endfor %}
+      </ul>
+
+      <a class="cat-cta" href="{{ '/categories/' | append: cat.slug | append: '/' | relative_url }}">
+        <span>进入分类</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </article>
+    {%- endfor %}
+  </div>
+</section>
+
+<!-- ══════════ 经藏一览 ══════════ -->
+<section class="section latest-section">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">经藏一览</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+    <span class="section-count mono">{{ site.sutra | size }} ITEMS</span>
+  </div>
+
+  <ol class="doc-grid">
+    {%- assign docs = site.sutra | sort: "order" -%}
+    {%- for doc in docs limit: 9 %}
+    <li class="doc-card" data-reveal>
+      <a class="doc-link" href="{{ doc.url | relative_url }}">
+        <span class="doc-no mono">{{ forloop.index | prepend: "00" | slice: -3, 3 }}</span>
+        <span class="doc-main">
+          <span class="doc-title">{{ doc.title }}</span>
+          <span class="doc-byline mono">{% if doc.translator %}{{ doc.translator }}{% else %}{{ doc.author }}{% endif %}{% if doc.dynasty %} · {{ doc.dynasty }}{% endif %}</span>
+          <span class="doc-summary">{{ doc.summary | default: doc.subtitle }}</span>
+        </span>
+        <span class="doc-arrow" aria-hidden="true">
+          <svg viewBox="0 0 20 20"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+    </li>
+    {%- endfor %}
+  </ol>
+
+  <div class="more-cta" data-reveal>
+    <a class="btn btn-ghost" href="{{ '/browse/' | relative_url }}">查看全部 {{ site.sutra | size }} 篇</a>
+  </div>
+</section>
+
+<!-- ══════════ 禅意引文 ══════════ -->
+<section class="section verse-band" data-reveal>
+  <div class="verse-band-inner">
+    <span class="enso-mark" aria-hidden="true"></span>
+    <blockquote>
+      <p>自性本来是佛，恁麽事却要修。</p>
+      <p>本自天真，不假修成。</p>
+    </blockquote>
+    <cite class="mono">— 六祖大师 · 无相颂</cite>
+  </div>
+</section>

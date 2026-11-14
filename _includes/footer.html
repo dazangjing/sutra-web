@@ -1,0 +1,55 @@
+<footer class="site-footer">
+  <div class="footer-inner">
+
+    <div class="footer-col footer-brand">
+      <div class="footer-seal" aria-hidden="true">{{ site.seal_char }}</div>
+      <p class="footer-motto">「{{ site.site_stats.motto }}」</p>
+      <p class="footer-desc">{{ site.description_short }}</p>
+      <p class="footer-meta mono">
+        <span>宗风 · {{ site.site_stats.tradition }}</span>
+        <span>卷数 · {{ site.site_stats.canon_volumes }}</span>
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h3 class="footer-title">分类</h3>
+      <ul class="footer-links">
+        {%- for cat in site.data.categories %}
+        <li><a href="{{ '/categories/' | append: cat.slug | append: '/' | relative_url }}">{{ cat.name }}<span class="mono">/ {{ cat.en }}</span></a></li>
+        {%- endfor %}
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h3 class="footer-title">本站</h3>
+      <ul class="footer-links">
+        {%- for item in site.data.nav.items %}
+        <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h3 class="footer-title">链接</h3>
+      <ul class="footer-links">
+        {%- for link in site.social.links %}
+        <li><a href="{{ link.url }}" rel="noopener" target="_blank">{{ link.title }}<span class="mono">↗</span></a></li>
+        {%- endfor %}
+        <li><a href="{{ '/feed.xml' | relative_url }}">RSS 订阅<span class="mono">↗</span></a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-bottom-inner mono">
+      <span>© {{ 'now' | date: "%Y" }} {{ site.author }}</span>
+      <span class="dot">·</span>
+      <span>{{ site.title }} · {{ site.subtitle }}</span>
+      <span class="dot">·</span>
+      <span>文本依公有领域整理，仅供学习参考</span>
+      <span class="grow"></span>
+      <span class="build mono">BUILD {{ site.time | date: "%Y%m%d-%H%M" }}</span>
+    </div>
+  </div>
+</footer>

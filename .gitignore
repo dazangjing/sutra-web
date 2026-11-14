@@ -1,0 +1,22 @@
+# Jekyll
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# Bundler / 本地工具链
+vendor/
+.bundle/
+.gemhome/
+.home/
+
+# Node / misc
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Editors
+.idea/
+.vscode/
+*.swp

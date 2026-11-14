@@ -1,0 +1,71 @@
+---
+layout: default
+---
+{%- assign cat = site.data.categories | where: "slug", page.category | first -%}
+{%- assign docs = site.sutra | where: "category", page.category | sort: "order" -%}
+
+<section class="page-hero" data-reveal>
+  <div class="page-hero-inner">
+    <p class="page-kicker mono">
+      <span class="kicker-index">/ {{ cat.en }}</span>
+      <span class="kicker-line"></span>
+      <span>{{ docs | size }} 篇</span>
+    </p>
+    <h1 class="page-title">
+      <span class="page-title-glyph" aria-hidden="true">{{ cat.glyph }}</span>
+      {{ cat.name }}
+    </h1>
+    <p class="page-desc">{{ cat.desc }}</p>
+    <ul class="page-keywords mono">
+      {%- for k in cat.keywords %}<li>{{ k }}</li>{% endfor %}
+    </ul>
+  </div>
+  <div class="page-hero-glow" aria-hidden="true"></div>
+</section>
+
+<section class="doc-section">
+  <div class="section-head" data-reveal>
+    <h2 class="section-title">篇目一览</h2>
+    <span class="section-rule" aria-hidden="true"></span>
+    <span class="section-count mono">{{ docs | size }} ITEMS</span>
+  </div>
+
+  <ol class="doc-grid">
+    {%- for doc in docs %}
+    <li class="doc-card" data-reveal>
+      <a class="doc-link" href="{{ doc.url | relative_url }}">
+        <span class="doc-no mono">{{ forloop.index | prepend: "00" | slice: -3, 3 }}</span>
+        <span class="doc-main">
+          <span class="doc-title">{{ doc.title }}</span>
+          <span class="doc-byline mono">
+            {%- if doc.translator %}{{ doc.translator }}{% else %}{{ doc.author }}{% endif -%}
+            {%- if doc.dynasty %} · {{ doc.dynasty }}{% endif -%}
+          </span>
+          <span class="doc-summary">{{ doc.summary | default: doc.subtitle }}</span>
+          <span class="doc-tags mono">
+            {%- if doc.canon %}<i>{{ doc.canon }}</i>{% endif -%}
+            {%- if doc.length %}<i>{{ doc.length }}</i>{% endif -%}
+          </span>
+        </span>
+        <span class="doc-arrow" aria-hidden="true">
+          <svg viewBox="0 0 20 20"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+    </li>
+    {%- endfor %}
+  </ol>
+</section>
+
+<section class="section-nav-cta" data-reveal>
+  <p class="cta-text">继续浏览其他分类</p>
+  <div class="cta-links">
+    {%- for other in site.data.categories %}
+    {%- unless other.slug == page.category %}
+    <a class="cta-chip" href="{{ '/categories/' | append: other.slug | append: '/' | relative_url }}">
+      <span class="cta-glyph" aria-hidden="true">{{ other.glyph }}</span>{{ other.name }}
+    </a>
+    {%- endunless %}
+    {%- endfor %}
+    <a class="cta-chip cta-ghost" href="{{ '/browse/' | relative_url }}">全部目录</a>
+  </div>
+</section>
