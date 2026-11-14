@@ -52,6 +52,8 @@ if (tocLinks.length && article) {
       const id = (link.getAttribute('href') ?? '').replace('#', '');
       const el = document.getElementById(id);
       if (!el) return;
+      // 收起「篇目」下拉，避免遮挡正文
+      link.closest('details')?.removeAttribute('open');
       const top = el.getBoundingClientRect().top + window.scrollY - 100;
       window.scrollTo({ top, behavior: 'smooth' });
       history.replaceState(null, '', `#${id}`);

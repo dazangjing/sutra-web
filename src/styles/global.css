@@ -22,6 +22,8 @@
   --yzj-cinnabar: #e0644f;
   --yzj-noise: 0.035;
   --yzj-aurora: 1;
+  /* 正文区底色：相对页面背景约 20% 的视觉差（墨夜：#05070a → #0e131a） */
+  --yzj-reader: #0e131a;
 }
 
 [data-theme='paper'] {
@@ -42,6 +44,8 @@
   --yzj-cinnabar: #b53f2c;
   --yzj-noise: 0.02;
   --yzj-aurora: 0.55;
+  /* 正文区底色：相对页面背景约 20% 的视觉差（素白：#f4f1e8 → #fffdf8） */
+  --yzj-reader: #fffdf8;
 }
 
 @theme inline {
@@ -60,6 +64,7 @@
   --color-gold-2: var(--yzj-gold-2);
   --color-violet: var(--yzj-violet);
   --color-cinnabar: var(--yzj-cinnabar);
+  --color-reader: var(--yzj-reader);
 
   --font-serif: 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif CJK SC', 'Noto Serif SC',
     SimSun, Georgia, serif;
@@ -290,6 +295,43 @@
     stroke-width: 13px;
   }
 
+  /* 阅读页：上—中—下结构 */
+  .reading-head {
+    position: relative;
+  }
+
+  /* 正文区：独立纸面，底色与页面背景保持约 20% 视觉差 */
+  .reading-body {
+    position: relative;
+    margin-top: 2rem;
+    padding: clamp(1.75rem, 3.4vw, 3.25rem) clamp(1.25rem, 3.6vw, 3.5rem);
+    border: 1px solid var(--yzj-line);
+    border-radius: var(--radius-card);
+    background: var(--yzj-reader);
+    box-shadow:
+      0 30px 70px -40px rgb(0 0 0 / 0.75),
+      inset 0 1px 0 rgb(255 255 255 / 0.03);
+  }
+
+  .reading-body > .prose-zen {
+    max-width: 62rem;
+    margin-inline: auto;
+  }
+
+  .reading-foot {
+    margin-top: 2.5rem;
+  }
+
+  /* 篇目下拉 */
+  .toc-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-menu[open] > summary {
+    border-color: var(--yzj-line);
+    color: var(--yzj-jade);
+  }
+
   /* 正文排版 */
   .prose-zen {
     font-family: var(--font-serif);
@@ -385,6 +427,10 @@
     border-radius: 0 var(--radius-chip) var(--radius-chip) 0;
     background: rgb(95 227 192 / 0.05);
     color: var(--yzj-ink-2);
+  }
+
+  [data-theme='paper'] .prose-zen blockquote {
+    background: rgb(20 112 94 / 0.06);
   }
 
   .prose-zen blockquote p {
