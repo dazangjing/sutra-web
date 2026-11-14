@@ -1,0 +1,47 @@
+---
+interface Props {
+  kicker: string;
+  title: string;
+  desc?: string;
+  glyph?: string;
+  count?: string;
+  keywords?: string[];
+}
+
+const { kicker, title, desc, glyph, count, keywords } = Astro.props;
+---
+
+<section class="relative overflow-hidden">
+  <div class="pointer-events-none absolute -top-[30%] right-[-10%] h-[620px] w-[620px] rounded-full bg-[radial-gradient(circle,rgb(95_227_192/0.14),transparent_62%)]"></div>
+
+  <div class="relative mx-auto max-w-[1260px] px-4 pt-14 pb-8 sm:px-8 sm:pt-20 sm:pb-10">
+    <p class="reveal mb-4 flex items-center gap-3.5 font-mono text-[11.5px] tracking-[0.18em] text-ink-3">
+      <span class="text-jade">{kicker}</span>
+      <span class="h-px max-w-[120px] flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      {count && <span>{count}</span>}
+    </p>
+
+    <h1 class="reveal flex items-center gap-4 font-serif text-[clamp(32px,5.2vw,54px)] font-semibold tracking-[0.12em] text-ink">
+      {
+        glyph && (
+          <span class="grid h-[54px] w-[54px] place-items-center rounded-[10px] border border-jade/35 bg-jade/10 text-[27px] text-jade">
+            {glyph}
+          </span>
+        )
+      }
+      {title}
+    </h1>
+
+    {desc && <p class="reveal mt-4.5 max-w-[60ch] text-[15px] leading-[2] text-ink-2">{desc}</p>}
+
+    {
+      keywords && keywords.length > 0 && (
+        <ul class="reveal mt-5.5 flex flex-wrap gap-2">
+          {keywords.map((k) => (
+            <li class="rounded-full border border-line bg-panel px-3 py-1 font-mono text-[11px] tracking-[0.1em] text-ink-3">{k}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</section>

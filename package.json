@@ -1,0 +1,22 @@
+{
+  "name": "yuezangjing",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "阅藏经 —— 大藏经 / 禅宗 / 近代著作 的开放佛学阅读站点",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^5.18.2",
+    "rehype-slug": "^6.0.0",
+    "tailwindcss": "^4.3.5"
+  }
+}

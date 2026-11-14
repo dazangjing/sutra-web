@@ -21,23 +21,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          ruby-version: '3.3'
-          bundler-cache: true
+          node-version: 22
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Configure Pages
+        id: pages
         uses: actions/configure-pages@v5
 
+      # configure-pages 会自动给出 base_path（项目页为 /<repo>，用户页为空），
+      # 由此正确生成 CSS/JS 与站内链接的绝对前缀，避免「样式错乱」。
       - name: Build site
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: .
-          destination: ./_site
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     needs: build

@@ -1,0 +1,27 @@
+---
+/** 印章标记：圆相描线 + 藏字 */
+interface Props {
+  size?: number;
+  char?: string;
+  class?: string;
+}
+const { size = 42, char = '藏', class: className = '' } = Astro.props;
+---
+
+<span class={`relative inline-grid place-items-center text-jade ${className}`} style={`width:${size}px;height:${size}px`}>
+  <svg viewBox="0 0 44 44" width={size} height={size} aria-hidden="true" class="overflow-visible">
+    <circle
+      class="enso-path"
+      cx="22"
+      cy="22"
+      r="18"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.2"
+      stroke-linecap="round"
+      pathLength="100"
+      stroke-dasharray="88 12"></circle>
+    <text class="seal-char" x="22" y="29" text-anchor="middle" font-size="19">{char}</text>
+  </svg>
+  <i class="seal-ring pointer-events-none absolute inset-[4px] rounded-full bg-[radial-gradient(circle,rgba(95,227,192,0.3),transparent_68%)]"></i>
+</span>

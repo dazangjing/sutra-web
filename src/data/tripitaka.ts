@@ -1,0 +1,71 @@
+/**
+ * 大藏经统计数据
+ * 数据依据公开的部卷分类通例与历代刻藏著录整理；各藏本编次略有出入，此处取通行统计。
+ */
+
+export type StatRow = {
+  name: string;
+  parts: number;
+  volumes: number;
+  tag: '经' | '论' | '律' | '杂';
+  scope: string;
+};
+
+export const classification = {
+  title: '大藏经部卷分类统计',
+  caption: '依《大藏经》部卷分类通例整理',
+  totalParts: 2066,
+  totalVolumes: 8083,
+  rows: [
+    { name: '大乘经', parts: 1169, volumes: 4147, tag: '经', scope: '般若、涅槃、宝积、华严、法华、净土、密教诸部' },
+    { name: '大乘法论', parts: 366, volumes: 1761, tag: '论', scope: '唯识、中观、显宗、如来藏诸系义论' },
+    { name: '单译经', parts: 173, volumes: 736, tag: '经', scope: '单经别行、疑伪失译之属' },
+    { name: '小乘经', parts: 227, volumes: 619, tag: '经', scope: '阿含四部、涅槃、增一、杂藏' },
+    { name: '律', parts: 61, volumes: 518, tag: '律', scope: '四分律、根本说一切有部毗奈耶等' },
+    { name: '小乘法论', parts: 61, volumes: 192, tag: '论', scope: '俱舍、顺正、显宗、阿毗昙诸论' },
+    { name: '杂藏', parts: 9, volumes: 110, tag: '杂', scope: '瑜伽师地、起世、菩萨本行等别行部' },
+  ] as StatRow[],
+};
+
+export type CanonRow = {
+  name: string;
+  dynasty: string;
+  year: string;
+  parts: string;
+  volumes: string;
+  feature: string;
+};
+
+export const canons = {
+  title: '历代大藏经刻藏概览',
+  caption: '自辽宋以降诸大藏经刊刻流布情形',
+  rows: [
+    { name: '房山石经', dynasty: '辽', year: '1030–1071', parts: '—', volumes: '七百余函', feature: '石刻藏经，四部备具，现存辽代刻本最多者' },
+    { name: '契丹藏', dynasty: '辽', year: '1038–1071', parts: '—', volumes: '约六千五百', feature: '契丹藏经院刊刻，卷首千字文帙号' },
+    { name: '崇宁藏', dynasty: '北宋', year: '1103–1110', parts: '五千余', volumes: '—', feature: '雕版千字文帙号，后附《法苑珠林》等藏外典籍' },
+    { name: '碛砂藏', dynasty: '南宋', year: '1238–1252', parts: '约一千一百', volumes: '六千余', feature: '思溪开元禅寺发起，卷首千字文帙号绵延至今' },
+    { name: '普宁藏', dynasty: '元', year: '1285–1295', parts: '一千余', volumes: '—', feature: '杭州路佛智普宁寺重刻，后归入《碛砂藏》续刻' },
+    { name: '毗卢藏', dynasty: '明', year: '1404–1447', parts: '约一千四百六十', volumes: '约六千三百六十', feature: '北京万寿寺刊刻，后世通称「北藏」之本' },
+    { name: '永乐北藏', dynasty: '明', year: '1403–1408', parts: '636', volumes: '6360', feature: '明官修大藏经，写本为主，装帧最精' },
+    { name: '永乐南藏', dynasty: '明', year: '1414–1431', parts: '636', volumes: '6360', feature: '安置于南京报恩寺，与北藏同帙号而增刻藏外' },
+    { name: '嘉兴藏', dynasty: '明', year: '1624–1636', parts: '1654', volumes: '7168', feature: '径山万寿禅院刊刻，收经最多且附刻宗说' },
+    { name: '龙藏', dynasty: '清', year: '1733–1738', parts: '1669', volumes: '7240', feature: '北京卧佛寺藏经馆刊刻，殿版写本' },
+    { name: '频伽藏', dynasty: '清', year: '1909–1913', parts: '—', volumes: '7168', feature: '上海频伽精舍铅印缩印，广为流通' },
+    { name: '高丽大藏经', dynasty: '高丽', year: '1011–1248', parts: '一千五百余', volumes: '八万卷帙', feature: '八万大藏经，续雕本世称高丽藏' },
+    { name: '弘教大藏经', dynasty: '日本', year: '1560–1641', parts: '约六百五十', volumes: '七千余', feature: '日本高田明寺藏，开版印行流通至今' },
+  ] as CanonRow[],
+};
+
+export type DistRow = { name: string; key: 'sutra' | 'shastra' | 'vinaya' | 'misc'; value: number; desc: string };
+
+export const distribution = {
+  title: '藏经构成占比',
+  rows: [
+    { name: '经', key: 'sutra', value: 1569, desc: '大乘经、小乘经与单译经' },
+    { name: '论', key: 'shastra', value: 427, desc: '大乘法论、小乘法论' },
+    { name: '律', key: 'vinaya', value: 61, desc: '戒律部' },
+    { name: '杂', key: 'misc', value: 9, desc: '杂藏别行' },
+  ] as DistRow[],
+};
+
+export const distributionTotal = distribution.rows.reduce((sum, row) => sum + row.value, 0);

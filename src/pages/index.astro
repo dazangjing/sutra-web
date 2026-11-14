@@ -1,0 +1,220 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StatTable from '../components/StatTable.astro';
+import DonutChart from '../components/DonutChart.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import DocCard from '../components/DocCard.astro';
+import { site } from '../data/site';
+import { categories } from '../data/categories';
+import { classification, canons, distribution, distributionTotal } from '../data/tripitaka';
+import { u } from '../lib/url';
+
+const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
+const byCategory = Object.fromEntries(
+  categories.map((cat) => [cat.slug, docs.filter((d) => d.data.category === cat.slug)]),
+) as Record<string, typeof docs>;
+---
+
+<BaseLayout description={site.description} bodyClass="page-home">
+  <!-- ══ HERO ══ -->
+  <section class="mx-auto grid min-h-[78vh] max-w-[1260px] grid-cols-1 items-center gap-10 px-4 pt-14 pb-12 sm:px-8 sm:pt-24 lg:grid-cols-[minmax(0,1fr)_auto]">
+    <div class="relative z-10 max-w-[720px]">
+      <p class="mb-6.5 inline-flex items-center gap-2.5 rounded-full border border-line bg-panel px-4 py-1.5 font-mono text-[11.5px] tracking-[0.18em] text-ink-2">
+        <span class="h-[7px] w-[7px] animate-pulse rounded-full bg-jade shadow-[0_0_0_0_rgb(95_227_192/0.6)]"></span>
+        OPEN CANON · 开放佛经库 · 次第禅心
+      </p>
+
+      <h1 class="flex items-start gap-0.5 font-serif text-[clamp(62px,13vw,132px)] leading-[0.98] font-medium tracking-[0.02em]">
+        {
+          ['阅', '藏', '经'].map((char, i) => (
+            <span
+              class="bg-gradient-to-b from-ink to-jade bg-clip-text text-transparent [animation:char-rise_0.95s_var(--ease-zen)_backwards]"
+              style={`animation-delay:${0.05 + i * 0.11}s`}
+            >
+              {char}
+            </span>
+          ))
+        }
+        <span class="mb-2.5 ml-3.5 grid h-[54px] w-[54px] -rotate-6 place-items-center rounded-[8px] bg-[linear-gradient(150deg,#c9413a,#8d2a24)] font-serif text-[24px] text-white shadow-[0_10px_26px_-12px_rgba(201,65,58,0.8)] [animation:char-rise_0.95s_var(--ease-zen)_backwards] [animation-delay:0.42s] sm:mb-6">
+          {site.sealChar}
+        </span>
+      </h1>
+
+      <p class="relative mt-5.5 pl-[18px] font-serif text-[clamp(17px,2.1vw,21px)] tracking-[0.22em] text-gold before:absolute before:top-[0.35em] before:bottom-[0.35em] before:left-0 before:w-[2px] before:rounded before:bg-[linear-gradient(var(--yzj-gold),transparent)]">
+        {site.motto}
+      </p>
+
+      <p class="mt-4.5 max-w-[54ch] text-[15.5px] leading-[2] text-ink-2">
+        自经、律、论三藏分科，遍阅大藏要典；就禅门语录与公案，寻祖师一盏茶烟；旁及近代教史与目录学著述，为旧典开出新读法。
+      </p>
+
+      <div class="mt-8.5 flex flex-wrap gap-3">
+        <a href={u('/categories/tripitaka/')} class="group inline-flex items-center gap-2.5 rounded-full bg-[linear-gradient(135deg,var(--yzj-jade),var(--yzj-jade-2))] px-6 py-3 text-[14px] font-semibold tracking-[0.06em] text-[#04211c] shadow-[0_12px_30px_-14px_rgb(95_227_192/0.85)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_-14px_rgb(95_227_192/0.95)]">
+          开始阅读
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </a>
+        <a href={u('/stats/')} class="rounded-full border border-line bg-panel px-6 py-3 text-[14px] tracking-[0.06em] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">藏经统计</a>
+        <a href={u('/browse/')} class="rounded-full border border-line bg-panel px-6 py-3 text-[14px] tracking-[0.06em] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">检索目录</a>
+      </div>
+
+      <ul class="mt-11 grid grid-cols-2 gap-4 border-t border-line pt-6.5 sm:grid-cols-4 sm:gap-5">
+        {
+          [
+            { value: site.stats.canonParts, unit: '部' },
+            { value: site.stats.canonVolumes, unit: '卷' },
+            { value: docs.length, unit: '篇在线' },
+            { value: categories.length, unit: '分类' },
+          ].map((item) => (
+            <li class="flex flex-col gap-1">
+              <b class="font-mono text-[clamp(25px,3.4vw,34px)] leading-[1.1] font-medium tabular-nums text-ink" data-count={item.value}>
+                0
+              </b>
+              <span class="text-[11.5px] tracking-[0.18em] text-ink-3">{item.unit}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="relative hidden aspect-square w-[clamp(220px,26vw,330px)] place-items-center lg:grid" aria-hidden="true">
+      <svg class="absolute inset-0 h-full w-full text-jade" viewBox="0 0 200 200">
+        <circle class="enso-path" cx="100" cy="100" r="78" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" pathLength="100"></circle>
+      </svg>
+      <div class="absolute inset-0">
+        <span class="absolute inset-[12%] animate-[ring-breathe_6s_ease-in-out_infinite] rounded-full border border-line"></span>
+        <span class="absolute inset-[24%] animate-[ring-breathe_6s_ease-in-out_infinite_1.4s] rounded-full border border-line"></span>
+        <span class="absolute inset-[36%] animate-[ring-breathe_6s_ease-in-out_infinite_2.8s] rounded-full border border-line"></span>
+      </div>
+    </div>
+
+    <a href="#stats" class="absolute bottom-5 left-4 flex items-center gap-2.5 font-mono text-[10.5px] tracking-[0.28em] text-ink-3 sm:left-8">
+      SCROLL
+      <svg viewBox="0 0 16 24" width="13" height="20" aria-hidden="true" class="animate-[scroll-hint_2.2s_ease-in-out_infinite]"><path d="M8 3v16M3 14l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+  </section>
+
+  <!-- ══ 大藏经统计表格 ══ -->
+  <section id="stats" class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">大藏经统计</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{classification.caption}</span>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div class="reveal">
+        <StatTable rows={classification.rows} totalParts={classification.totalParts} totalVolumes={classification.totalVolumes} />
+        <p class="mt-3.5 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
+          ※ 部卷分类统计依《大藏经》部卷分类通例整理；各刻本编次略有出入，仅供浏览参考。
+        </p>
+      </div>
+
+      <aside class="reveal flex flex-col gap-5">
+        <DonutChart rows={distribution.rows} total={distributionTotal} />
+
+        <div class="rounded-card border border-line bg-panel p-5 shadow-panel">
+          <p class="mb-3.5 font-mono text-[10.5px] tracking-[0.22em] text-ink-3">CANON LINEAGE</p>
+          <ul class="mb-3.5 grid gap-2.5">
+            {
+              canons.rows.slice(0, 6).map((canon) => (
+                <li class="grid grid-cols-[44px_1fr_auto] items-baseline gap-2.5 text-[13px]">
+                  <span class="rounded-[5px] border border-gold/30 bg-gold/10 px-1 py-0.5 text-center font-serif text-[12px] text-gold">
+                    {canon.dynasty}
+                  </span>
+                  <span class="text-ink-2">{canon.name}</span>
+                  <span class="font-mono text-[11px] text-ink-3">{canon.year}</span>
+                </li>
+              ))
+            }
+          </ul>
+          <a href={u('/stats/')} class="font-mono text-[11.5px] tracking-[0.1em] text-jade hover:underline">查看历代刻藏概览 →</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ══ 分类内容 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">分类内容</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">THREE PATHS · 三条路径</span>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {
+        categories.map((cat) => (
+          <CategoryCard
+            slug={cat.slug}
+            name={cat.name}
+            en={cat.en}
+            glyph={cat.glyph}
+            accent={cat.accent}
+            desc={cat.desc}
+            docs={byCategory[cat.slug] ?? []}
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ══ 经藏一览 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">经藏一览</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{docs.length} ITEMS</span>
+    </div>
+
+    <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {docs.slice(0, 9).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+    </ol>
+
+    <div class="reveal mt-8.5 flex justify-center">
+      <a href={u('/browse/')} class="rounded-full border border-line bg-panel px-6 py-3 text-[14px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">
+        查看全部 {docs.length} 篇
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ 禅意引文 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pb-16 sm:px-8 sm:pb-24">
+    <div class="reveal relative overflow-hidden rounded-card border border-line bg-panel px-6 py-14 text-center sm:py-16">
+      <span class="pointer-events-none absolute top-1/2 left-1/2 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-line-2"></span>
+      <span class="pointer-events-none absolute top-1/2 left-1/2 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-transparent border-t-jade/30 border-r-gold/25 animate-[spin_26s_linear_infinite]"></span>
+      <blockquote class="relative mb-3.5">
+        <p class="mb-2 font-serif text-[clamp(18px,2.4vw,24px)] tracking-[0.2em] text-ink">自性本来是佛，恁麽事却要修。</p>
+        <p class="font-serif text-[clamp(18px,2.4vw,24px)] tracking-[0.2em] text-ink">本自天真，不假修成。</p>
+      </blockquote>
+      <cite class="relative font-mono text-[11px] tracking-[0.18em] text-ink-3 not-italic">— 六祖大师 · 无相颂</cite>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  @keyframes char-rise {
+    from {
+      opacity: 0;
+      transform: translateY(34px) scale(0.94);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  @keyframes ring-breathe {
+    0%,
+    100% {
+      transform: scale(0.9);
+      opacity: 0.25;
+    }
+    50% {
+      transform: scale(1.04);
+      opacity: 0.7;
+    }
+  }
+</style>

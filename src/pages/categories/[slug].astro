@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import DocCard from '../../components/DocCard.astro';
+import { categories, categoryMap } from '../../data/categories';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  return categories.map((cat) => ({ params: { slug: cat.slug }, props: { cat } }));
+}
+
+const { cat } = Astro.props;
+const docs = (await getCollection('sutra'))
+  .filter((d) => d.data.category === cat.slug)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const others = categories.filter((c) => c.slug !== cat.slug);
+---
+
+<BaseLayout title={cat.name} description={cat.desc} bodyClass="page-category">
+  <PageHero kicker={`/ ${cat.en}`} title={cat.name} glyph={cat.glyph} desc={cat.desc} keywords={cat.keywords} count={`${docs.length} 篇`} />
+
+  <section class="mx-auto max-w-[1260px] px-4 pb-16 sm:px-8 sm:pb-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">篇目一览</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{docs.length} ITEMS</span>
+    </div>
+
+    <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {docs.map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+    </ol>
+  </section>
+
+  <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">
+    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">继续浏览其他分类</p>
+    <div class="flex flex-wrap justify-center gap-2.5">
+      {
+        others.map((other) => (
+          <a href={u(`/categories/${other.slug}/`)} class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">
+            <span class="font-serif text-jade">{other.glyph}</span>
+            {other.name}
+          </a>
+        ))
+      }
+      <a href={u('/browse/')} class="rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade">全部目录</a>
+    </div>
+  </section>
+</BaseLayout>

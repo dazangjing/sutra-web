@@ -1,0 +1,175 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import DocCard from '../components/DocCard.astro';
+import { categories } from '../data/categories';
+import { u } from '../lib/url';
+
+const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="经藏目录" description="阅藏经全站篇目索引，支持关键词检索与分类筛选。" bodyClass="page-browse">
+  <PageHero
+    kicker="/ BROWSE"
+    title="经藏目录"
+    desc="以关键词检索全站篇目，或按分类、译者、朝代过滤。索引随正文即时生成。"
+    count={`${docs.length} 篇`}
+  />
+
+  <section class="mx-auto max-w-[1260px] px-4 pt-2 pb-16 sm:px-8 sm:pb-24">
+    <div class="reveal mb-6.5 flex flex-col gap-4">
+      <div class="flex items-center gap-3 rounded-full border border-line bg-panel px-5 py-1.5 transition-all focus-within:border-line-2 focus-within:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" class="shrink-0 text-ink-3"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M12.8 12.8 L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        <input
+          id="search-input"
+          type="search"
+          placeholder="检索篇名、译者、藏经编号、关键词…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="检索篇目"
+          class="w-full min-w-0 bg-transparent py-3 text-[15px] text-ink outline-none placeholder:text-ink-3"
+        />
+        <button id="search-clear" type="button" class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[13px] text-ink-3 transition-colors hover:bg-panel-2 hover:text-cinnabar" aria-label="清空">✕</button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3.5">
+        <span class="font-mono text-[10.5px] tracking-[0.22em] text-ink-3">FILTER</span>
+        <div id="filter-chips" class="flex flex-wrap gap-2">
+          <button class="filter-chip is-active" data-filter="all" type="button">全部</button>
+          {
+            categories.map((cat) => (
+              <button class="filter-chip" data-filter={cat.slug} type="button">
+                {cat.name}
+              </button>
+            ))
+          }
+        </div>
+        <span id="result-count" class="ml-auto font-mono text-[11.5px] tracking-[0.14em] text-ink-3">{docs.length} / {docs.length}</span>
+      </div>
+    </div>
+
+    <ol id="browse-list" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {
+        docs.map((doc, i) => (
+          <DocCard
+            doc={doc}
+            index={i + 1}
+            showCategory
+            filterCategory={doc.data.category}
+            filterText={`${doc.data.title} ${doc.data.translator ?? doc.data.author ?? ''} ${doc.data.canon ?? ''} ${doc.data.tags.join(' ')} ${doc.data.summary ?? ''}`.toLowerCase()}
+          />
+        ))
+      }
+    </ol>
+
+    <p id="browse-empty" class="hidden py-16 text-center text-[14px] text-ink-3">未检索到匹配篇目，请尝试更换关键词。</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .filter-chip {
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--yzj-line);
+    font-size: 13px;
+    color: var(--yzj-ink-2);
+    background: var(--yzj-panel);
+    transition: all 0.26s var(--ease-zen);
+  }
+  .filter-chip:hover {
+    color: var(--yzj-ink);
+    border-color: var(--yzj-line);
+  }
+  .filter-chip.is-active {
+    color: #04211c;
+    background: linear-gradient(135deg, var(--yzj-jade), var(--yzj-jade-2));
+    border-color: transparent;
+    font-weight: 600;
+  }
+  :global([data-theme='paper']) .filter-chip.is-active {
+    color: #f2fbf7;
+  }
+  /* :global 必需：is-hidden 由脚本在运行时添加，否则 Astro 会把该规则当作未使用样式删除 */
+  :global(.browse-item.is-hidden) {
+    display: none;
+  }
+</style>
+
+<script>
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const clear = document.getElementById('search-clear');
+  const chips = document.getElementById('filter-chips');
+  const count = document.getElementById('result-count');
+  const empty = document.getElementById('browse-empty');
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.browse-item'));
+
+  let activeCat = 'all';
+  let keyword = '';
+
+  const normalize = (value: string) => value.toLowerCase().replace(/\s+/g, '');
+
+  const apply = () => {
+    const kw = normalize(keyword);
+    let shown = 0;
+    items.forEach((item) => {
+      const cat = item.dataset.category ?? '';
+      const hay = normalize(item.dataset.search ?? '');
+      const ok = (activeCat === 'all' || cat === activeCat) && (!kw || hay.includes(kw));
+      item.classList.toggle('is-hidden', !ok);
+      if (ok) {
+        // 命中项若尚未进场，直接无动画呈现，避免筛选后还要等一次淡入
+        if (!item.classList.contains('is-in')) {
+          item.style.transition = 'none';
+          item.classList.add('is-in');
+          requestAnimationFrame(() => {
+            item.style.transition = '';
+          });
+        }
+        shown += 1;
+      }
+    });
+    if (count) count.textContent = `${shown} / ${items.length}`;
+    empty?.classList.toggle('hidden', shown !== 0);
+  };
+
+  input?.addEventListener('input', () => {
+    keyword = input.value;
+    apply();
+  });
+
+  input?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      input.value = '';
+      keyword = '';
+      apply();
+    }
+  });
+
+  clear?.addEventListener('click', () => {
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+    keyword = '';
+    apply();
+  });
+
+  chips?.addEventListener('click', (event) => {
+    const chip = (event.target as HTMLElement).closest<HTMLButtonElement>('.filter-chip');
+    if (!chip) return;
+    chips.querySelectorAll('.filter-chip').forEach((el) => el.classList.remove('is-active'));
+    chip.classList.add('is-active');
+    activeCat = chip.dataset.filter ?? 'all';
+    apply();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === '/' && document.activeElement !== input) {
+      event.preventDefault();
+      input?.focus();
+    }
+  });
+
+  apply();
+</script>

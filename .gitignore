@@ -1,22 +1,22 @@
-# Jekyll
-_site/
-.jekyll-cache/
-.jekyll-metadata
-.sass-cache/
-
-# Bundler / 本地工具链
-vendor/
+# ── 依赖 ─────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.pnpm-home/
+.home/
 .bundle/
 .gemhome/
-.home/
+vendor/
 
-# Node / misc
-node_modules/
+# ── 构建产物 ─────────────────────────────────────────────
+dist/
+.astro/
+_site/
+.jekyll-cache/
+
+# ── 系统 / 编辑器 ────────────────────────────────────────
 .DS_Store
 Thumbs.db
 *.log
-
-# Editors
 .idea/
 .vscode/
 *.swp

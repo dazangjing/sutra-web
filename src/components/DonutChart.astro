@@ -1,0 +1,63 @@
+---
+import type { DistRow } from '../data/tripitaka';
+
+interface Props {
+  rows: DistRow[];
+  total: number;
+}
+
+const { rows, total } = Astro.props;
+
+const color: Record<DistRow['key'], string> = {
+  sutra: 'var(--yzj-jade)',
+  shastra: 'var(--yzj-violet)',
+  vinaya: 'var(--yzj-gold)',
+  misc: 'var(--yzj-cinnabar)',
+};
+
+let cumulative = 0;
+const segments = rows.map((row) => {
+  const fraction = (row.value / total) * 100;
+  const seg = { ...row, fraction, offset: cumulative };
+  cumulative += fraction;
+  return seg;
+});
+---
+
+<div class="rounded-card border border-line bg-panel p-5 shadow-panel">
+  <p class="mb-3 font-mono text-[10.5px] tracking-[0.22em] text-ink-3">DISTRIBUTION</p>
+
+  <svg class="mx-auto block w-full max-w-[190px]" viewBox="0 0 140 140" role="img" aria-label="藏经构成占比图">
+    <circle cx="70" cy="70" r="52" fill="none" stroke="currentColor" stroke-width="10" opacity="0.08"></circle>
+    {
+      segments.map((seg) => (
+        <circle
+          class="donut-seg"
+          cx="70"
+          cy="70"
+          r="52"
+          fill="none"
+          stroke={color[seg.key]}
+          stroke-width="10"
+          pathLength="100"
+          stroke-dasharray={`${seg.fraction.toFixed(3)} ${(100 - seg.fraction).toFixed(3)}`}
+          stroke-dashoffset={-seg.offset.toFixed(3)}
+        />
+      ))
+    }
+    <text x="70" y="66" text-anchor="middle" class="fill-ink font-mono text-[25px]">{total}</text>
+    <text x="70" y="84" text-anchor="middle" class="fill-ink-3 font-mono text-[10px] tracking-[0.18em]">部</text>
+  </svg>
+
+  <ul class="mt-3 grid gap-2 font-mono text-[12px]">
+    {
+      rows.map((row) => (
+        <li class="flex items-center gap-2.5">
+          <span class="h-2.5 w-2.5 shrink-0 rounded-[3px]" style={`background:${color[row.key]}`}></span>
+          <span class="text-ink-2">{row.name}</span>
+          <span class="ml-auto tabular-nums text-ink">{row.value}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>

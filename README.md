@@ -12,13 +12,29 @@
 
 ---
 
+## ✦ 技术选型
+
+| 层 | 选型 | 理由 |
+|---|---|---|
+| **前端框架** | **Astro 5**（静态输出 + Content Layer） | 内容型站点的最优解：Markdown 内容集合原生支持、零框架运行时、静态 HTML 输出、GitHub Pages 一等公民 |
+| **样式** | **Tailwind CSS 4**（`@theme` 设计令牌） | 令牌驱动双主题，工具类消灭手写 CSS 的层叠冲突；仅构建期依赖，运行时不增体积 |
+| **内容** | Markdown + Content Collections（zod 校验） | front matter 由 schema 强校验，字段缺失即构建失败，不再出现「渲染成空」 |
+| **数据** | TypeScript 模块 | 统计表格/分类等结构化数据有类型，编辑器可补全 |
+| **交互** | 原生 TypeScript（无 UI 框架） | 主题、目录高亮、检索、进度条均为十余行原生 JS，零 hydration 成本 |
+| **部署** | GitHub Pages（Actions） | `configure-pages` 自动注入 base 路径，项目页/用户页都不会样式错乱 |
+
+> 相比 Jekyll：Jekyll 的 Liquid 模板易出现「筛选器不存在 → 渲染为空」「样式层叠互相覆盖」等问题；
+> Astro + Tailwind 以编译期校验、类型化数据与令牌化样式从根上消除这类问题。
+
+---
+
 ## ✦ 功能一览
 
 | 模块 | 说明 |
 |---|---|
-| **通用 Layout** | `header`（印章 + 品牌 + 导航 + 工具） / `content` / `footer` / 导航栏，统一于 `_layouts/default.html` |
+| **通用 Layout** | `BaseLayout`（header / content / footer / 导航栏），组件化拆分 |
 | **首页** | 圆相 Hero + 数据滚动 → **大藏经统计表格**（部卷分类 + 占比条 + SVG 环形图）→ **分类内容**（三大分类卡片）→ 经藏一览 → 禅意引文 |
-| **正文页** | Markdown 渲染；显示**标题 / 译者（著者）/ 年代 / 藏经编号 / 篇幅 / 标签**；自动生成篇目目录（滚动高亮）、阅读进度条、字号调节、上下篇导航 |
+| **正文页** | Markdown 渲染；显示**标题 / 译者（著者）/ 年代 / 藏经编号 / 篇幅 / 标签**；构建期生成篇目目录（滚动高亮）、阅读进度条、字号调节、复制链接、上下篇导航 |
 | **分类页** | `/categories/tripitaka/`、`/categories/chan/`、`/categories/modern/` |
 | **藏经概览** | `/stats/` — 部卷分类统计 + 历代刻藏概览 + 构成占比 |
 | **经藏目录** | `/browse/` — 即时关键词检索 + 分类筛选（纯前端，无需索引服务） |
@@ -32,78 +48,69 @@
 
 ```
 yuezangjing/
-├── _config.yml              # 站点配置（标题、集合、变量、排除项）
-├── _data/
-│   ├── nav.yml              # 导航栏条目
-│   ├── categories.yml       # 三大分类元数据
-│   └── tripitaka.yml        # 大藏经统计（部卷分类 / 历代刻藏 / 构成占比）
-├── _includes/               # head / header / footer / scripts
-├── _layouts/
-│   ├── default.html         # 通用骨架：header + content + footer + 导航
-│   ├── reading.html         # 正文页（目录 / 元信息 / 正文 / 上下篇）
-│   ├── category.html        # 分类页
-│   └── browse.html          # 目录检索页
-├── _sutra/                  # ★ 正文内容（Markdown + front matter），共 23 篇
-│   ├── xin-jing.md          #   心经
-│   ├── jin-gang-jing.md     #   金刚经
-│   └── …
-├── assets/
-│   ├── css/main.css         # 设计系统（双主题 · 墨夜/素白）
-│   ├── js/main.js           # 主题 / 导航 / 浮尘 / 动效 / 进度
-│   ├── js/reader.js         # 目录生成 / 滚动监听 / 字号 / 复制链接
-│   ├── js/browse.js         # 即时检索与筛选
-│   └── img/seal.svg
-├── categories/{tripitaka,chan,modern}/index.html
-├── index.html               # 首页
-├── stats.html               # 藏经概览
-├── browse.html              # 经藏目录
-├── about.md                 # 关于
-├── 404.html
-└── .github/workflows/pages.yml   # GitHub Pages 自动部署
+├── astro.config.mjs          # 站点配置（base / site / tailwind / sitemap / rehype-slug）
+├── src/
+│   ├── content.config.ts     # 内容集合 schema（zod 校验 front matter）
+│   ├── content/sutra/*.md    # ★ 经文正文（23 篇）
+│   ├── data/                 # 站点常量 / 导航 / 分类 / 大藏经统计（TypeScript）
+│   ├── lib/url.ts            # base 前缀安全的站内链接
+│   ├── scripts/              # app.ts（全局交互）/ reader.ts（正文页交互）
+│   ├── styles/global.css     # Tailwind 令牌 + 双主题 + 组件层
+│   ├── components/           # Header / Footer / SealMark / StatTable / DonutChart / DocCard / CategoryCard / PageHero
+│   ├── layouts/BaseLayout.astro
+│   └── pages/
+│       ├── index.astro       # 首页
+│       ├── stats.astro       # 藏经概览
+│       ├── browse.astro      # 经藏目录（检索）
+│       ├── about.astro       # 关于
+│       ├── 404.astro
+│       ├── categories/[slug].astro
+│       └── read/[id].astro   # 正文页
+├── public/seal.svg
+└── .github/workflows/pages.yml
 ```
 
 ---
 
-## ✦ 本地预览
+## ✦ 本地开发
 
-需要 Ruby 2.7+（推荐 3.x）与 Bundler。
-
-```bash
-bundle install
-bundle exec jekyll serve --livereload
-# → http://127.0.0.1:4000
-```
-
-构建静态产物：
+需要 Node 20+ 与 pnpm。
 
 ```bash
-bundle exec jekyll build      # 输出至 _site/
+pnpm install
+pnpm dev          # http://127.0.0.1:4321
+pnpm build        # 输出至 dist/
+pnpm preview      # 预览构建产物
 ```
-
-> 首次安装若网络受限，可先 `bundle config set --local path vendor/bundle` 以使用项目内缓存。
 
 ---
 
 ## ✦ 部署到 GitHub Pages
 
-1. 将本目录推送至 GitHub 仓库（默认分支 `main`）。
-2. 仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
-3. 推送即自动构建部署；工作流见 `.github/workflows/pages.yml`。
+1. 推送仓库（默认分支 `main`）。
+2. **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
+3. 推送即自动构建部署。
 
-若站点位于 `https://<user>.github.io/<repo>`（项目级页面），请修改 `_config.yml`：
+工作流会用 `actions/configure-pages` 自动取得 `base_path`：
 
-```yaml
-url: "https://<user>.github.io"
-baseurl: "/<repo>"      # ← 必改
+- **用户站点** `https://<user>.github.io` → `base_path` 为空 → 资源路径 `/…`
+- **项目站点** `https://<user>.github.io/<repo>` → `base_path` 为 `/<repo>` → 资源路径 `/<repo>/…`
+
+两者都已实测通过（本地以 `BASE_PATH=/yuezangjing/ astro build && astro preview` 复现项目站点）。
+**这是旧版「样式错乱」的根因**：资源以绝对路径 `/assets/...` 输出，在子路径下 404，页面便完全失去样式。
+现在所有资源与站内链接都由 `import.meta.env.BASE_URL` 统一生成，不会再错。
+
+本地手动指定：
+
+```bash
+BASE_PATH=/yuezangjing/ SITE_URL=https://<user>.github.io/yuezangjing pnpm build
 ```
-
-若使用自定义域名，在仓库根目录添加 `CNAME` 文件写入域名即可。
 
 ---
 
 ## ✦ 新增一篇经文
 
-在 `_sutra/` 下新建 Markdown 文件，文件名即 URL 片段（如 `xin-jing.md` → `/read/xin-jing/`）：
+在 `src/content/sutra/` 下新建 Markdown，文件名即 URL 片段（`xin-jing.md` → `/read/xin-jing/`）：
 
 ```markdown
 ---
@@ -129,12 +136,13 @@ verse:
 ```
 
 **体例**：标题 → 译者/著者 → 年代与藏经编号 → 正文（传译与底本 / 正文 / 义理提要 / 诵读或阅读提示）。
+字段由 `src/content.config.ts` 的 zod schema 校验，**写错字段名或漏填必填项会直接构建失败并给出提示**。
 
 ---
 
 ## ✦ 修改统计数据
 
-编辑 `_data/tripitaka.yml` 即可，首页表格、环形图与 `/stats/` 页面会同步更新：
+编辑 `src/data/tripitaka.ts` 即可，首页表格、环形图与 `/stats/` 页面会同步更新：
 
 - `classification.rows` — 大藏经部卷分类（类别 / 部数 / 卷数 / 说明）
 - `canons.rows` — 历代刻藏概览（藏经 / 时代 / 刊刻年代 / 规模 / 特色）
@@ -148,12 +156,13 @@ verse:
 
 - **科技感**：网格底纹、极光辉光、扫描线、粒子浮尘、SVG 环形图、等宽数字与 `BUILD` 时间戳。
 - **禅宗风格**：圆相（円相）SVG 描线动画、印章朱红、宣纸色底、衬线标题、偈颂居中排印、留白与对称。
+- **双主题**：Tailwind `@theme inline` 把工具类直接映射到 `--yzj-*` 变量，切换主题只换变量值，不产生类名膨胀。
 - **无外部字体请求**：全部使用系统中文字体（Songti SC / PingFang SC / 思源宋体等）回退栈，首屏零字体阻塞。
-- **无追踪脚本、无第三方 JS**：全部交互为原生 JavaScript。
+- **无追踪脚本、无第三方 JS**：全部交互为原生 TypeScript。
 
 ---
 
 ## ✦ 许可与声明
 
 代码以 MIT 许可开源（见 `LICENSE`）。
-经典文本依公有领域整理排版，仅供学习与研究参考；不同版本字句或有出入，引用时请核对原典。
+经典正文（`src/content/sutra/`）依公有领域之整理本录入，仅供学习与研究参考；不同版本字句或有出入，引用时请核对原典。
