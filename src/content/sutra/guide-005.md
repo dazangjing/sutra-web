@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "商务印书馆版"
-order: 37370
+order: 36840
 tags: [近代著作, 导读]
 summary: "汤用彤 1938 年出版之断代佛教史。以「佛教中国化」为主线，写魏晋南北朝佛学的输入、义学与僧团，为现代中国佛教史学的奠基之作。"
 ---

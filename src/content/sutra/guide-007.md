@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "中华书局版"
-order: 37390
+order: 36860
 tags: [近代著作, 导读]
 summary: "黄夏年撰之中国佛教通史。自两汉入华叙至明清，以朝代为经、宗派与制度为纬，是当代最完整的中文佛教通史之一。"
 ---

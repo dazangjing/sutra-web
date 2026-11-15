@@ -164,7 +164,24 @@ def strip_header(text: str) -> tuple[str, str, str, dict]:
             i += 1
 
     body = '\n'.join(lines[i:]).rstrip() + '\n'
+    body = strip_invalid_links(body)
     return title, byline, body, head
+
+
+# CBETA 语料含音义／难字注释，形如 [萨-产+(辛/工)](金刚云回光即以恵如照回一切故)，
+# 此类链接无有效锚点，渲染后会指向不存在的相对路径，故在入库时还原为纯文本。
+INVALID_LINK = re.compile(r'\[([^\]\n]{1,160})\]\(([^)\n]{1,160})\)')
+
+
+def strip_invalid_links(text: str) -> str:
+    def repl(m: re.Match) -> str:
+        target = m.group(2).strip()
+        if (target.startswith('#') or target.startswith('/') or '://' in target
+                or target.startswith('mailto:') or target == ''):
+            return m.group(0)
+        return m.group(1)
+
+    return INVALID_LINK.sub(repl, text)
 
 
 def guide_sections(path: Path) -> tuple[str, str]:

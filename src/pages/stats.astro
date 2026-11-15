@@ -5,7 +5,7 @@ import PageHero from '../components/PageHero.astro';
 import DonutChart from '../components/DonutChart.astro';
 import { corpusStats, corpusTotals } from '../data/corpus-stats';
 import { canons } from '../data/tripitaka';
-import { categories } from '../data/categories';
+import { fixedCategories, topics } from '../data/collections';
 import { u } from '../lib/url';
 
 const docs = await getCollection('sutra');
@@ -49,11 +49,8 @@ const donutTotal = donutRows.reduce((s, r) => s + r.value, 0);
       <div class="reveal grid gap-4">
         {
           corpusStats.map((cat) => (
-            <a
-              href={u(`/categories/${cat.slug}/`)}
-              class="group flex items-center gap-4 rounded-card border border-line bg-panel px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:bg-panel-2"
-            >
-              <span class="w-20 shrink-0 font-serif text-[16px] font-semibold tracking-[0.1em] text-ink group-hover:text-jade">
+            <div class="flex items-center gap-4 rounded-card border border-line bg-panel px-5 py-4">
+              <span class="w-20 shrink-0 font-serif text-[16px] font-semibold tracking-[0.1em] text-ink">
                 {cat.name}
               </span>
               <span class="min-w-0 flex-1">
@@ -73,7 +70,7 @@ const donutTotal = donutRows.reduce((s, r) => s + r.value, 0);
                 {cat.works} 篇
                 <span class="block text-[11px] text-ink-3">{cat.chars.toLocaleString('en-US')} 字</span>
               </span>
-            </a>
+            </div>
           ))
         }
       </div>
@@ -138,20 +135,36 @@ const donutTotal = donutRows.reduce((s, r) => s + r.value, 0);
     </div>
     <ul class="reveal grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {
-        categories.map((cat) => {
-          const stat = corpusStats.find((c) => c.slug === cat.slug);
+        fixedCategories.map((col) => {
+          const stat = corpusStats.find((c) => c.slug === col.slug);
           return (
             <li class="rounded-card border border-line bg-panel px-5 py-4">
-              <a href={u(`/categories/${cat.slug}/`)} class="group flex items-baseline justify-between gap-3">
+              <a href={u(`/categories/${col.slug}/`)} class="group flex items-baseline justify-between gap-3">
                 <span class="font-serif text-[16px] font-semibold tracking-[0.08em] text-ink group-hover:text-jade">
-                  {cat.name}
+                  {col.name}
                 </span>
                 <span class="font-mono text-[12px] tabular-nums text-ink-2">{stat?.works ?? 0} 篇</span>
               </a>
-              <p class="mt-2 text-[12.5px] leading-relaxed text-ink-3">{cat.desc}</p>
+              <p class="mt-2 text-[12.5px] leading-relaxed text-ink-3">{col.desc}</p>
             </li>
           );
         })
+      }
+    </ul>
+
+    <ul class="reveal mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        topics.map((topic) => (
+          <li>
+            <a
+              href={u(`/topics/${topic.slug}/`)}
+              class="group flex items-baseline justify-between gap-3 rounded-chip border border-line bg-panel px-4 py-2.5 text-[13px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+            >
+              <span>{topic.name}专题</span>
+              <span class="font-mono text-[11px] text-ink-3">→</span>
+            </a>
+          </li>
+        ))
       }
     </ul>
   </section>

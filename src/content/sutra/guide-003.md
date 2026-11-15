@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "中华书局版"
-order: 37350
+order: 36820
 tags: [近代著作, 导读]
 summary: "赵朴初以答问体写成之佛学入门手册。篇幅简明而体系完整，为现代中国佛教普及教育之代表作。"
 ---

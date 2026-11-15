@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "正闻出版社等"
-order: 37380
+order: 36850
 tags: [近代著作, 导读]
 summary: "印顺法师撰于 1935 年的禅宗史研究。力破「达摩单传」之说，重建中国禅宗由渐而盛的成立过程。"
 ---
