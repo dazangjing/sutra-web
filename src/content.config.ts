@@ -45,4 +45,19 @@ const sutra = defineCollection({
   }),
 });
 
-export const collections = { sutra };
+/** 站点自身的说明页（关于等），与正文页共用同一 Markdown 渲染管线 */
+const pages = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/pages' }),
+  schema: z.object({
+    title: z.string().min(1),
+    subtitle: z.string().optional(),
+    description: z.string().optional(),
+    byline: z.string().optional(),
+    byline_label: z.string().default('编纂'),
+    meta: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
+    updated: z.string().optional(),
+    order: z.number().int().default(0),
+  }),
+});
+
+export const collections = { sutra, pages };

@@ -1,54 +1,38 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHero from '../components/PageHero.astro';
-import { corpusStats, corpusTotals } from '../data/corpus-stats';
-import { categories } from '../data/categories';
+import { getEntry, render } from 'astro:content';
+import Reading from '../layouts/Reading.astro';
+import { u } from '../lib/url';
+import { corpusTotals } from '../data/corpus-stats';
+import { canonTotals } from '../data/corpus-canon';
+
+const entry = await getEntry('pages', 'about');
+if (!entry) throw new Error('缺少 src/content/pages/about.md');
+
+const { Content, headings } = await render(entry);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+const meta = [
+  ...entry.data.meta.map((m) => ({ label: m.label, value: m.value })),
+  { label: '入库篇目', value: `${corpusTotals.works.toLocaleString('en-US')} 篇` },
+  { label: '正文字数', value: `${(corpusTotals.chars / 1e4).toFixed(0)} 万字` },
+  { label: '藏经来源', value: `${canonTotals.sources} 种` },
+];
+if (entry.data.updated) meta.push({ label: '更新', value: entry.data.updated });
 ---
 
-<BaseLayout title="关于阅藏经" description="关于阅藏经 —— 站点缘起、内容来源、结构体例与收录原则。" bodyClass="page-about">
-  <PageHero kicker="/ ABOUT" title="关于阅藏经" desc="「阅藏」二字，取「披阅藏经」之意；亦暗合「阅读、藏经」之双关。" count="缘起与体例" />
-
-  <section class="mx-auto max-w-[880px] px-4 py-14 sm:px-8 sm:py-20">
-    <div class="prose-zen reveal">
-      <h2 id="origin">缘起</h2>
-      <p>佛经从第一次结集至今，历朝历代东西国别，都有整理和翻译，本站按照经律论和近现代著述分类，转为 markdown 格式阅读。</p>
-      <p>大藏经浩瀚，起于一枚巴梨陀、共诵之结集，终于宋元明清数千卷的雕版、印本。其量之大，非一目可尽；其义之深，非一读可穷。阅藏经取三事为纲：其一，以统计为骨，让读者先见其大体；其二，以原典为肉，逐篇录入正文，可读可校；其三，以目录学与近代教史为睛，为旧典开出新的读法。</p>
-
-      <h2 id="corpus">内容来源</h2>
-      <p>正文依 <strong>CBETA 中華電子佛典協會</strong> 整理本录入，逐档元数据（题名、题署、藏经编号、册次、卷数、字数）取自 CBETA 大藏经数据库。每档一篇，以 Markdown 承载，页面自动生成篇目目录、阅读进度与上下篇导航。</p>
-      <ul>
-        <li>藏经编号采用国际通行写法，如 T0235（大正藏第 8 册第 235 号）、X1565（卍续藏第 1565 号）。</li>
-        <li>繁体底本保持原貌，不作简化，以便按原典核对。</li>
-        <li>部分经典另附本站「义理提要」，以导读补其法义。</li>
-      </ul>
-      <p>目前共入库 <em>{corpusTotals.works.toLocaleString('en-US')}</em> 篇、<em>{corpusTotals.juan.toLocaleString('en-US')}</em> 卷、正文约 <em>{(corpusTotals.chars / 1e8).toFixed(2)}</em> 亿字。</p>
-
-      <h2 id="structure">结构</h2>
-      <p>全站分为六个分类，互为表里：</p>
-      <ul>
-        {
-          categories.map((cat) => {
-            const stat = corpusStats.find((c) => c.slug === cat.slug);
-            return (
-              <li>
-                <strong>{cat.name}</strong>
-                {stat && <em>（{stat.works} 篇）</em>} —— {cat.desc}
-              </li>
-            );
-          })
-        }
-      </ul>
-
-      <h2 id="convention">体例</h2>
-      <p>每篇正文皆依统一格式：<em>标题</em>、<em>著者·译者</em>、<em>藏经编号与藏名</em>、<em>册次与部类</em>、<em>卷数与字数</em>、<em>正文</em>。正文以 Markdown 书写，目录层级与滚动高亮由构建期与浏览器共同完成。</p>
-
-      <h2 id="tech">技术</h2>
-      <p>本站由 <a href="https://astro.build/" rel="noopener" target="_blank">Astro</a> 构建，托管于 GitHub Pages；内容以 Markdown 内容集合（Content Collections）与 TypeScript 数据模块维护，静态输出，无追踪脚本。</p>
-      <ul>
-        <li>版式：Tailwind CSS 设计令牌驱动「墨夜 / 素白」双主题，阅读字号可调。</li>
-        <li>交互：目录滚动监听、阅读进度、篇目即时检索，均为原生 JavaScript，无前端框架运行时。</li>
-        <li>无障碍：语义化标签、跳转链接、键盘可达的目录与检索控件、动效降级。</li>
-      </ul>
-    </div>
-  </section>
-</BaseLayout>
+<Reading
+  title={entry.data.title}
+  description={entry.data.description}
+  crumbs={[{ label: '首页', href: u('/') }, { label: entry.data.title }]}
+  eyebrow={[{ label: '本站说明' }]}
+  subtitle={entry.data.subtitle}
+  byline={entry.data.byline}
+  bylineLabel={entry.data.byline_label}
+  summary={entry.data.description}
+  meta={meta}
+  toc={toc}
+  footNote="本页所述统计数字随语料更新自动刷新；引用经文请核对原典，引用本站文字请注明出处。"
+  bodyClass="page-about"
+>
+  <Content />
+</Reading>

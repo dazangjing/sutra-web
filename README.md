@@ -157,12 +157,14 @@ yuezangjing/
 │   ├── content.config.ts     # 内容集合 schema（zod 校验 front matter）
 │   ├── content/sutra/*.md    # ★ 经文正文（3,686 篇，由导入器生成）
 │   ├── content/guide/*.md    # 本站导读（23 篇，人工撰写，合并入正文）
+│   ├── content/pages/*.md    # 站点说明页（关于等，与正文同管线）
 │   ├── data/                 # 站点常量 / 导航 / 集合与专题 / 语料统计
 │   ├── lib/                  # base 安全的链接、集合匹配器
 │   ├── scripts/              # app.ts（全局交互）/ reader.ts（正文页交互）
 │   ├── styles/global.css     # Tailwind 令牌 + 双主题 + 组件层
 │   ├── components/           # Header / Footer / StatTable / DonutChart / DocCard / CategoryCard / PageHero
 │   ├── layouts/BaseLayout.astro
+│   ├── layouts/Reading.astro      # ★ 通用阅读版式（上—中—下），正文页与关于页共用
 │   └── pages/
 │       ├── index.astro       # 首页（统计表格 + 分类内容）
 │       ├── stats.astro       # 藏经概览（来源与分布）
