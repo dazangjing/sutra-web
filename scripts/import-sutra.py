@@ -511,12 +511,52 @@ def main() -> int:
     lines.append('};')
     lines.append('')
 
+    # 藏经来源统计
+    canon_agg: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0])
+    for r in records:
+        k = r['canon_name'] or '未标来源'
+        canon_agg[k][0] += 1
+        canon_agg[k][1] += r['juan_count'] or 0
+        canon_agg[k][2] += r['text_length'] or 0
+
+    canon_lines = [
+        '// 由 scripts/import-sutra.py 自 CBETA 语料实算，请勿手改。',
+        'export type CanonSource = {',
+        '  name: string;',
+        '  works: number;',
+        '  juan: number;',
+        '  chars: number;',
+        '};',
+        '',
+        'export const canonSources: CanonSource[] = [',
+    ]
+    for k, v in sorted(canon_agg.items(), key=lambda kv: -kv[1][0]):
+        canon_lines.append('  {')
+        canon_lines.append(f'    name: {yaml_str(k)},')
+        canon_lines.append(f'    works: {v[0]},')
+        canon_lines.append(f'    juan: {v[1]},')
+        canon_lines.append(f'    chars: {v[2]},')
+        canon_lines.append('  },')
+    canon_lines.append('];')
+    canon_lines.append('')
+    canon_lines.append('export const canonTotals = {')
+    canon_lines.append(f'  sources: {len(canon_agg)},')
+    canon_lines.append(f'  works: {sum(v[0] for v in canon_agg.values())},')
+    canon_lines.append(f'  juan: {sum(v[1] for v in canon_agg.values())},')
+    canon_lines.append(f'  chars: {sum(v[2] for v in canon_agg.values())},')
+    canon_lines.append('};')
+    canon_lines.append('')
+
+    canon_path = Path('src/data/corpus-canon.ts')
+    canon_path.write_text('\n'.join(canon_lines), encoding='utf-8')
+
     stats_path = Path('src/data/corpus-stats.ts')
     stats_path.parent.mkdir(parents=True, exist_ok=True)
     stats_path.write_text('\n'.join(lines), encoding='utf-8')
 
     total_mb = sum(r['size'] for r in records) / 1048576
-    print(f'✓ 完成：{len(records)} 档，正文 {total_mb:.1f} MB，统计写入 {stats_path}')
+    print(f'✓ 完成：{len(records)} 档，正文 {total_mb:.1f} MB')
+    print(f'  统计 → {stats_path}、{canon_path}')
     return 0
 
 

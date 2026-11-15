@@ -308,6 +308,24 @@
     opacity: 0.45;
   }
 
+  /* 全屏阅读：隐去站点框架，只留正文 */
+  :fullscreen .site-header,
+  :fullscreen .site-footer,
+  :fullscreen .to-top {
+    display: none;
+  }
+
+  :fullscreen .reading-body {
+    margin-top: 0;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  :fullscreen .reading-page {
+    max-width: 68rem;
+    padding-block: 3rem 4rem;
+  }
+
   /* 正文区：独立纸面，底色与页面背景保持约 20% 视觉差 */
   .reading-body {
     position: relative;

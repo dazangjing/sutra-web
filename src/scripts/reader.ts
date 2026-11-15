@@ -121,3 +121,36 @@ copyBtn?.addEventListener('click', async () => {
     document.body.removeChild(area);
   }
 });
+
+/* ── 全屏阅读 ────────────────────────────────────────────── */
+const fsBtn = $<HTMLButtonElement>('#fullscreen-toggle');
+
+if (fsBtn) {
+  const labelOn = '全屏阅读';
+  const labelOff = '退出全屏';
+
+  const sync = () => {
+    const on = Boolean(document.fullscreenElement);
+    fsBtn.setAttribute('aria-pressed', String(on));
+    fsBtn.setAttribute('aria-label', on ? labelOff : labelOn);
+    fsBtn.title = on ? labelOff : labelOn;
+    fsBtn.classList.toggle('text-jade', on);
+    fsBtn.querySelector('svg')?.setAttribute('data-on', String(on));
+  };
+
+  fsBtn.addEventListener('click', async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      /* 浏览器拒绝全屏时静默降级 */
+    }
+    sync();
+  });
+
+  document.addEventListener('fullscreenchange', sync);
+  sync();
+}
