@@ -64,7 +64,7 @@ if (tocLinks.length && article) {
 /* ── 字号调节 ────────────────────────────────────────────── */
 const SIZES = [16, 17, 18, 19, 20, 22];
 const FONT_KEY = 'yzj-font';
-let sizeIndex = 2;
+let sizeIndex = 3;
 
 try {
   const saved = Number(localStorage.getItem(FONT_KEY));

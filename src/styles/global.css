@@ -300,11 +300,19 @@
     position: relative;
   }
 
+  /* meta 信息带：单行紧凑排列，项间以细点分隔 */
+  .meta-row > div + div::before {
+    content: '·';
+    margin-right: 0.625rem;
+    color: var(--yzj-ink-3);
+    opacity: 0.45;
+  }
+
   /* 正文区：独立纸面，底色与页面背景保持约 20% 视觉差 */
   .reading-body {
     position: relative;
-    margin-top: 2rem;
-    padding: clamp(1.75rem, 3.4vw, 3.25rem) clamp(1.25rem, 3.6vw, 3.5rem);
+    margin-top: 1.25rem;
+    padding: clamp(1.5rem, 3vw, 2.75rem) clamp(1.25rem, 3.6vw, 3.5rem);
     border: 1px solid var(--yzj-line);
     border-radius: var(--radius-card);
     background: var(--yzj-reader);
@@ -313,8 +321,9 @@
       inset 0 1px 0 rgb(255 255 255 / 0.03);
   }
 
+  /* 正文栏宽收紧、行长控制在每行 45 字上下，使正文成为视觉主体 */
   .reading-body > .prose-zen {
-    max-width: 62rem;
+    max-width: 58rem;
     margin-inline: auto;
   }
 
@@ -335,7 +344,7 @@
   /* 正文排版 */
   .prose-zen {
     font-family: var(--font-serif);
-    font-size: var(--reading-size, 18px);
+    font-size: var(--reading-size, 19px);
     line-height: 2.05;
     letter-spacing: 0.015em;
     color: var(--yzj-ink);
