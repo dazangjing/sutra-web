@@ -1,2 +1,185 @@
+# 阅藏经 · Yuezangjing
+# NO AI —— 本站不欢迎 AI 爬虫与训练抓取，检索类爬虫照常收录。
+#
+# 说明：
+#   · 本文件仅拦 AI 训练/代理类爬虫，Googlebot、Bingbot、Baiduspider 等
+#     搜索引擎爬虫不受影响（未列于下方各组）。
+#   · 页面另设 <meta name="robots" content="noai, noimageai"> 与
+#     <meta name="googlebot" content="noai, noimageai">。
+#   · 如欲更进一步，可在本文件追加自有 UA；或于服务器层加
+#     X-Robots-Tag: noai, noimageai（GitHub Pages 不支持自定义响应头）。
+
+# ── OpenAI ────────────────────────────────────────────────
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+# ── Anthropic ─────────────────────────────────────────────
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-User
+Disallow: /
+
+User-agent: Claude-SearchBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# ── Google（Gemini / AI Overviews / Vertex） ───────────────
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Google-CloudVertexBot
+Disallow: /
+
+User-agent: GoogleOther
+Disallow: /
+
+User-agent: AdsBot-Google-Extended
+Disallow: /
+
+# ── Meta（Facebook AI / 外链抓取） ─────────────────────────
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: Meta-ExternalFetcher
+Disallow: /
+
+# ── Apple（Apple Intelligence） ─────────────────────────────
+User-agent: Applebot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: iApplebot
+Disallow: /
+
+# ── Amazon（Alexa / 购物 AI） ──────────────────────────────
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Amazonbot-Shopping
+Disallow: /
+
+User-agent: Amazonbot-Embed
+Disallow: /
+
+# ── Perplexity ────────────────────────────────────────────
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Perplexity-User
+Disallow: /
+
+# ── ByteDance（豆包 / 扣子） ───────────────────────────────
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Bytespider-Image
+Disallow: /
+
+# ── Mistral ───────────────────────────────────────────────
+User-agent: MistralAI-User
+Disallow: /
+
+User-agent: MistralAI-Bot
+Disallow: /
+
+# ── Common Crawl / 开放训练集 ──────────────────────────────
+User-agent: CCBot
+Disallow: /
+
+# ── AI2（OLMo） ───────────────────────────────────────────
+User-agent: AI2Bot
+Disallow: /
+
+User-agent: AI2Bot-Dolma
+Disallow: /
+
+User-agent: Ai2Bot-Dolma
+Disallow: /
+
+# ── Cohere ────────────────────────────────────────────────
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: cohere-training-data-crawler
+Disallow: /
+
+# ── DuckDuckGo（AI 摘要 / DuckAssist） ────────────────────
+User-agent: DuckAssistBot
+Disallow: /
+
+User-agent: DuckAssistBot-Images
+Disallow: /
+
+User-agent: DuckAssistBot-Video
+Disallow: /
+
+# ── 各类训练数据与代理抓取 ────────────────────────────────
+User-agent: Diffbot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: img2dataset
+Disallow: /
+
+User-agent: FriendlyCrawler
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: omgili
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: LinerBot
+Disallow: /
+
+User-agent: Webzio-Extended
+Disallow: /
+
+User-agent: VelenPublicWebCrawler
+Disallow: /
+
+User-agent: iaskspider/2.0
+Disallow: /
+
+User-agent: SemrushBot-OCOB
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: ZoomBot
+Disallow: /
+
+User-agent: Sidetrade indexer bot
+Disallow: /
+
+User-agent: Meltwater
+Disallow: /
+
+# ── 其余爬虫（检索引擎与普通爬虫照常） ─────────────────────
 User-agent: *
 Allow: /
+Disallow: /assets/ai-training/

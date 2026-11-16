@@ -5,7 +5,7 @@ export const site = {
   description:
     '阅藏经是一个开放的中文佛学阅读站点，收录大藏经要典、禅宗典籍与近代佛学著作，旨在深入阅读大藏经原文典籍，经年累月点滴之功，向上一跃。',
   descriptionShort: '遍阅大藏经 · 经律论注疏 · 近代佛学著作',
-  author: 'JK',
+  author: '阅藏经',
   sealChar: '阅',
   motto: '行到水穷处，坐看云起时',
   tradition: '禅门',
@@ -14,7 +14,7 @@ export const site = {
     canonVolumes: 8083,
   },
   links: [
-    { title: 'GitHub', url: 'https://github.com/yuezangjing/yuezangjing', external: true },
+    { title: 'GitHub', url: 'https://github.com/yuezangjing/sutra-web', external: true },
     { title: 'RSS 订阅', url: '/rss.xml', external: false },
   ],
 } as const;

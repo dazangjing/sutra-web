@@ -31,6 +31,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).hr
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#05070a" />
+    <!-- NO AI：不供 AI 训练与模型代理取用；检索类爬虫不受影响 -->
+    <meta name="robots" content="noai, noimageai" />
+    <meta name="googlebot" content="noai, noimageai" />
+    <meta name="gptbot" content="noai, noimageai" />
+    <meta name="claudebot" content="noai, noimageai" />
+    <meta name="perplexitybot" content="noai, noimageai" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={import.meta.env.BASE_URL + 'seal.svg'} />
     <meta property="og:site_name" content={site.title} />
