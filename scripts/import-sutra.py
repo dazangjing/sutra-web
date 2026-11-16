@@ -144,29 +144,111 @@ LINEAGE_EDGES: list[tuple[str, str]] = [
     ('L', 'C'), ('P', 'C'),
 ]
 
-# 本库自身的落点：各藏汇入 CBETA，本站语料自 CBETA 出
-LINEAGE_TAIL = [
-    ('T', 'CB'), ('X', 'CB'), ('B', 'CB'), ('ZW', 'CB'), ('Y', 'CB'),
-    ('YP', 'CB'), ('TX', 'CB'), ('LC', 'CB'), ('GA', 'CB'), ('C', 'CB'),
-    ('CC', 'CB'), ('GB', 'CB'), ('N', 'CB'), ('I', 'CB'), ('D', 'CB'),
-    ('F', 'CB'), ('S', 'CB'), ('G', 'CB'), ('A', 'CB'), ('K', 'CB'),
-    ('P', 'CB'), ('L', 'CB'), ('J', 'CB'), ('M', 'CB'), ('X2', 'CB'),
-    ('ZS', 'CB'),
-    ('CB', 'M2'),   # 本站阅读版自 CBETA 出
+# ── 谱系分层（代）────────────────────────────────────────────────
+# 脉络图按「代」自左而右排布：每一代为一层，层内之藏为并列之支流。
+# 这样承袭关系成为「上层 → 下层」的短距连线，而非各藏直指末端的乱麻。
+# tier: 层序；parents: 该藏承自之藏（用于在层间画短连线）。
+LINEAGE_TIERS: list[dict] = [
+    {
+        'tier': 0,
+        'label': '一 · 写本初源',
+        'note': '北朝刻石与出土写本',
+        'nodes': [
+            ('I', ['I']),
+            ('D', ['D']),
+            ('F', ['F']),
+        ],
+    },
+    {
+        'tier': 1,
+        'label': '二 · 写本传译',
+        'note': '高丽与金元之刻',
+        'nodes': [
+            ('K', ['K']),
+            ('A', ['A']),
+            ('U', ['U']),
+        ],
+    },
+    {
+        'tier': 2,
+        'label': '三 · 明代刻藏',
+        'note': '南北藏与嘉兴藏',
+        'nodes': [
+            ('P', ['P']),
+            ('J', ['J']),
+        ],
+    },
+    {
+        'tier': 3,
+        'label': '四 · 清代与铅印',
+        'note': '乾隆重刻·频伽铅印·卍正',
+        'nodes': [
+            ('L', ['L']),
+            ('G', ['G']),
+            ('M', ['M']),
+            ('X2', ['X2']),
+        ],
+    },
+    {
+        'tier': 4,
+        'label': '五 · 汇刻诸藏',
+        'note': '大正藏与卍新纂续藏',
+        'nodes': [
+            ('T', ['T']),
+            ('X', ['X']),
+        ],
+    },
+    {
+        'tier': 5,
+        'label': '六 · 增补与释文',
+        'note': '补编·藏外·中华',
+        'nodes': [
+            ('B', ['B']),
+            ('ZW', ['ZW']),
+            ('C', ['C']),
+        ],
+    },
+    {
+        'tier': 6,
+        'label': '七 · 民国专集与史料',
+        'note': '法师著述·佛寺史志·南传',
+        'nodes': [
+            ('Y', ['Y']),
+            ('YP', ['YP']),
+            ('TX', ['TX']),
+            ('LC', ['LC']),
+            ('GA', ['GA']),
+            ('GB', ['GB']),
+            ('S', ['S']),
+            ('CC', ['CC']),
+            ('ZS', ['ZS']),
+            ('N', ['N']),
+        ],
+    },
 ]
 
-# 谱系列位（左→右即年代先后），用于站内脉络图排布
-LINEAGE_COLUMNS: list[list[str]] = [
-    ['I', 'D', 'F'],                      # 北朝拓片 · 敦煌写本 · 房山石经
-    ['K', 'A', 'U'],                      # 高丽 · 赵城金藏 · 洪武南藏
-    ['P', 'J'],                           # 永乐北藏 · 嘉兴藏
-    ['L', 'G', 'M', 'X2'],                # 乾隆 · 频伽 · 卍正 · 大日本续藏
-    ['T', 'X'],                           # 大正藏 · 卍新纂续藏
-    ['B', 'ZW', 'C'],                     # 补编 · 藏外文献 · 中华大藏经
-    ['Y', 'YP', 'TX', 'LC'],              # 民国专集
-    ['GA', 'GB', 'S', 'CC', 'ZS', 'N'],   # 史志 · 选集 · 史料 · 南传
-    ['CB', 'M2'],                         # 数位汇流 · 本站阅读版
-]
+# 各代之藏承自哪一代之藏（同代内亦有承袭，如嘉兴承高丽·赵城·南藏·北藏）
+LINEAGE_TIER_PARENTS: dict[str, list[str]] = {
+    'K': ['D'], 'A': ['D', 'F'], 'U': ['D'], 'P': ['D', 'F'],
+    'J': ['K', 'A', 'U', 'P'], 'L': ['P'],
+    'G': ['J'], 'M': ['J', 'K'], 'X2': ['J', 'M'],
+    'T': ['D', 'F', 'G', 'M', 'X2'], 'X': ['G', 'X2'],
+    'B': ['X', 'T'], 'ZW': ['D', 'F'], 'C': ['L', 'P'],
+    # 民国专集与史料无藏系承袭，皆直接汇入 CBETA
+    'Y': [], 'YP': [], 'TX': [], 'LC': [], 'GA': [], 'GB': [],
+    'S': [], 'CC': [], 'ZS': [], 'N': [],
+}
+
+# 各代之藏承自下一代之藏（用于在层间画短连线）
+LINEAGE_TIER_CHILDREN: dict[str, list[str]] = {
+    'D': ['K', 'A', 'U', 'P', 'T', 'ZW'], 'F': ['A', 'P', 'T', 'ZW'],
+    'K': ['J', 'M'], 'A': ['J'], 'U': ['J'], 'P': ['L', 'J', 'C'],
+    'J': ['G', 'M', 'X2'], 'L': ['C'], 'G': ['X', 'T'], 'M': ['X2', 'T'],
+    'X2': ['X', 'T'], 'T': ['B'], 'X': ['B'],
+    'B': [], 'ZW': [], 'C': [],
+    'Y': [], 'YP': [], 'TX': [], 'LC': [], 'GA': [], 'GB': [],
+    'S': [], 'CC': [], 'ZS': [], 'N': [],
+}
 
 
 def canon_family(code: str) -> str:
@@ -260,18 +342,61 @@ def build_lineage(records: list[dict]) -> list[str]:
     ]
     for a, b in LINEAGE_EDGES:
         lines.append(f'  {{ from: {yaml_str(a)}, to: {yaml_str(b)} }},')
-    for a, b in LINEAGE_TAIL:
-        lines.append(f'  {{ from: {yaml_str(a)}, to: {yaml_str(b)} }},')
     lines += [
         '];',
         '',
-        '/** 谱系列位（左→右即年代先后），供脉络图排布 */',
-        'export const lineageColumns: string[][] = [',
+        '/**',
+        ' * 谱系分层（代）：脉络图自左而右逐层展开，层内之藏为并列支流。',
+        ' * 承袭关系皆落于「上一层 → 下一层」，故连线短而不乱。',
+        ' */',
+        'export type LineageTier = {',
+        '  /** 层序（自 0 起） */',
+        '  tier: number;',
+        '  /** 层题 */',
+        '  label: string;',
+        '  /** 层注 */',
+        '  note: string;',
+        '  /** 本层藏系代码 */',
+        '  nodes: string[];',
+        '  /** 本层各藏承自之藏（承袭来源） */',
+        '  parents: Record<string, string[]>;',
+        '  /** 本层各藏所出之藏（承袭去向） */',
+        '  children: Record<string, string[]>;',
+        '};',
+        '',
+        'export const lineageTiers: LineageTier[] = [',
     ]
-    for col in LINEAGE_COLUMNS:
-        lines.append(f'  {json.dumps(col, ensure_ascii=False)},')
+    for t in LINEAGE_TIERS:
+        codes = [c for c, _ in t['nodes']]
+        parents = {c: LINEAGE_TIER_PARENTS.get(c, []) for c in codes}
+        children = {c: LINEAGE_TIER_CHILDREN.get(c, []) for c in codes}
+        lines += [
+            '  {',
+            f'    tier: {t["tier"]},',
+            f'    label: {yaml_str(t["label"])},',
+            f'    note: {yaml_str(t["note"])},',
+            f'    nodes: {json.dumps(codes, ensure_ascii=False)},',
+            f'    parents: {json.dumps(parents, ensure_ascii=False)},',
+            f'    children: {json.dumps(children, ensure_ascii=False)},',
+            '  },',
+        ]
     lines += [
         '];',
+        '',
+        '/** 汇流终点：各藏经此而入数字库，本站语料自此而出 */',
+        'export const lineageSink = {',
+        '  code: "CB",',
+        '  name: "CBETA 电子版",',
+        '  era: "1990–",',
+        '  base: "汇各藏原文数字化，统一编码 TEI P5",',
+        '};',
+        '',
+        'export const lineageSite = {',
+        '  code: "M2",',
+        '  name: "阅藏经",',
+        '  era: "2026–",',
+        '  base: "4,847 档 Markdown：卷品切块、偈颂标记、繁简转换",',
+        '};',
         '',
         'export const lineageTotals = {',
         f'  sources: {len([c for c in CANON_META if c not in ("CB", "M2")])},',

@@ -376,47 +376,100 @@ export const lineageEdges: LineageEdge[] = [
   { from: "F", to: "ZW" },
   { from: "L", to: "C" },
   { from: "P", to: "C" },
-  { from: "T", to: "CB" },
-  { from: "X", to: "CB" },
-  { from: "B", to: "CB" },
-  { from: "ZW", to: "CB" },
-  { from: "Y", to: "CB" },
-  { from: "YP", to: "CB" },
-  { from: "TX", to: "CB" },
-  { from: "LC", to: "CB" },
-  { from: "GA", to: "CB" },
-  { from: "C", to: "CB" },
-  { from: "CC", to: "CB" },
-  { from: "GB", to: "CB" },
-  { from: "N", to: "CB" },
-  { from: "I", to: "CB" },
-  { from: "D", to: "CB" },
-  { from: "F", to: "CB" },
-  { from: "S", to: "CB" },
-  { from: "G", to: "CB" },
-  { from: "A", to: "CB" },
-  { from: "K", to: "CB" },
-  { from: "P", to: "CB" },
-  { from: "L", to: "CB" },
-  { from: "J", to: "CB" },
-  { from: "M", to: "CB" },
-  { from: "X2", to: "CB" },
-  { from: "ZS", to: "CB" },
-  { from: "CB", to: "M2" },
 ];
 
-/** 谱系列位（左→右即年代先后），供脉络图排布 */
-export const lineageColumns: string[][] = [
-  ["I", "D", "F"],
-  ["K", "A", "U"],
-  ["P", "J"],
-  ["L", "G", "M", "X2"],
-  ["T", "X"],
-  ["B", "ZW", "C"],
-  ["Y", "YP", "TX", "LC"],
-  ["GA", "GB", "S", "CC", "ZS", "N"],
-  ["CB", "M2"],
+/**
+ * 谱系分层（代）：脉络图自左而右逐层展开，层内之藏为并列支流。
+ * 承袭关系皆落于「上一层 → 下一层」，故连线短而不乱。
+ */
+export type LineageTier = {
+  /** 层序（自 0 起） */
+  tier: number;
+  /** 层题 */
+  label: string;
+  /** 层注 */
+  note: string;
+  /** 本层藏系代码 */
+  nodes: string[];
+  /** 本层各藏承自之藏（承袭来源） */
+  parents: Record<string, string[]>;
+  /** 本层各藏所出之藏（承袭去向） */
+  children: Record<string, string[]>;
+};
+
+export const lineageTiers: LineageTier[] = [
+  {
+    tier: 0,
+    label: "一 · 写本初源",
+    note: "北朝刻石与出土写本",
+    nodes: ["I", "D", "F"],
+    parents: {"I": [], "D": [], "F": []},
+    children: {"I": [], "D": ["K", "A", "U", "P", "T", "ZW"], "F": ["A", "P", "T", "ZW"]},
+  },
+  {
+    tier: 1,
+    label: "二 · 写本传译",
+    note: "高丽与金元之刻",
+    nodes: ["K", "A", "U"],
+    parents: {"K": ["D"], "A": ["D", "F"], "U": ["D"]},
+    children: {"K": ["J", "M"], "A": ["J"], "U": ["J"]},
+  },
+  {
+    tier: 2,
+    label: "三 · 明代刻藏",
+    note: "南北藏与嘉兴藏",
+    nodes: ["P", "J"],
+    parents: {"P": ["D", "F"], "J": ["K", "A", "U", "P"]},
+    children: {"P": ["L", "J", "C"], "J": ["G", "M", "X2"]},
+  },
+  {
+    tier: 3,
+    label: "四 · 清代与铅印",
+    note: "乾隆重刻·频伽铅印·卍正",
+    nodes: ["L", "G", "M", "X2"],
+    parents: {"L": ["P"], "G": ["J"], "M": ["J", "K"], "X2": ["J", "M"]},
+    children: {"L": ["C"], "G": ["X", "T"], "M": ["X2", "T"], "X2": ["X", "T"]},
+  },
+  {
+    tier: 4,
+    label: "五 · 汇刻诸藏",
+    note: "大正藏与卍新纂续藏",
+    nodes: ["T", "X"],
+    parents: {"T": ["D", "F", "G", "M", "X2"], "X": ["G", "X2"]},
+    children: {"T": ["B"], "X": ["B"]},
+  },
+  {
+    tier: 5,
+    label: "六 · 增补与释文",
+    note: "补编·藏外·中华",
+    nodes: ["B", "ZW", "C"],
+    parents: {"B": ["X", "T"], "ZW": ["D", "F"], "C": ["L", "P"]},
+    children: {"B": [], "ZW": [], "C": []},
+  },
+  {
+    tier: 6,
+    label: "七 · 民国专集与史料",
+    note: "法师著述·佛寺史志·南传",
+    nodes: ["Y", "YP", "TX", "LC", "GA", "GB", "S", "CC", "ZS", "N"],
+    parents: {"Y": [], "YP": [], "TX": [], "LC": [], "GA": [], "GB": [], "S": [], "CC": [], "ZS": [], "N": []},
+    children: {"Y": [], "YP": [], "TX": [], "LC": [], "GA": [], "GB": [], "S": [], "CC": [], "ZS": [], "N": []},
+  },
 ];
+
+/** 汇流终点：各藏经此而入数字库，本站语料自此而出 */
+export const lineageSink = {
+  code: "CB",
+  name: "CBETA 电子版",
+  era: "1990–",
+  base: "汇各藏原文数字化，统一编码 TEI P5",
+};
+
+export const lineageSite = {
+  code: "M2",
+  name: "阅藏经",
+  era: "2026–",
+  base: "4,847 档 Markdown：卷品切块、偈颂标记、繁简转换",
+};
 
 export const lineageTotals = {
   sources: 27,
