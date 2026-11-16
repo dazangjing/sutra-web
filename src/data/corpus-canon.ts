@@ -10,20 +10,20 @@ export const canonSources: CanonSource[] = [
   {
     name: "大正新修大藏经",
     works: 2093,
-    juan: 2997,
-    chars: 21394130,
+    juan: 2989,
+    chars: 21394275,
   },
   {
     name: "卍新纂大日本续藏经",
     works: 835,
-    juan: 1198,
+    juan: 1186,
     chars: 15319097,
   },
   {
-    name: "嘉兴大藏经（新文丰版）",
-    works: 175,
-    juan: 421,
-    chars: 4172576,
+    name: "嘉兴大藏经",
+    works: 174,
+    juan: 416,
+    chars: 4121899,
   },
   {
     name: "藏外佛教文献",
@@ -34,25 +34,25 @@ export const canonSources: CanonSource[] = [
   {
     name: "大藏经补编",
     works: 119,
-    juan: 169,
+    juan: 231,
     chars: 1397646,
   },
   {
     name: "北朝佛教石刻拓片百品",
-    works: 101,
-    juan: 101,
-    chars: 119871,
+    works: 100,
+    juan: 100,
+    chars: 118745,
   },
   {
     name: "佛教大藏经",
-    works: 53,
-    juan: 52,
-    chars: 652336,
+    works: 52,
+    juan: 51,
+    chars: 604362,
   },
   {
     name: "国家图书馆善本佛典",
     works: 40,
-    juan: 52,
+    juan: 53,
     chars: 529119,
   },
   {
@@ -62,7 +62,7 @@ export const canonSources: CanonSource[] = [
     chars: 61021,
   },
   {
-    name: "汉译南传大藏经（元亨寺版）",
+    name: "汉译南传大藏经",
     works: 16,
     juan: 38,
     chars: 473396,
@@ -70,11 +70,11 @@ export const canonSources: CanonSource[] = [
   {
     name: "中国佛寺史志汇刊",
     works: 15,
-    juan: 47,
+    juan: 43,
     chars: 365019,
   },
   {
-    name: "乾隆大藏经（新文丰版）",
+    name: "乾隆大藏经",
     works: 7,
     juan: 12,
     chars: 95155,
@@ -88,7 +88,7 @@ export const canonSources: CanonSource[] = [
   {
     name: "赵城金藏",
     works: 5,
-    juan: 21,
+    juan: 22,
     chars: 84060,
   },
   {
@@ -98,27 +98,21 @@ export const canonSources: CanonSource[] = [
     chars: 16803,
   },
   {
-    name: "高丽大藏经（新文丰版）",
+    name: "高丽大藏经",
     works: 4,
     juan: 17,
     chars: 72026,
   },
   {
-    name: "中华大藏经（中华书局版）",
+    name: "中华大藏经",
     works: 4,
     juan: 7,
     chars: 18566,
   },
   {
-    name: "CBETA 选集",
-    works: 3,
-    juan: 3,
-    chars: 57816,
-  },
-  {
-    name: "宋藏遗珍（新文丰版）",
+    name: "宋藏遗珍",
     works: 2,
-    juan: 2,
+    juan: 3,
     chars: 42033,
   },
   {
@@ -128,10 +122,34 @@ export const canonSources: CanonSource[] = [
     chars: 25608,
   },
   {
+    name: "\"《般若融心论》",
+    works: 1,
+    juan: 1,
+    chars: 11244,
+  },
+  {
     name: "洪武南藏",
     works: 1,
     juan: 2,
     chars: 27757,
+  },
+  {
+    name: "\"《敦博本六祖坛经校释》",
+    works: 1,
+    juan: 1,
+    chars: 15683,
+  },
+  {
+    name: "\"《佛说大乘无量寿庄严清净平等觉经会集》",
+    works: 1,
+    juan: 1,
+    chars: 30889,
+  },
+  {
+    name: "北朝佛教石刻拓片百品数位版",
+    works: 1,
+    juan: 1,
+    chars: 1126,
   },
   {
     name: "太虚大师全书",
@@ -142,8 +160,8 @@ export const canonSources: CanonSource[] = [
 ];
 
 export const canonTotals = {
-  sources: 22,
-  works: 3679,
-  juan: 5366,
-  chars: 46650979,
+  sources: 25,
+  works: 3677,
+  juan: 5401,
+  chars: 46552473,
 };

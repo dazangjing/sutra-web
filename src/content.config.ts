@@ -23,8 +23,10 @@ const sutra = defineCollection({
     dynasty: z.string().optional(),
     /** 站点分类：经 / 律 / 论 / 注疏与史料 / 南传与其他 / 近代著作 */
     category: z.enum(['sutra', 'vinaya', 'shastra', 'commentary', 'other', 'modern']),
-    /** 语料部别（如 般若部） */
+    /** 语料部别（部别轴，如 般若部） */
     division: z.string().optional(),
+    /** 底本著录之部类（与部别轴不同者记此，如 近现代点校本） */
+    division_alt: z.string().optional(),
     /** 藏经编号（如 T0235） */
     canon: z.string().optional(),
     /** 藏经名称（如 大正新修大藏经） */

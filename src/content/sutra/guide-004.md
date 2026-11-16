@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "民国初年刊行"
-order: 36830
+order: 36810
 tags: [近代著作, 导读]
 summary: "丁福保编纂之佛学辞书，收录佛学术语、典籍、人物、寺院、宗派等条目三万余，为近代佛学检索的基本工具。"
 ---

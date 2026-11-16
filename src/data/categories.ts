@@ -47,12 +47,12 @@ export const categories: Category[] = [
   },
   {
     slug: 'other',
-    name: '南传与其他',
-    en: 'PĀLI & OTHERS',
-    glyph: '南',
+    name: '近代撰述',
+    en: 'MODERN & PĀLI',
+    glyph: '近',
     accent: 'slate',
-    desc: '南传三藏及历次补编诸本。转法轮经、吉祥经等早期经典，为南传佛子所传诵，与汉传互为参证。',
-    keywords: ['南传', '巴利', '转法轮经', '吉祥经', '大藏经补编'],
+    desc: '近现代佛学家的撰述与点校整理本，兼收南传三藏诸经。转法轮经、吉祥经等早期经典，与近代佛学著述并存于此，与汉传互为参证。',
+    keywords: ['南传', '巴利', '转法轮经', '吉祥经', '点校', '近代撰述', '大藏经补编'],
   },
   {
     slug: 'modern',

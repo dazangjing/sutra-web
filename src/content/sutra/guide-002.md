@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "正闻出版社等"
-order: 36810
+order: 36790
 tags: [近代著作, 导读]
 summary: "印顺法师随笔集。论禅宗史观、佛学与现代、经典与文化，篇幅短小而见地锋利，最见作者之思辨品格。"
 ---

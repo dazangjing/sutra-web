@@ -1,6 +1,6 @@
 # 大正藏阅读版本
 
-> 阅藏经 · 遍阅大藏 · 云水禅心
+>传魁居士整理 2026/11/15
 
 把 CBETA 佛典数据库的三千余部经典，整理成一套**可以逐篇翻阅、可以按宗派检索、可以就着原文读下去**的中文阅读版。
 
@@ -177,7 +177,9 @@ yuezangjing/
 │       ├── topics/index.astro        # 专题索引
 │       ├── topics/[slug].astro       # 专题页
 │       └── read/[id].astro           # 正文页
-├── public/seal.svg
+├── public/
+│   ├── seal.svg
+│   └── assets/            # 语料资源（figures / font / gaiji-CB / gif），由导入器复制
 └── .github/workflows/pages.yml
 ```
 
@@ -198,11 +200,11 @@ pnpm preview      # 预览构建产物
 
 ## ✦ 更新经藏内容
 
-正文由导入器从 CBETA 语料生成（语料默认位于 `../sutra_json_zh`）：
+正文由导入器从 CBETA 语料生成（语料默认位于 `../sutra_md_zh`）：
 
 ```bash
 pnpm import:sutra      # 等价于：
-# python3 scripts/import-sutra.py --source ../sutra_json_zh \
+# python3 scripts/import-sutra.py --source ../sutra_md_zh \
 #   --out src/content/sutra --guide src/content/guide --max-bytes 150000
 pnpm build
 ```

@@ -8,7 +8,7 @@ author_label: 著者
 category: modern
 division: 近代著作
 canon: "中华书局版"
-order: 36800
+order: 36780
 tags: [近代著作, 导读]
 summary: "汤用彤未竟之遗稿。为初学者而作的分门别类读藏指南，兼及译经史、宗派源流与目录方法。"
 ---
