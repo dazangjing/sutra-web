@@ -366,9 +366,15 @@
     color: var(--yzj-jade);
   }
 
-  /* 正文排版 */
+  /* 正文排版
+   * 字体：苹方 Light（细等圆）—— 字面方正、笔画匀细而无衬线，
+   * 读感近「细圆体」，长篇经文不致沉重。
+   * 逐级回退：苹方细体 → 黑体 / 冬青黑体 → 微软雅黑 → 无衬线。
+   * font-weight: 300 为求细；苹方为可变字体，300 即 Light。 */
   .prose-zen {
-    font-family: var(--font-serif);
+    font-family: 'PingFang SC', 'PingFang SC Light', 'Hiragino Sans GB', 'Source Han Sans SC',
+      'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif;
+    font-weight: 300;
     font-size: var(--reading-size, 19px);
     line-height: 2.05;
     letter-spacing: 0.015em;
