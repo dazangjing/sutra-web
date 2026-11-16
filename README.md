@@ -192,9 +192,16 @@ yuezangjing/
 ```bash
 pnpm install
 pnpm dev          # http://127.0.0.1:4321
-pnpm build        # 输出至 dist/（3,703 页，约 1.5 分钟）
+pnpm build        # 输出至 dist/（3,701 页，约 1 分钟）
 pnpm preview      # 预览构建产物
 ```
+
+> **内容集合须分块存储**（`astro.config.mjs` 中的 `experimental.collectionStorage: 'chunked'`）。
+> 单文件模式下 Astro 会把整个 content data store（约 288 MB）内联成一个 JS 模块，
+> 该字符串在 dev 的 SSR 转换中超出 Vite 的 NAPI bridge 上限，模块导入失败后被
+> 静默回退成空 store —— 表现为 dev 下所有集合「不存在或为空」，
+> 报 `缺少 src/content/pages/about.md`（构建却正常，因为构建直接读盘）。
+> 分块后每块独立成模块按需 import，dev 与 build 行为一致。
 
 ---
 
