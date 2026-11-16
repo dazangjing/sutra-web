@@ -321,22 +321,29 @@
     box-shadow: none;
   }
 
+  /* 全屏时纸面随正文栏同行宽，不另留空幅 */
   :fullscreen .reading-page {
-    max-width: 68rem;
+    max-width: calc(58rem + 2cm);
     padding-block: 3rem 4rem;
   }
 
-  /* 正文区：独立纸面，底色与页面背景保持约 20% 视觉差 */
+  /* 正文区：独立纸面，底色与页面背景保持约 20% 视觉差
+   * 窄边：纸面宽度随正文栏收紧（不横贯全幅），内边距固定 1cm
+   *       （文字至正文框内缘之距） */
   .reading-body {
     position: relative;
+    display: inline-block;
+    max-width: 100%;
+    margin-inline: auto;
     margin-top: 1.25rem;
-    padding: clamp(1.5rem, 3vw, 2.75rem) clamp(1.25rem, 3.6vw, 3.5rem);
+    padding: 1cm;
     border: 1px solid var(--yzj-line);
     border-radius: var(--radius-card);
     background: var(--yzj-reader);
     box-shadow:
       0 30px 70px -40px rgb(0 0 0 / 0.75),
       inset 0 1px 0 rgb(255 255 255 / 0.03);
+    vertical-align: top;
   }
 
   /* 正文栏宽收紧、行长控制在每行 45 字上下，使正文成为视觉主体 */
