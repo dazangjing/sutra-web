@@ -14,7 +14,7 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const meta = [
   ...entry.data.meta.map((m) => ({ label: m.label, value: m.value })),
   { label: '入库篇目', value: `${corpusTotals.works.toLocaleString('en-US')} 篇` },
-  { label: '正文字数', value: `${(corpusTotals.chars / 1e4).toFixed(0)} 万字` },
+  { label: '正文字数', value: `${(corpusTotals.chars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万字` },
   { label: '藏经来源', value: `${canonTotals.sources} 种` },
 ];
 if (entry.data.updated) meta.push({ label: '更新', value: entry.data.updated });

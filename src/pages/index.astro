@@ -114,7 +114,7 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
           [
             { value: corpusTotals.works, unit: '篇入库' },
             { value: corpusTotals.juan, unit: '卷' },
-            { value: corpusTotals.chars, unit: '字正文' },
+            { value: Math.round(corpusTotals.chars / 1e4), unit: '万字正文' },
             { value: topics.length, unit: '专题' },
           ].map((item) => (
             <li class="flex flex-col gap-1">
@@ -181,7 +181,7 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
                   </td>
                   <td class="text-right font-mono text-[14.5px] tabular-nums">{row.works}</td>
                   <td class="text-right font-mono text-[14.5px] tabular-nums text-ink-2">{row.juan || '—'}</td>
-                  <td class="text-right font-mono text-[14.5px] tabular-nums">{row.chars.toLocaleString('en-US')}</td>
+                  <td class="text-right font-mono text-[14.5px] tabular-nums">{(row.chars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万</td>
                   <td>
                     <span class="flex items-center gap-3">
                       <span class="bar min-w-20 flex-1">
@@ -206,7 +206,7 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
               </td>
               <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{totalWorks}</td>
               <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{totalJuan.toLocaleString('en-US')}</td>
-              <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{totalChars.toLocaleString('en-US')}</td>
+              <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{(totalChars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万</td>
               <td>
                 <span class="flex items-center gap-3">
                   <span class="bar min-w-20 flex-1">
