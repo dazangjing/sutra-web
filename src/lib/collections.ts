@@ -49,9 +49,15 @@ export function docMatches(doc: Doc, collection: Collection): boolean {
 
 const cache = new Map<string, Doc[]>();
 
-/** 取出某集合的全部篇目（按 order 排序，构建期缓存） */
+/** 取出某集合的全部篇目（按 order 排序，构建期缓存）
+ * 关键必须包含文档身份，而不是仅凭长度，否则相同 collection 与同长度但不同内容的 docs
+ * 会命中错误缓存，导致页面内容串用。
+ */
 export function collectDocs(docs: Doc[], collection: Collection): Doc[] {
-  const key = `${collection.slug}:${docs.length}`;
+  const key = `${collection.slug}:${[...docs]
+    .map((doc) => doc.id)
+    .sort()
+    .join('|')}`;
   const hitCache = cache.get(key);
   if (hitCache) return hitCache;
 

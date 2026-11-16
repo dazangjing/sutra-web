@@ -70,8 +70,116 @@ GUIDE_TO_CANON_ID: dict[str, str] = {
     'wu-deng-hui-yuan.md': 'X1565',              # 五灯会元
 }
 
-DYNASTY_PATTERNS = [
-    '後秦', '后秦', '前秦', '姚秦', '西秦', '東晉', '东晋', '西晉', '西晋', '後漢', '后汉', '東漢', '东汉',
+# ── 藏经谱系 ─────────────────────────────────────────────────────
+# 谱系（藏名、时期、类别、底本）依 CBETA 各藏实际编纂关系整理；
+# 分布（档数／卷数／字数）由本库语料实算，二者在 build_lineage() 中合流。
+CANON_META: dict[str, dict[str, str]] = {
+    'D':  {'name': '敦煌·吐鲁番写本', 'era': '8–11 世纪', 'kind': '写本',
+           'base': '敦煌三界寺、吐鲁番三堡等出土写本；唐宋未入藏之经由此得传'},
+    'F':  {'name': '房山石经', 'era': '10–12 世纪', 'kind': '石刻',
+           'base': '北京房山云居寺藏经洞；辽金石刻写本'},
+    'I':  {'name': '北朝石刻拓片百品', 'era': '5–6 世纪', 'kind': '拓片',
+           'base': '北朝造像碑铭拓片，非写本藏经'},
+    'K':  {'name': '高丽大藏经', 'era': '1237–1248', 'kind': '写本',
+           'base': '高丽海印寺，以中国写本为底本，纸墨俱精'},
+    'A':  {'name': '赵城金藏', 'era': '13 世纪', 'kind': '写本',
+           'base': '山西赵城广胜寺所出金代写本'},
+    'U':  {'name': '洪武南藏', 'era': '1368–', 'kind': '写本',
+           'base': '明初南京写本；南宋刻本之系统'},
+    'P':  {'name': '永乐北藏', 'era': '1403–', 'kind': '写本',
+           'base': '北京刻经处，明代官刻之北系'},
+    'J':  {'name': '嘉兴大藏经', 'era': '1592–', 'kind': '写本',
+           'base': '浙江嘉兴刊刻；兼采磧砂藏、南藏、北藏，文献最富'},
+    'L':  {'name': '乾隆大藏经', 'era': '1733–1738', 'kind': '写本',
+           'base': '北京经厂重刻，明北藏之系统'},
+    'G':  {'name': '频伽精舍大藏经', 'era': '1909–1913', 'kind': '铅印',
+           'base': '上海频伽精舍铅印，以磧砂藏、嘉兴藏为底本'},
+    'M':  {'name': '卍正藏经', 'era': '明末–', 'kind': '铅印',
+           'base': '日本佛书院《卍正藏》，采中国诸藏及日藏'},
+    'X2': {'name': '大日本续藏经', 'era': '1890–', 'kind': '缩印',
+           'base': '日本东京缩印大日本续藏经，承嘉兴藏与卍正藏之系统'},
+    'X':  {'name': '卍新纂大日本续藏经', 'era': '1988–1992', 'kind': '缩印',
+           'base': '新文丰缩印《续藏》全 168 册，并收《卍正藏》及日藏资料'},
+    'T':  {'name': '大正新修大藏经', 'era': '1912–1934', 'kind': '珂罗',
+           'base': '东京大藏经株式会社编，汇宋元明清诸藏及敦煌、房山'},
+    'B':  {'name': '大藏经补编', 'era': '1991–', 'kind': '增补',
+           'base': '补《卍续藏》未收之宋元明清著述，兼收敦煌、房山释文'},
+    'ZW': {'name': '藏外佛教文献', 'era': '1990s–', 'kind': '释文',
+           'base': '敦煌、吐鲁番、房山等写本之释文、录文与研究'},
+    'Y':  {'name': '印顺法师佛学著作集', 'era': '民国', 'kind': '专集',
+           'base': '印顺法师著述及讲记'},
+    'YP': {'name': '演培法师全集', 'era': '民国', 'kind': '专集',
+           'base': '演培法师著述及讲记'},
+    'TX': {'name': '太虚大师全书', 'era': '民国', 'kind': '专集',
+           'base': '太虚大师著述'},
+    'LC': {'name': '吕澂佛学著作集', 'era': '民国', 'kind': '专集',
+           'base': '吕澂先生著述'},
+    'GA': {'name': '中国佛寺史志汇刊', 'era': '民国', 'kind': '史志',
+           'base': '方豪等辑录之佛寺史志'},
+    'GB': {'name': '中国佛寺志丛刊', 'era': '民国', 'kind': '史志',
+           'base': '佛寺志之汇辑丛刊'},
+    'N':  {'name': '汉译南传大藏经', 'era': '20 世纪', 'kind': '写本',
+           'base': '元亨寺版南传三藏汉译本'},
+    'C':  {'name': '中华大藏经', 'era': '1990s–', 'kind': '排印',
+           'base': '中华书局影印之诸本'},
+    'S':  {'name': '宋藏遗珍', 'era': '民国', 'kind': '写本',
+           'base': '新文丰版宋藏遗珍，辑佚宋刻写本'},
+    'CC': {'name': 'CBETA 选集', 'era': '1990–', 'kind': '数位',
+           'base': 'CBETA 选辑之单篇典籍，兼收民国专集'},
+    'ZS': {'name': '正史佛教资料类编', 'era': '近代', 'kind': '史料',
+           'base': '正史所载佛教资料之辑录'},
+    'CB': {'name': 'CBETA 电子版', 'era': '1990–', 'kind': '数位',
+           'base': '汇各藏原文数字化，统一编码 TEI P5'},
+    'M2': {'name': '阅藏经', 'era': '2026–', 'kind': '阅读版',
+           'base': '4,847 档 Markdown：卷品切块、偈颂标记、繁简转换'},
+}
+
+# 承袭关系：前者为后者之底本来源
+LINEAGE_EDGES: list[tuple[str, str]] = [
+    ('D', 'K'), ('D', 'A'), ('F', 'A'), ('D', 'U'), ('D', 'P'), ('F', 'P'),
+    ('P', 'L'), ('K', 'J'), ('A', 'J'), ('U', 'J'), ('P', 'J'),
+    ('J', 'G'), ('J', 'M'), ('K', 'M'), ('M', 'X2'), ('J', 'X2'),
+    ('X2', 'X'), ('G', 'X'), ('G', 'T'), ('M', 'T'), ('X2', 'T'),
+    ('D', 'T'), ('F', 'T'), ('X', 'B'), ('T', 'B'), ('D', 'ZW'), ('F', 'ZW'),
+    ('L', 'C'), ('P', 'C'),
+]
+
+# 本库自身的落点：各藏汇入 CBETA，本站语料自 CBETA 出
+LINEAGE_TAIL = [
+    ('T', 'CB'), ('X', 'CB'), ('B', 'CB'), ('ZW', 'CB'), ('Y', 'CB'),
+    ('YP', 'CB'), ('TX', 'CB'), ('LC', 'CB'), ('GA', 'CB'), ('C', 'CB'),
+    ('CC', 'CB'), ('GB', 'CB'), ('N', 'CB'), ('I', 'CB'), ('D', 'CB'),
+    ('F', 'CB'), ('S', 'CB'), ('G', 'CB'), ('A', 'CB'), ('K', 'CB'),
+    ('P', 'CB'), ('L', 'CB'), ('J', 'CB'), ('M', 'CB'), ('X2', 'CB'),
+    ('ZS', 'CB'),
+    ('CB', 'M2'),   # 本站阅读版自 CBETA 出
+]
+
+# 谱系列位（左→右即年代先后），用于站内脉络图排布
+LINEAGE_COLUMNS: list[list[str]] = [
+    ['I', 'D', 'F'],                      # 北朝拓片 · 敦煌写本 · 房山石经
+    ['K', 'A', 'U'],                      # 高丽 · 赵城金藏 · 洪武南藏
+    ['P', 'J'],                           # 永乐北藏 · 嘉兴藏
+    ['L', 'G', 'M', 'X2'],                # 乾隆 · 频伽 · 卍正 · 大日本续藏
+    ['T', 'X'],                           # 大正藏 · 卍新纂续藏
+    ['B', 'ZW', 'C'],                     # 补编 · 藏外文献 · 中华大藏经
+    ['Y', 'YP', 'TX', 'LC'],              # 民国专集
+    ['GA', 'GB', 'S', 'CC', 'ZS', 'N'],   # 史志 · 选集 · 史料 · 南传
+    ['CB', 'M2'],                         # 数位汇流 · 本站阅读版
+]
+
+
+def canon_family(code: str) -> str:
+    """档号前缀归入藏系：JA/JB→J，ZWa→ZW，Ba→B，GAa→GA，TXa→TX …"""
+    c = code.strip()
+    if c in CANON_META:
+        return c
+    if len(c) > 1 and c[:-1] in CANON_META:
+        return c[:-1]
+    return c
+
+
+DYNASTY_PATTERNS = [    '後秦', '后秦', '前秦', '姚秦', '西秦', '東晉', '东晋', '西晉', '西晋', '後漢', '后汉', '東漢', '东汉',
     '劉宋', '刘宋', '蕭齊', '萧齐', '南齊', '南齐', '梁', '陳', '陈', '北涼', '北凉', '北魏', '東魏', '东魏',
     '西魏', '北齊', '北齐', '北周', '隋', '唐', '五代', '宋', '北宋', '南宋', '元', '明', '清', '高麗', '高丽',
     '西天', '西國', '西域', '印度', '秦', '晉', '晋', '吳', '吴', '齊', '齐', '魏', '周', '漢', '汉', '金', '西夏',
@@ -81,6 +189,99 @@ DYNASTY_PATTERNS = [
 def yaml_str(value) -> str:
     """以 JSON 字符串形式输出标量（JSON 是合法的 YAML 流式标量）。"""
     return json.dumps(value, ensure_ascii=False)
+
+
+def build_lineage(records: list[dict]) -> list[str]:
+    """生成 src/data/canon-lineage.ts：谱系元数据 × 语料实算分布。"""
+    agg: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0, 0])  # works, juan, chars, divisions
+    divs: dict[str, set[str]] = defaultdict(set)
+    for r in records:
+        code = r.get('canon_code') or ''
+        if not code:
+            continue
+        fam = canon_family(code)
+        agg[fam][0] += 1
+        agg[fam][1] += r['juan_count'] or 0
+        agg[fam][2] += r['text_length'] or 0
+        divs[fam].add(r['division'])
+        agg[fam][3] = len(divs[fam])
+
+    lines = [
+        '// 由 scripts/import-sutra.py 自 CBETA 语料实算，请勿手改。',
+        '// 谱系（藏名、时期、类别、底本）依 CBETA 各藏实际编纂关系整理；',
+        '// 分布（档数／卷数／字数／部别数）自本库语料实算。',
+        'export type CanonLineageNode = {',
+        '  /** 藏系代码（如 T、X、ZW） */',
+        '  code: string;',
+        '  /** 藏名 */',
+        '  name: string;',
+        '  /** 时期 */',
+        '  era: string;',
+        '  /** 类别（写本／石刻／铅印…） */',
+        '  kind: string;',
+        '  /** 底本／来源 */',
+        '  base: string;',
+        '  /** 本库收录档数 */',
+        '  works: number;',
+        '  /** 本库收录卷数 */',
+        '  juan: number;',
+        '  /** 本库收录字数 */',
+        '  chars: number;',
+        '  /** 涉及部别数 */',
+        '  divisions: number;',
+        '};',
+        '',
+        'export type LineageEdge = { from: string; to: string };',
+        '',
+        'export const canonLineage: CanonLineageNode[] = [',
+    ]
+
+    for code in sorted(CANON_META, key=lambda c: -agg[c][0] if c in agg else 0):
+        meta = CANON_META[code]
+        v = agg.get(code, [0, 0, 0, 0])
+        lines += [
+            '  {',
+            f'    code: {yaml_str(code)},',
+            f'    name: {yaml_str(meta["name"])},',
+            f'    era: {yaml_str(meta["era"])},',
+            f'    kind: {yaml_str(meta["kind"])},',
+            f'    base: {yaml_str(meta["base"])},',
+            f'    works: {v[0]},',
+            f'    juan: {v[1]},',
+            f'    chars: {v[2]},',
+            f'    divisions: {v[3]},',
+            '  },',
+        ]
+
+    lines += [
+        '];',
+        '',
+        'export const lineageEdges: LineageEdge[] = [',
+    ]
+    for a, b in LINEAGE_EDGES:
+        lines.append(f'  {{ from: {yaml_str(a)}, to: {yaml_str(b)} }},')
+    for a, b in LINEAGE_TAIL:
+        lines.append(f'  {{ from: {yaml_str(a)}, to: {yaml_str(b)} }},')
+    lines += [
+        '];',
+        '',
+        '/** 谱系列位（左→右即年代先后），供脉络图排布 */',
+        'export const lineageColumns: string[][] = [',
+    ]
+    for col in LINEAGE_COLUMNS:
+        lines.append(f'  {json.dumps(col, ensure_ascii=False)},')
+    lines += [
+        '];',
+        '',
+        'export const lineageTotals = {',
+        f'  sources: {len([c for c in CANON_META if c not in ("CB", "M2")])},',
+        f'  works: {sum(v[0] for v in agg.values())},',
+        f'  juan: {sum(v[1] for v in agg.values())},',
+        f'  chars: {sum(v[2] for v in agg.values())},',
+        '};',
+        '',
+    ]
+    return lines
 
 
 def id_sort_key(item_id: str) -> tuple:
@@ -392,7 +593,15 @@ def main() -> int:
                 title_trad = ''
 
             canon = head.get('canon') or item_id
-            canon_name = head.get('canon_name', '') or meta.get('source', '')
+            m_code = re.match(r'^([A-Za-z]+)', canon)
+            canon_code = m_code.group(1) if m_code else ''
+            canon_name = head.get('canon_name', '')
+            if not canon_name:
+                # 文件头无藏经字段者（如 CBETA 选集），依藏系取正名；
+                # 再不行才退到索引的 source（可能只是著录说明）
+                canon_name = CANON_META.get(canon_family(canon_code), {}).get('name', '')
+            if not canon_name:
+                canon_name = meta.get('source', '')
             volume = head.get('volume', '')
             juan = int(head['juan']) if head.get('juan', '').isdigit() else None
             length = int(head['length'].replace(',', '')) if head.get('length', '').replace(',', '').isdigit() else len(body)
@@ -409,6 +618,7 @@ def main() -> int:
                 'division': division,
                 'division_alt': head.get('division', '') if head.get('division', '') != division else '',
                 'canon': canon,
+                'canon_code': canon_code,
                 'canon_name': canon_name,
                 'canon_alias': head.get('canon_alias', ''),
                 'volume': volume,
@@ -663,6 +873,11 @@ def main() -> int:
     ]
     canon_path = Path('src/data/corpus-canon.ts')
     canon_path.write_text('\n'.join(canon_lines), encoding='utf-8')
+
+    # 藏经来源脉络：谱系（藏名、时期、类别、底本）依 CBETA 各藏实际编纂关系，
+    # 分布（档数／卷数／字数）自本库语料实算。
+    lineage_path = Path('src/data/canon-lineage.ts')
+    lineage_path.write_text('\n'.join(build_lineage(records)), encoding='utf-8')
 
     # 资源
     if not args.no_assets:

@@ -30,6 +30,6 @@ export const nav: NavItem[] = [
   { title: '大藏经', path: '/categories/tripitaka/', match: 'tripitaka' },
   { title: '禅宗', path: '/categories/chan/', match: 'chan' },
   { title: '近代著作', path: '/categories/modern/', match: 'modern' },
-  { title: '专题', path: '/topics/', match: 'topics' },
+  { title: '专辑', path: '/topics/', match: 'topics' },
   { title: '关于', path: '/about/' },
 ];
