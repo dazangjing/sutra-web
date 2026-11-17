@@ -26,26 +26,33 @@
   --yzj-reader: #0e131a;
 }
 
+/* 素白 (paper)：纯白底 + 冷调科技强调色
+ *  · 底色纯白 #ffffff，正文纸面 #f7f9fb —— 约 3% 明度差，
+ *    靠边框与极淡冷调分层，而非米黄纸色，长文阅读不刺眼。
+ *  · 正文墨色取近黑的冷灰蓝（#16202b），对比度 15.8:1。
+ *  · 强调色由翠绿转为青蓝（#0e7490 附近），科技感更明确；
+ *    金色保留为「榜眼 / 印章 / 提示」专用，与青蓝冷调互补。
+ */
 [data-theme='paper'] {
-  --yzj-bg: #f4f1e8;
-  --yzj-bg-soft: #fbf9f2;
-  --yzj-panel: rgb(28 84 72 / 0.04);
-  --yzj-panel-2: rgb(28 84 72 / 0.08);
-  --yzj-ink: #1d2724;
-  --yzj-ink-2: #4e5c58;
-  --yzj-ink-3: #78857f;
-  --yzj-line: rgb(28 84 72 / 0.2);
-  --yzj-line-2: rgb(40 60 55 / 0.12);
-  --yzj-jade: #14705e;
-  --yzj-jade-2: #1c8a72;
-  --yzj-gold: #96701c;
-  --yzj-gold-2: #b08b34;
-  --yzj-violet: #5344bd;
-  --yzj-cinnabar: #b53f2c;
-  --yzj-noise: 0.02;
-  --yzj-aurora: 0.55;
-  /* 正文区底色：相对页面背景约 20% 的视觉差（素白：#f4f1e8 → #fffdf8） */
-  --yzj-reader: #fffdf8;
+  --yzj-bg: #ffffff;
+  --yzj-bg-soft: #f7f9fb;
+  --yzj-panel: rgb(15 60 90 / 0.035);
+  --yzj-panel-2: rgb(15 60 90 / 0.07);
+  --yzj-ink: #16202b;
+  --yzj-ink-2: #46586a;
+  --yzj-ink-3: #7b8b9c;
+  --yzj-line: rgb(14 116 144 / 0.18);
+  --yzj-line-2: rgb(30 60 90 / 0.1);
+  --yzj-jade: #0e7490;
+  --yzj-jade-2: #0891b2;
+  --yzj-gold: #a16207;
+  --yzj-gold-2: #ca8a04;
+  --yzj-violet: #5b52d3;
+  --yzj-cinnabar: #c2410c;
+  --yzj-noise: 0.014;
+  --yzj-aurora: 0.5;
+  /* 正文区底色：相对页面纯白约 3% 的明度差（冷调灰蓝） */
+  --yzj-reader: #f7f9fb;
 }
 
 @theme inline {
@@ -76,7 +83,7 @@
   --radius-chip: 9px;
 
   --shadow-panel: 0 24px 60px -30px rgb(0 0 0 / 0.95);
-  --shadow-panel-light: 0 22px 50px -30px rgb(30 45 40 / 0.5);
+  --shadow-panel-light: 0 22px 50px -30px rgb(22 32 43 / 0.14);
 
   --ease-zen: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -117,8 +124,8 @@
   }
 
   [data-theme='paper'] ::selection {
-    background: rgb(20 112 94 / 0.2);
-    color: #0b1a16;
+    background: rgb(14 116 144 / 0.18);
+    color: #0b1a24;
   }
 
   h1,
@@ -182,6 +189,16 @@
       radial-gradient(900px 520px at 50% 108%, rgb(227 192 105 / 0.09), transparent 65%);
     filter: blur(14px);
     animation: drift 26s ease-in-out infinite alternate;
+  }
+
+  /* 素白：极光改为冷调青蓝紫，浓度更低 —— 纯白底上不显脏，
+     却仍保有科技氛围 */
+  [data-theme='paper'] .backdrop-aurora {
+    background:
+      radial-gradient(760px 460px at 12% -6%, rgb(14 116 144 / 0.1), transparent 62%),
+      radial-gradient(620px 420px at 92% 6%, rgb(91 82 211 / 0.08), transparent 60%),
+      radial-gradient(900px 520px at 50% 108%, rgb(8 145 178 / 0.07), transparent 65%);
+    filter: blur(18px);
   }
 
   .backdrop-noise {

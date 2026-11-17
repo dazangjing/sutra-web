@@ -53,16 +53,7 @@ export const categories: Category[] = [
     accent: 'slate',
     desc: '近现代佛学家的撰述与点校整理本，兼收南传三藏诸经。转法轮经、吉祥经等早期经典，与近代佛学著述并存于此，与汉传互为参证。',
     keywords: ['南传', '巴利', '转法轮经', '吉祥经', '点校', '近代撰述', '大藏经补编'],
-  },
-  {
-    slug: 'modern',
-    name: '近代著作',
-    en: 'MODERN SCHOLARSHIP',
-    glyph: '史',
-    accent: 'jade',
-    desc: '近代佛学家的读经笔记与通史断代。以史家之眼、哲人之笔，为旧典开出新的读法。',
-    keywords: ['教史', '目录学', '禅宗史', '常识', '工具书', '近代'],
-  },
+  }
 ];
 
 export const categoryMap = Object.fromEntries(categories.map((c) => [c.slug, c])) as Record<

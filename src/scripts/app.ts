@@ -15,7 +15,7 @@ const root = document.documentElement;
 const applyTheme = (theme: string) => {
   root.dataset.theme = theme;
   const meta = $('meta[name="theme-color"]');
-  if (meta) meta.content = theme === 'paper' ? '#f4f1e8' : '#05070a';
+  if (meta) meta.content = theme === 'paper' ? '#ffffff' : '#05070a';
 };
 
 try {
