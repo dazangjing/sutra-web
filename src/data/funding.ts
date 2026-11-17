@@ -6,6 +6,8 @@
  *
  * 运行成本（年）由公开的捐助覆盖；若捐助不足，差额由维护者自掏腰包补足，
  * 站点功能不因此缩减 —— 这是本站对读者的承诺。
+ *
+ * 金额单位：人民币元（¥）。
  */
 
 export type Donor = {
@@ -13,24 +15,26 @@ export type Donor = {
   name: string;
   /** 部分脱敏的来源账号（如 z***@example.com、微信 ***88），供捐赠者核对 */
   account: string;
-  /** 捐助金额（美元） */
+  /** 捐助金额（元） */
   amount: number;
+  /** 捐助日期（YYYY-MM-DD），用于按时间排序与归年 */
+  date: string;
 };
 
 /**
- * 年运行成本（美元）
- *  · hosting：GitHub Pages 托管年费
+ * 年运行成本（元）
+ *  · hosting：站点托管年费
  *  · token：大模型 API 调用费（语料整理、导读撰写、义理提要生成）
  */
 export const annualCosts = [
   {
-    item: 'GitHub Pages 托管',
-    amount: 252,
-    note: '站点托管与流量年费',
+    item: '站点托管与流量',
+    amount: 1820,
+    note: '静态站点托管、CDN 分发与带宽年费',
   },
   {
     item: '大模型 API（Token）',
-    amount: 120,
+    amount: 860,
     note: '语料整理、导读撰写与义理提要生成之模型调用费',
   },
 ] as const;
@@ -41,14 +45,18 @@ export const annualCostTotal = annualCosts.reduce((s, c) => s + c.amount, 0);
  * 捐助明细
  *
  * 账号一律脱敏后公开（保留可核对的特征，不泄露完整联系方式）。
- * 金额单位：美元。
+ * 金额单位：元；按日期倒序排列（新者在前）。
  */
 export const donors: Donor[] = [
-  { name: '示例·居士', account: 'z***@example.com', amount: 50 },
-  { name: '示例·居士', account: '微信 ***88', amount: 30 },
-  { name: '示例·善信', account: 'l***@example.org', amount: 20 },
+  {
+    name: '示例·居士',
+    account: 'z***@example.com',
+    amount: 100,
+    date: '2026-11-17',
+  },
 ];
 
+/** 捐助合计（元） */
 export const donatedTotal = donors.reduce((s, d) => s + d.amount, 0);
 
 /** 成本与捐助之差：正数为未覆盖缺口（由维护者自补），负数为结余 */
@@ -59,6 +67,40 @@ export const funding = {
   coverage: annualCostTotal > 0 ? donatedTotal / annualCostTotal : 0,
   donorCount: donors.length,
 } as const;
+
+/**
+ * 按年度归集的捐助明细
+ *
+ * 年份降序（新年在前），年内按日期倒序。
+ */
+export type DonorYear = {
+  /** 年份，如 2026 */
+  year: string;
+  /** 本年捐助小计（元） */
+  total: number;
+  /** 本年笔数 */
+  count: number;
+  /** 本年明细（已排序） */
+  donors: Donor[];
+};
+
+export const donorYears: DonorYear[] = (() => {
+  const byYear = new Map<string, Donor[]>();
+  for (const d of [...donors].sort((a, b) => b.date.localeCompare(a.date))) {
+    const y = d.date.slice(0, 4);
+    const list = byYear.get(y);
+    if (list) list.push(d);
+    else byYear.set(y, [d]);
+  }
+  return [...byYear.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([year, list]) => ({
+      year,
+      total: list.reduce((s, d) => s + d.amount, 0),
+      count: list.length,
+      donors: list,
+    }));
+})();
 
 /**
  * 运营模式
@@ -81,7 +123,7 @@ export const operationPrinciples = [
   {
     title: '成本公开',
     detail:
-      '年运行成本、捐助明细与二者差额皆在本页公开。数字可逐项核对，不作粉饰：托管年费、模型调用费各几何，收到多少捐助，尚缺几何，一目了然。',
+      '年运行成本、捐助明细与捐助进展皆在本页公开。数字可逐项核对，不作粉饰：托管年费、模型调用费各几何，收到多少捐助，尚缺几何，一目了然。',
   },
   {
     title: '缺口自担',
@@ -92,7 +134,7 @@ export const operationPrinciples = [
 
 /** 捐助去向说明 */
 export const fundUsage = [
-  { item: 'GitHub Pages 托管与流量', note: '静态站点托管、CDN 分发、带宽' },
+  { item: '站点托管与流量', note: '静态站点托管、CDN 分发、带宽' },
   { item: '大模型 API 调用', note: '语料整理校订、导读撰写、义理提要生成' },
   { item: '缺口补足', note: '捐助不足年度成本之部分，由维护者自补，不列支' },
 ] as const;
