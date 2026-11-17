@@ -31,5 +31,6 @@ export const nav: NavItem[] = [
   { title: '禅宗', path: '/categories/chan/', match: 'chan' },
   { title: '近代著作', path: '/categories/modern/', match: 'modern' },
   { title: '专辑', path: '/topics/', match: 'topics' },
+  { title: '捐助', path: '/donate/' },
   { title: '关于', path: '/about/' },
 ];

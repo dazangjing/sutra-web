@@ -1,0 +1,308 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { u } from '../lib/url';
+import {
+  annualCosts,
+  annualCostTotal,
+  donors,
+  donatedTotal,
+  balance,
+  funding,
+  operationPrinciples,
+  fundUsage,
+} from '../data/funding';
+
+const usd = (n: number) =>
+  n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+const covered = balance >= 0;
+---
+
+<BaseLayout
+  title="捐助与运营"
+  description="阅藏经为完全公益站点：全部内容免费开放。本页公开站点年运行成本、捐助明细与二者差额，并说明运营模式。"
+  bodyClass="page-donate"
+>
+  <PageHero
+    kicker="/ DONATE · 运营公开"
+    title="捐助"
+    desc="本站是彻底公益的：所有经文、导读、统计与工具，皆免费开放，不设付费墙，不投放广告。本页公开站点年成本、收到的捐助与二者差额，供读者核对。"
+    count="完全公益 · 无广告 · 无付费墙"
+  />
+
+  <!-- ══ 一眼看清 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pt-10 sm:px-8">
+    <div class="reveal grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        [
+          { k: '年度成本', v: `$${usd(annualCostTotal)}`, s: '托管 + 模型调用', accent: 'jade' },
+          { k: '年度捐助', v: `$${usd(donatedTotal)}`, s: `${funding.donorCount} 位捐助人`, accent: 'jade' },
+          {
+            k: covered ? '结余' : '尚缺',
+            v: `$${usd(Math.abs(balance))}`,
+            s: covered ? '已覆盖年度成本' : '由维护者自补',
+            accent: covered ? 'jade' : 'gold',
+          },
+          { k: '覆盖率', v: pct(funding.coverage), s: '捐助 ÷ 成本', accent: 'gold' },
+        ].map((x) => (
+          <div class="rounded-card border border-line bg-panel p-5 shadow-panel">
+            <p class="font-mono text-[10.5px] tracking-[0.2em] text-ink-3">{x.k}</p>
+            <p
+              class="mt-2 font-mono text-[26px] leading-none tabular-nums"
+              class:text-jade={x.accent === 'jade'}
+              class:text-gold={x.accent === 'gold'}
+            >
+              {x.v}
+            </p>
+            <p class="mt-2 text-[12px] text-ink-3">{x.s}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ══ 年度成本 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 py-12 sm:px-8">
+    <div class="reveal mb-6 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(19px,2.2vw,24px)] font-semibold tracking-[0.08em] text-ink">年度运行成本</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.14em] text-ink-3">单位：美元 / 年</span>
+    </div>
+
+    <div class="reveal overflow-x-auto rounded-card border border-line bg-panel shadow-panel">
+      <table class="stat-table min-w-[620px]">
+        <caption class="sr-only">站点年度运行成本明细</caption>
+        <thead>
+          <tr>
+            <th scope="col">项目</th>
+            <th scope="col">说明</th>
+            <th scope="col" class="text-right">年费</th>
+            <th scope="col" class="w-[30%]">占比</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            annualCosts.map((c) => (
+              <tr>
+                <td>
+                  <strong class="font-serif text-[14.5px] font-semibold tracking-[0.04em]">{c.item}</strong>
+                </td>
+                <td class="text-[13px] text-ink-2">{c.note}</td>
+                <td class="text-right font-mono text-[14.5px] tabular-nums">${usd(c.amount)}</td>
+                <td>
+                  <span class="flex items-center gap-3">
+                    <span class="bar min-w-20 flex-1">
+                      <i style={`--w:${((c.amount / annualCostTotal) * 100).toFixed(2)}%`}></i>
+                    </span>
+                    <span class="w-12 shrink-0 text-right font-mono text-[11.5px] tabular-nums text-ink-3">
+                      {((c.amount / annualCostTotal) * 100).toFixed(1)}%
+                    </span>
+                  </span>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>
+              <strong class="font-serif text-[14.5px] font-semibold tracking-[0.04em] text-jade">合计</strong>
+            </td>
+            <td class="text-[13px] text-ink-3">年度运行总成本</td>
+            <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">${usd(annualCostTotal)}</td>
+            <td>
+              <span class="flex items-center gap-3">
+                <span class="bar min-w-20 flex-1">
+                  <i style="--w:100%;background:linear-gradient(90deg,var(--yzj-gold-2),var(--yzj-gold));box-shadow:0 0 12px -2px rgb(227 192 105 / 0.7)"></i>
+                </span>
+                <span class="w-12 shrink-0 text-right font-mono text-[11.5px] tabular-nums text-ink-3">100%</span>
+              </span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 捐助明细 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pb-12 sm:px-8">
+    <div class="reveal mb-6 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(19px,2.2vw,24px)] font-semibold tracking-[0.08em] text-ink">捐助明细</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.14em] text-ink-3">
+        {funding.donorCount} 位 · 合计 ${usd(donatedTotal)}
+      </span>
+    </div>
+
+    <div class="reveal overflow-x-auto rounded-card border border-line bg-panel shadow-panel">
+      <table class="stat-table min-w-[560px]">
+        <caption class="sr-only">捐助人明细（来源账号已脱敏）</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="w-16">序号</th>
+            <th scope="col">名字 / 网名</th>
+            <th scope="col">来源账号（脱敏）</th>
+            <th scope="col" class="text-right">金额</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            donors.map((d, i) => (
+              <tr>
+                <td class="font-mono text-[12.5px] tabular-nums text-ink-3">{String(i + 1).padStart(3, '0')}</td>
+                <td>
+                  <strong class="font-serif text-[14.5px] font-semibold tracking-[0.04em]">{d.name}</strong>
+                </td>
+                <td class="font-mono text-[12.5px] text-ink-2">{d.account}</td>
+                <td class="text-right font-mono text-[14.5px] tabular-nums text-jade">${usd(d.amount)}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td />
+            <td>
+              <strong class="font-serif text-[14.5px] font-semibold tracking-[0.04em] text-jade">合计</strong>
+            </td>
+            <td class="font-mono text-[12px] text-ink-3">{funding.donorCount} 笔</td>
+            <td class="text-right font-mono text-[14.5px] font-medium tabular-nums text-jade">
+              ${usd(donatedTotal)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <p class="reveal mt-4 px-0.5 font-mono text-[11.5px] leading-relaxed tracking-[0.03em] text-ink-3">
+      ※ 账号一律脱敏后公开，保留可核对之特征而不泄露完整联系方式。捐助明细如有遗漏或笔误，以维护者账目为准。
+    </p>
+  </section>
+
+  <!-- ══ 差额 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pb-14 sm:px-8">
+    <div class="reveal mb-6 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(19px,2.2vw,24px)] font-semibold tracking-[0.08em] text-ink">成本与捐助之差</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+    </div>
+
+    <div class="reveal grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+      <!-- 差额算式 -->
+      <div class="rounded-card border border-line bg-panel p-6 shadow-panel">
+        <div class="space-y-3 font-mono text-[14px] tabular-nums">
+          <div class="flex items-baseline justify-between gap-4 border-b border-dashed border-line-2 pb-3">
+            <span class="text-ink-2">年度运行成本</span>
+            <span class="text-ink">${usd(annualCostTotal)}</span>
+          </div>
+          <div class="flex items-baseline justify-between gap-4 border-b border-dashed border-line-2 pb-3">
+            <span class="text-ink-2">已收捐助</span>
+            <span class="text-ink">− ${usd(donatedTotal)}</span>
+          </div>
+          <div
+            class="flex items-baseline justify-between gap-4 rounded-chip px-3 py-2.5"
+            style={`background:${covered ? 'rgb(14 116 144 / 0.08)' : 'rgb(227 192 105 / 0.08)'}`}
+          >
+            <span class="text-ink-2">{covered ? '结余' : '尚缺（由维护者自补）'}</span>
+            <span class:text-jade={covered} class:text-gold={!covered} class="text-[16px]">
+              ${usd(Math.abs(balance))}
+            </span>
+          </div>
+        </div>
+
+        <!-- 覆盖率条 -->
+        <div class="mt-6">
+          <div class="mb-2 flex items-baseline justify-between font-mono text-[11.5px] tracking-[0.1em] text-ink-3">
+            <span>覆盖率</span>
+            <span class="tabular-nums text-ink-2">{pct(funding.coverage)}</span>
+          </div>
+          <span class="bar block h-2">
+            <i
+              style={`--w:${(funding.coverage * 100).toFixed(2)}%;background:linear-gradient(90deg,var(--yzj-jade-2),var(--yzj-jade));box-shadow:0 0 12px -2px rgb(95 227 192 / 0.7)`}
+            ></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- 捐助去向 -->
+      <aside class="rounded-card border border-line bg-panel p-5 shadow-panel">
+        <p class="mb-3.5 font-mono text-[10.5px] tracking-[0.22em] text-ink-3">FUND USAGE</p>
+        <ul class="space-y-3">
+          {
+            fundUsage.map((f) => (
+              <li class="border-b border-dashed border-line-2 pb-3 last:border-b-0 last:pb-0">
+                <p class="text-[13px] font-medium text-ink-2">{f.item}</p>
+                <p class="mt-1 text-[12px] leading-relaxed text-ink-3">{f.note}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ══ 运营模式 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pb-16 sm:px-8">
+    <div class="reveal mb-6 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(19px,2.2vw,24px)] font-semibold tracking-[0.08em] text-ink">运营模式</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.14em] text-ink-3">完全公益</span>
+    </div>
+
+    <div class="reveal grid gap-4 sm:grid-cols-2">
+      {
+        operationPrinciples.map((p, i) => (
+          <article class="rounded-card border border-line bg-panel p-6 shadow-panel transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2">
+            <div class="mb-3 flex items-baseline gap-3">
+              <span class="font-mono text-[13px] tracking-[0.1em] text-jade">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 class="font-serif text-[17px] font-semibold tracking-[0.06em] text-ink">{p.title}</h3>
+            </div>
+            <p class="text-[13.5px] leading-[1.9] text-ink-2">{p.detail}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ══ 捐助方式 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pb-20 sm:px-8">
+    <div class="reveal overflow-hidden rounded-card border border-line bg-panel shadow-panel">
+      <div class="border-b border-line px-6 py-4">
+        <p class="font-mono text-[10.5px] tracking-[0.22em] text-ink-3">HOW TO GIVE</p>
+      </div>
+      <div class="px-6 py-6">
+        <p class="max-w-[70ch] text-[14px] leading-[1.9] text-ink-2">
+          本站所有内容对所有人免费开放，无任何付费项目。若你愿意分担上列年费，可通过以下方式捐助；金额不论，皆是对开源与免费之事的支持。
+        </p>
+        <ul class="mt-5 space-y-3">
+          <li class="flex items-start gap-3">
+            <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-jade"></span>
+            <span class="text-[13.5px] leading-[1.85] text-ink-2">
+              <strong class="font-medium text-ink">GitHub Sponsors</strong>
+              —— 一次性或按期捐助，页面公开可查。
+            </span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-jade"></span>
+            <span class="text-[13.5px] leading-[1.85] text-ink-2">
+              <strong class="font-medium text-ink">页脚「GitHub ↗」</strong>
+              —— 站点源码仓库；亦可于仓库内查看部署方式，自行复刻一份。
+            </span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-jade"></span>
+            <span class="text-[13.5px] leading-[1.85] text-ink-2">
+              <strong class="font-medium text-ink">来信告知</strong>
+              —— 欲捐助而上述不便者，可经页脚邮箱联系，记入下表。
+            </span>
+          </li>
+        </ul>
+        <p class="mt-6 border-t border-dashed border-line-2 pt-5 font-mono text-[11.5px] leading-relaxed tracking-[0.03em] text-ink-3">
+          ※ 捐助纯属自愿，不影响任何阅读权益；本站不会因捐助多寡而区别对待读者，也不会因捐助而删改、限制任何内容。
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
