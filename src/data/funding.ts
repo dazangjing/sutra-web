@@ -34,7 +34,7 @@ export const annualCosts = [
   },
   {
     item: '大模型 API（Token）',
-    amount: 860,
+    amount: 1600,
     note: '语料整理、导读撰写与义理提要生成之模型调用费',
   },
 ] as const;
@@ -51,7 +51,7 @@ export const donors: Donor[] = [
   {
     name: '示例·居士',
     account: 'z***@example.com',
-    amount: 100,
+    amount: 0,
     date: '2026-11-17',
   },
 ];

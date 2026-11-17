@@ -407,6 +407,49 @@
     margin: 0;
   }
 
+  /* 正文图片：加高反差衬底
+   * 语料图片两类：
+   *   ① GIF 残片（1,332 张）—— 带透明通道，墨色纯黑，本为白底之物。
+   *      置于墨夜纸面（#0e131a）时黑字没入暗底，对比仅 1.13:1，几不可辨；
+   *      故一律加浅色衬底，令黑字立于纸上（18.6:1）。
+   *   ② JPG 整页影印（6 张）—— 本身即深色页面，居中独行。
+   *      墨夜主题下衬以浅色反显其形；素白主题下反以深色框出轮廓。
+   */
+  .prose-zen img {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 0.15em;
+    padding: 3px;
+    border-radius: 4px;
+    background: #f4f1e8;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.14),
+      0 2px 8px -4px rgb(0 0 0 / 0.4);
+  }
+
+  /* 独立成行的图片（段落内独占）另作处理 */
+  .prose-zen p > img:only-child {
+    display: block;
+    margin-inline: auto;
+  }
+
+  /* 素白主题：深色影印页改以深框衬之，免与浅纸面糊作一片 */
+  [data-theme='paper'] .prose-zen img {
+    background: #ffffff;
+    box-shadow:
+      0 0 0 1px rgb(22 32 43 / 0.28),
+      0 2px 10px -4px rgb(22 32 43 / 0.35);
+  }
+
+  /* 整页影印（JPG，无透明通道）：以深色衬框反显轮廓，
+   * 免在浅纸面上糊成一片暗块 */
+  .prose-zen img[src$='.jpg'] {
+    background: #1c222b;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.3),
+      0 2px 10px -4px rgb(0 0 0 / 0.45);
+  }
+
   .prose-zen h2 {
     position: relative;
     margin: 2.1em 0 0.9em;

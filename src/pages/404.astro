@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { u } from '../lib/url';
 ---
 
-<BaseLayout title="页面未找到" description="此页不在藏中。" bodyClass="page-404">
+<BaseLayout title="您访问的内容未找到" description="您访问的内容未找到" bodyClass="page-404">
   <section class="mx-auto max-w-[1260px] px-4 pt-16 pb-24 sm:px-8 sm:pt-24">
     <p class="reveal mb-4 flex items-center gap-3.5 font-mono text-[11.5px] tracking-[0.18em] text-ink-3">
       <span class="text-jade">/ 404</span>
@@ -11,8 +11,8 @@ import { u } from '../lib/url';
       <span>迷途</span>
     </p>
 
-    <h1 class="reveal font-serif text-[clamp(32px,5.2vw,54px)] font-semibold tracking-[0.12em] text-ink">此页不在藏中</h1>
-    <p class="reveal mt-4.5 max-w-[60ch] text-[15px] leading-[2] text-ink-2">你所寻的经卷未曾入录，或已移至别处。不妨自目录重寻。</p>
+    <h1 class="reveal font-serif text-[clamp(32px,5.2vw,54px)] font-semibold tracking-[0.12em] text-ink">您访问的内容未找到</h1>
+    <p class="reveal mt-4.5 max-w-[60ch] text-[15px] leading-[2] text-ink-2">您访问的内容未找到，或已移至别处。</p>
 
     <div class="reveal mt-8.5 flex flex-wrap gap-3">
       <a href={u('/')} class="rounded-full bg-[linear-gradient(135deg,var(--yzj-jade),var(--yzj-jade-2))] px-6 py-3 text-[14px] font-semibold tracking-[0.06em] text-[#04211c] shadow-[0_12px_30px_-14px_rgb(95_227_192/0.85)] transition-all duration-300 hover:-translate-y-0.5">
