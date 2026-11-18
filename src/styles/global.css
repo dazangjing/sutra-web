@@ -345,11 +345,11 @@
   }
 
   /* 正文区：独立纸面，底色与页面背景保持约 20% 视觉差
-   * 窄边：纸面随正文栏同行宽（不横贯全幅），内边距固定 1cm
-   *       （文字至正文框内缘之距）；与篇首、篇末同一栏宽，左右对齐 */
+   * 满栏：纸面与篇首、篇末同占 1260px 栏宽，左右齐平全站
+   * 内边距固定 1cm（文字至正文框内缘之距） */
   .reading-body {
     position: relative;
-    width: calc(58rem + 2cm);
+    width: 100%;
     max-width: 100%;
     margin-inline: auto;
     margin-top: 1.25rem;

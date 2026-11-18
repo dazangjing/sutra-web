@@ -19,6 +19,11 @@ export function docMatches(doc: Doc, collection: Collection): boolean {
 
   if (rule.guidesOnly) return d.category === 'modern';
 
+  // 配图之限：无图者不入，有图而不足其数者亦不入
+  if (rule.minImages) {
+    if (!d.image_count || d.image_count < rule.minImages) return false;
+  }
+
   const groups: boolean[] = [];
 
   if (rule.divisions?.length) {
