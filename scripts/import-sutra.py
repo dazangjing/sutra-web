@@ -134,121 +134,141 @@ CANON_META: dict[str, dict[str, str]] = {
            'base': '4,847 档 Markdown：卷品切块、偈颂标记、繁简转换'},
 }
 
-# 承袭关系：前者为后者之底本来源
+# ── 藏经来源脉络 ─────────────────────────────────────────────────
+# 一本谱系：依 CBETA 各藏实际编纂关系（承袭／底本）与汇入关系整理。
+# 与 ../sutra_md_zh/藏经来源脉络.md 之 mermaid 图、SVG 同源。
+#
+# 列（自左而右即承袭次第）与列内各藏：
+#   列 1  敦煌・吐鲁番写本 / 房山石经（辽金） / 北朝石刻拓片百品
+#   列 2  高丽大藏经 / 赵城金藏 / 洪武南藏 / 永乐北藏 / 乾隆大藏经
+#   列 3  嘉兴大藏经
+#   列 4  频伽精舍大藏经 / 卍正藏经 / 大日本续藏经
+#   列 5  卍新纂大日本续藏经 / 大正新修大藏经
+#   列 6  大藏经补编 / 藏外佛教文献 / 民国诸专集 / 中国佛寺史志汇刊 / 中华大藏经
+#   列 7  CBETA 电子版
+#   列 8  本库 sutra_md
+#
+# kind：写本 / 石刻 / 拓片 / 铅印 / 珂罗 / 缩印 / 排印 / 增补 / 释文 /
+#       专集 / 史志 / 数位 / 阅读版
+LINEAGE_COLUMNS: list[dict] = [
+    {
+        'label': '一 · 出土与刻石',
+        'note': '北朝拓片与敦煌房山写本',
+        'nodes': [
+            ('D', '敦煌・吐鲁番写本', '8–11 世纪', '写本'),
+            ('F', '房山石经（辽金）', '10–12 世纪', '石刻'),
+            ('I', '北朝石刻拓片百品', '5–6 世纪', '拓片'),
+        ],
+    },
+    {
+        'label': '二 · 写本传译',
+        'note': '高丽·赵城·南北藏·乾隆',
+        'nodes': [
+            ('K', '高丽大藏经', '1237–1248', '写本'),
+            ('A', '赵城金藏', '13 世纪', '写本'),
+            ('U', '洪武南藏（南藏系统）', '1368–', '写本'),
+            ('P', '永乐北藏', '1403–', '写本'),
+            ('L', '乾隆大藏经', '1733–1738', '写本'),
+        ],
+    },
+    {
+        'label': '三 · 明代刻藏',
+        'note': '嘉兴藏兼采磧砂·南藏·北藏',
+        'nodes': [
+            ('J', '嘉兴大藏经', '1592–', '写本'),
+        ],
+    },
+    {
+        'label': '四 · 清末铅印',
+        'note': '频伽·卍正·大日本续藏',
+        'nodes': [
+            ('G', '频伽精舍大藏经', '1909–1913', '铅印'),
+            ('M', '卍正藏经', '明末–', '铅印'),
+            ('X2', '大日本续藏经', '1890–', '缩印'),
+        ],
+    },
+    {
+        'label': '五 · 汇刻诸藏',
+        'note': '大正藏与卍新纂续藏',
+        'nodes': [
+            ('X', '卍新纂大日本续藏经', '1988–1992', '缩印'),
+            ('T', '大正新修大藏经', '1912–1934', '珂罗'),
+        ],
+    },
+    {
+        'label': '六 · 增补释文与专集',
+        'note': '补编·藏外·民国著述·中华',
+        'nodes': [
+            ('B', '大藏经补编', '1991–', '增补'),
+            ('ZW', '藏外佛教文献', '1990s–', '释文'),
+            ('Y', '印顺法师佛学著作集', '民国', '专集'),
+            ('YP', '演培法师全集', '民国', '专集'),
+            ('TX', '太虚大师全书', '民国', '专集'),
+            ('LC', '吕澂佛学著作集', '民国', '专集'),
+            ('GA', '中国佛寺史志汇刊', '民国', '史志'),
+            ('C', '中华大藏经', '1990s–', '排印'),
+        ],
+    },
+    {
+        'label': '七 · 数位汇流',
+        'note': 'CBETA 电子版',
+        'nodes': [
+            ('CB', 'CBETA 电子版', '1990–', '数位'),
+        ],
+    },
+    {
+        'label': '八 · 本站阅读版',
+        'note': '本库 sutra_md',
+        'nodes': [
+            ('M2', '本库 sutra_md', '2026–', '阅读版'),
+        ],
+    },
+]
+
+# 底本／来源（依 CBETA 各藏实际编纂关系）
+CANON_BASE: dict[str, str] = {
+    'K': '高丽海印寺，以中国写本为底本，纸墨俱精',
+    'A': '山西赵城广胜寺所出金代写本',
+    'U': '明初南京写本；南宋刻本之系统',
+    'P': '北京刻经处，明代官刻之北系',
+    'L': '北京经厂重刻，明北藏之系统',
+    'J': '浙江嘉兴刊刻；兼采磧砂藏、南藏、北藏，文献最富',
+    'G': '上海频伽精舍铅印，以磧砂藏、嘉兴藏为底本',
+    'M': '日本佛书院《卍正藏》，采中国诸藏及日藏',
+    'X2': '日本东京缩印大日本续藏经，承嘉兴藏与卍正藏之系统',
+    'X': '新文丰缩印《续藏》全 168 册，并收《卍正藏》及日藏资料',
+    'T': '东京大藏经株式会社编，汇宋元明清诸藏及敦煌、房山',
+    'B': '补《卍续藏》未收之宋元明清著述，兼收敦煌、房山释文',
+    'ZW': '敦煌、吐鲁番、房山等写本之释文、录文与研究',
+    'Y': '印顺法师著述及讲记',
+    'YP': '演培法师著述及讲记',
+    'TX': '太虚大师著述',
+    'LC': '吕澂先生著述',
+    'GA': '方豪等辑录之佛寺史志',
+    'C': '中华书局影印之诸本',
+    'CB': '汇各藏原文数字化，统一编码 TEI P5',
+    'M2': '4,847 档 Markdown：卷品切块、偈颂标记、繁简转换',
+    'D': '敦煌三界寺、吐鲁番三堡等出土写本；唐宋未入藏之经由此得传',
+    'F': '北京房山云居寺藏经洞；辽金石刻写本',
+    'I': '北朝造像碑铭拓片，非写本藏经',
+}
+
+# 承袭边（实线）：前者为后者之底本来源
 LINEAGE_EDGES: list[tuple[str, str]] = [
     ('D', 'K'), ('D', 'A'), ('F', 'A'), ('D', 'U'), ('D', 'P'), ('F', 'P'),
     ('P', 'L'), ('K', 'J'), ('A', 'J'), ('U', 'J'), ('P', 'J'),
     ('J', 'G'), ('J', 'M'), ('K', 'M'), ('M', 'X2'), ('J', 'X2'),
     ('X2', 'X'), ('G', 'X'), ('G', 'T'), ('M', 'T'), ('X2', 'T'),
-    ('D', 'T'), ('F', 'T'), ('X', 'B'), ('T', 'B'), ('D', 'ZW'), ('F', 'ZW'),
-    ('L', 'C'), ('P', 'C'),
+    ('D', 'T'), ('F', 'T'), ('L', 'C'), ('P', 'C'),
 ]
 
-# ── 谱系分层（代）────────────────────────────────────────────────
-# 脉络图按「代」自左而右排布：每一代为一层，层内之藏为并列之支流。
-# 这样承袭关系成为「上层 → 下层」的短距连线，而非各藏直指末端的乱麻。
-# tier: 层序；parents: 该藏承自之藏（用于在层间画短连线）。
-LINEAGE_TIERS: list[dict] = [
-    {
-        'tier': 0,
-        'label': '一 · 写本初源',
-        'note': '北朝刻石与出土写本',
-        'nodes': [
-            ('I', ['I']),
-            ('D', ['D']),
-            ('F', ['F']),
-        ],
-    },
-    {
-        'tier': 1,
-        'label': '二 · 写本传译',
-        'note': '高丽与金元之刻',
-        'nodes': [
-            ('K', ['K']),
-            ('A', ['A']),
-            ('U', ['U']),
-        ],
-    },
-    {
-        'tier': 2,
-        'label': '三 · 明代刻藏',
-        'note': '南北藏与嘉兴藏',
-        'nodes': [
-            ('P', ['P']),
-            ('J', ['J']),
-        ],
-    },
-    {
-        'tier': 3,
-        'label': '四 · 清代与铅印',
-        'note': '乾隆重刻·频伽铅印·卍正',
-        'nodes': [
-            ('L', ['L']),
-            ('G', ['G']),
-            ('M', ['M']),
-            ('X2', ['X2']),
-        ],
-    },
-    {
-        'tier': 4,
-        'label': '五 · 汇刻诸藏',
-        'note': '大正藏与卍新纂续藏',
-        'nodes': [
-            ('T', ['T']),
-            ('X', ['X']),
-        ],
-    },
-    {
-        'tier': 5,
-        'label': '六 · 增补与释文',
-        'note': '补编·藏外·中华',
-        'nodes': [
-            ('B', ['B']),
-            ('ZW', ['ZW']),
-            ('C', ['C']),
-        ],
-    },
-    {
-        'tier': 6,
-        'label': '七 · 民国专集与史料',
-        'note': '法师著述·佛寺史志·南传',
-        'nodes': [
-            ('Y', ['Y']),
-            ('YP', ['YP']),
-            ('TX', ['TX']),
-            ('LC', ['LC']),
-            ('GA', ['GA']),
-            ('GB', ['GB']),
-            ('S', ['S']),
-            ('CC', ['CC']),
-            ('ZS', ['ZS']),
-            ('N', ['N']),
-        ],
-    },
+# 汇入边（虚线）：增补与数字汇流
+LINEAGE_MERGE_EDGES: list[tuple[str, str]] = [
+    ('X', 'B'), ('T', 'B'), ('D', 'ZW'), ('F', 'ZW'),
+    ('T', 'CB'), ('X', 'CB'), ('B', 'CB'), ('ZW', 'CB'),
+    ('Y', 'CB'), ('YP', 'CB'), ('TX', 'CB'), ('LC', 'CB'),
+    ('GA', 'CB'), ('C', 'CB'), ('CB', 'M2'),
 ]
-
-# 各代之藏承自哪一代之藏（同代内亦有承袭，如嘉兴承高丽·赵城·南藏·北藏）
-LINEAGE_TIER_PARENTS: dict[str, list[str]] = {
-    'K': ['D'], 'A': ['D', 'F'], 'U': ['D'], 'P': ['D', 'F'],
-    'J': ['K', 'A', 'U', 'P'], 'L': ['P'],
-    'G': ['J'], 'M': ['J', 'K'], 'X2': ['J', 'M'],
-    'T': ['D', 'F', 'G', 'M', 'X2'], 'X': ['G', 'X2'],
-    'B': ['X', 'T'], 'ZW': ['D', 'F'], 'C': ['L', 'P'],
-    # 民国专集与史料无藏系承袭，皆直接汇入 CBETA
-    'Y': [], 'YP': [], 'TX': [], 'LC': [], 'GA': [], 'GB': [],
-    'S': [], 'CC': [], 'ZS': [], 'N': [],
-}
-
-# 各代之藏承自下一代之藏（用于在层间画短连线）
-LINEAGE_TIER_CHILDREN: dict[str, list[str]] = {
-    'D': ['K', 'A', 'U', 'P', 'T', 'ZW'], 'F': ['A', 'P', 'T', 'ZW'],
-    'K': ['J', 'M'], 'A': ['J'], 'U': ['J'], 'P': ['L', 'J', 'C'],
-    'J': ['G', 'M', 'X2'], 'L': ['C'], 'G': ['X', 'T'], 'M': ['X2', 'T'],
-    'X2': ['X', 'T'], 'T': ['B'], 'X': ['B'],
-    'B': [], 'ZW': [], 'C': [],
-    'Y': [], 'YP': [], 'TX': [], 'LC': [], 'GA': [], 'GB': [],
-    'S': [], 'CC': [], 'ZS': [], 'N': [],
-}
 
 
 def canon_family(code: str) -> str:
@@ -318,16 +338,26 @@ def build_lineage(records: list[dict]) -> list[str]:
         'export const canonLineage: CanonLineageNode[] = [',
     ]
 
-    for code in sorted(CANON_META, key=lambda c: -agg[c][0] if c in agg else 0):
-        meta = CANON_META[code]
+    # 节点按脉络图之列序输出（与 藏经来源脉络.md 一致）
+    col_meta: dict[str, tuple[str, str, str]] = {}
+    ordered: list[str] = []
+    for col in LINEAGE_COLUMNS:
+        for code, nm, era, kind in col['nodes']:
+            col_meta[code] = (nm, era, kind)
+            ordered.append(code)
+
+    for code in ordered:
+        meta = CANON_META.get(code, {})
         v = agg.get(code, [0, 0, 0, 0])
+        nm, era, kind = col_meta[code]
+        base = CANON_BASE.get(code) or meta.get('base', '')
         lines += [
             '  {',
             f'    code: {yaml_str(code)},',
-            f'    name: {yaml_str(meta["name"])},',
-            f'    era: {yaml_str(meta["era"])},',
-            f'    kind: {yaml_str(meta["kind"])},',
-            f'    base: {yaml_str(meta["base"])},',
+            f'    name: {yaml_str(nm)},',
+            f'    era: {yaml_str(era)},',
+            f'    kind: {yaml_str(kind)},',
+            f'    base: {yaml_str(base)},',
             f'    works: {v[0]},',
             f'    juan: {v[1]},',
             f'    chars: {v[2]},',
@@ -338,6 +368,7 @@ def build_lineage(records: list[dict]) -> list[str]:
     lines += [
         '];',
         '',
+        '/** 承袭边（实线）：前者为后者之底本来源 */',
         'export const lineageEdges: LineageEdge[] = [',
     ]
     for a, b in LINEAGE_EDGES:
@@ -345,39 +376,39 @@ def build_lineage(records: list[dict]) -> list[str]:
     lines += [
         '];',
         '',
+        '/** 汇入边（虚线）：增补与数字汇流 */',
+        'export const lineageMergeEdges: LineageEdge[] = [',
+    ]
+    for a, b in LINEAGE_MERGE_EDGES:
+        lines.append(f'  {{ from: {yaml_str(a)}, to: {yaml_str(b)} }},')
+    lines += [
+        '];',
+        '',
         '/**',
-        ' * 谱系分层（代）：脉络图自左而右逐层展开，层内之藏为并列支流。',
-        ' * 承袭关系皆落于「上一层 → 下一层」，故连线短而不乱。',
+        ' * 脉络图之列：自左而右即承袭次第。',
+        ' * 与 ../sutra_md_zh/藏经来源脉络.md 之 mermaid 图、SVG 同源。',
         ' */',
-        'export type LineageTier = {',
-        '  /** 层序（自 0 起） */',
-        '  tier: number;',
-        '  /** 层题 */',
+        'export type LineageColumn = {',
+        '  /** 列序（自 0 起） */',
+        '  col: number;',
+        '  /** 列题 */',
         '  label: string;',
-        '  /** 层注 */',
+        '  /** 列注 */',
         '  note: string;',
-        '  /** 本层藏系代码 */',
+        '  /** 本列藏系代码 */',
         '  nodes: string[];',
-        '  /** 本层各藏承自之藏（承袭来源） */',
-        '  parents: Record<string, string[]>;',
-        '  /** 本层各藏所出之藏（承袭去向） */',
-        '  children: Record<string, string[]>;',
         '};',
         '',
-        'export const lineageTiers: LineageTier[] = [',
+        'export const lineageColumns: LineageColumn[] = [',
     ]
-    for t in LINEAGE_TIERS:
-        codes = [c for c, _ in t['nodes']]
-        parents = {c: LINEAGE_TIER_PARENTS.get(c, []) for c in codes}
-        children = {c: LINEAGE_TIER_CHILDREN.get(c, []) for c in codes}
+    for i2, col in enumerate(LINEAGE_COLUMNS):
+        codes = [c for c, _n, _e, _k in col['nodes']]
         lines += [
             '  {',
-            f'    tier: {t["tier"]},',
-            f'    label: {yaml_str(t["label"])},',
-            f'    note: {yaml_str(t["note"])},',
+            f'    col: {i2},',
+            f'    label: {yaml_str(col["label"])},',
+            f'    note: {yaml_str(col["note"])},',
             f'    nodes: {json.dumps(codes, ensure_ascii=False)},',
-            f'    parents: {json.dumps(parents, ensure_ascii=False)},',
-            f'    children: {json.dumps(children, ensure_ascii=False)},',
             '  },',
         ]
     lines += [
@@ -458,6 +489,14 @@ def resource_images_to_html(text: str) -> str:
         return f'<img src="{src}" alt="{alt}" loading="lazy" decoding="async" />'
 
     return RESOURCE_IMAGE.sub(repl, text)
+
+
+def count_resource_images(text: str) -> int:
+    """计正文所含资源图片之数。
+
+    须在图片转为 <img> 之前计数——转换之后原式已不复存在。
+    """
+    return len(RESOURCE_IMAGE.findall(text))
 
 
 def find_byline(body: str) -> str:
@@ -553,12 +592,14 @@ def strip_header(text: str) -> tuple[str, str, str, dict]:
             i += 1
 
     body = '\n'.join(lines[i:]).rstrip() + '\n'
+    # 图像之数须在转 <img> 之前计（转换后原式不复存在）
+    image_count = count_resource_images(body)
     # 顺序要紧：先转资源图片，否则图片语法会被无效链接清理误伤
     body = resource_images_to_html(body)
     body = strip_invalid_links(body)
 
     byline = head.get('translator', '') or find_byline(body)
-    return title, byline, body, head
+    return title, byline, body, head, image_count
 
 
 # ── 索引 ─────────────────────────────────────────────────────────
@@ -709,7 +750,7 @@ def main() -> int:
                 skipped_nometa += 1
 
             text = f.read_text(encoding='utf-8')
-            title, byline, body, head = strip_header(text)
+            title, byline, body, head, image_count = strip_header(text)
 
             # 索引（index.json）为准，文件头为辅
             meta = (wrec or {}).get('meta', {})
@@ -749,6 +790,7 @@ def main() -> int:
                 'volume': volume,
                 'juan_count': juan,
                 'text_length': length,
+                'image_count': image_count,
                 'body': body,
                 'size': size,
                 'files': (wrec or {}).get('files', 1),
@@ -862,6 +904,8 @@ def main() -> int:
         if r['juan_count']:
             fm.append(f'juan_count: {r["juan_count"]}')
         fm.append(f'text_length: {r["text_length"]}')
+        if r.get('image_count'):
+            fm.append(f'image_count: {r["image_count"]}')
         fm.append(f'order: {r["order"]}')
         fm.append(f'tags: [{", ".join(yaml_str(t) for t in tags)}]')
         fm.append(f'summary: {yaml_str(summary)}')

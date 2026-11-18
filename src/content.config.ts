@@ -37,6 +37,8 @@ const sutra = defineCollection({
     juan_count: z.number().optional(),
     /** 正文字数 */
     text_length: z.number().optional(),
+    /** 配图幅数（正文所含资源图片之数） */
+    image_count: z.number().optional(),
     /** 篇幅（导读文章用） */
     length: z.string().optional(),
     order: z.number().int(),
