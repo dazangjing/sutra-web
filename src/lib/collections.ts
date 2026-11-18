@@ -17,12 +17,12 @@ export function docMatches(doc: Doc, collection: Collection): boolean {
   const rule = collection.rule;
   const d = doc.data;
 
-  if (rule.guidesOnly) return d.category === 'modern';
-
-  // 配图之限：无图者不入，有图而不足其数者亦不入
-  if (rule.minImages) {
-    if (!d.image_count || d.image_count < rule.minImages) return false;
+  // 专题以**档号**为准（资料库专题档所列），不依关键词猜测
+  if (collection.codes) {
+    return collection.codes.includes(doc.id);
   }
+
+  if (rule.guidesOnly) return d.category === 'modern';
 
   const groups: boolean[] = [];
 
@@ -66,7 +66,19 @@ export function collectDocs(docs: Doc[], collection: Collection): Doc[] {
   const hitCache = cache.get(key);
   if (hitCache) return hitCache;
 
-  const result = docs.filter((doc) => docMatches(doc, collection)).sort((a, b) => a.data.order - b.data.order);
+  const matched = docs.filter((doc) => docMatches(doc, collection));
+
+  // 专题：依资料库专题档中之序（档号清单之先后），故与资料库一致
+  if (collection.codes) {
+    const rank = new Map(collection.codes.map((id, i) => [id, i]));
+    const result = matched.sort(
+      (a, b) => (rank.get(a.id) ?? 1e9) - (rank.get(b.id) ?? 1e9)
+    );
+    cache.set(key, result);
+    return result;
+  }
+
+  const result = matched.sort((a, b) => a.data.order - b.data.order);
   cache.set(key, result);
   return result;
 }
