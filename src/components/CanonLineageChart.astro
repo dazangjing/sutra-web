@@ -1,0 +1,78 @@
+---
+/**
+ * 藏经来源脉络图
+ *
+ * 底图为 CBETA 藏经来源脉络（藏经来源脉络.svg，谱系依各藏实际编纂关系整理，
+ * 档数／卷数为该图原载之 CBETA 全藏规模）。
+ *
+ * 原图为浅底（白底 + 淡彩分类块），与本站墨夜主题不合，故：
+ *  · 以 <object> 内嵌，以 CSS filter 与主题令牌调色（filter 可覆写 SVG 内部填色，
+ *    而 <img> 无法）
+ *  · 双主题各给一套滤镜，墨夜为提亮 + 冷调，素白为原样微调
+ *  · 下方另附本站实算之各藏分布表，与图中全藏规模对照
+ */
+import { canonLineage, lineageColumns, lineageTotals } from '../data/canon-lineage';
+import { u } from '../lib/url';
+
+const tableRows = [...canonLineage].sort((a, b) => b.works - a.works);
+const maxWorks = Math.max(...tableRows.map((r) => r.works));
+
+/* 底图地址（带 base 前缀） */
+const svgSrc = `${import.meta.env.BASE_URL}assets/canon-lineage.svg`;
+---
+
+<figure class="reveal overflow-hidden rounded-card border border-line bg-panel shadow-panel">
+  <figcaption class="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-5 py-3">
+    <span class="font-mono text-[10.5px] tracking-[0.22em] text-ink-3">CANON LINEAGE</span>
+    <span class="h-px flex-1 bg-line-2"></span>
+    <span class="font-mono text-[10.5px] tracking-[0.1em] text-ink-3">
+      实线＝承袭／底本　虚线＝增补／汇入
+    </span>
+  </figcaption>
+
+  <!-- 底图 -->
+  <div class="canon-lineage-figure overflow-x-auto px-4 py-5">
+    <object
+      type="image/svg+xml"
+      data={svgSrc}
+      class="block h-auto w-full min-w-[1180px]"
+      aria-label="CBETA 藏经来源脉络图"
+    >
+      <img src={svgSrc} alt="CBETA 藏经来源脉络图" class="h-auto w-full min-w-[1180px]" />
+    </object>
+  </div>
+
+  <!-- 本站实算分布 -->
+  <div class="border-t border-line">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
+      <span class="font-mono text-[10.5px] tracking-[0.22em] text-ink-3">SOURCES · 本库实算</span>
+      <span class="h-px flex-1 bg-line-2"></span>
+      <span class="font-mono text-[10.5px] text-ink-3">
+        {canonLineage.length} 藏 · {lineageTotals.works.toLocaleString('en-US')} 档 ·
+        {lineageTotals.juan.toLocaleString('en-US')} 卷
+      </span>
+    </div>
+    <ul class="grid gap-x-8 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-4">
+      {
+        tableRows.map((n) => (
+          <li class="flex items-baseline gap-2.5 border-b border-dashed border-line-2 py-1.5">
+            <span class="w-8 shrink-0 rounded-[4px] border border-line-2 bg-panel-2 px-1 py-0.5 text-center font-mono text-[10.5px] text-ink-3">
+              {n.code}
+            </span>
+            <span class="min-w-0 flex-1 truncate text-[12.5px] text-ink-2">{n.name}</span>
+            <span class="shrink-0 font-mono text-[11.5px] tabular-nums text-ink">
+              {n.works.toLocaleString('en-US')}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <p class="border-t border-line px-5 py-3 font-mono text-[11px] leading-relaxed tracking-[0.03em] text-ink-3">
+    ※ 谱系依 CBETA 各藏实际编纂关系整理，承袭／底本与增补／汇入之分一如原图标注。
+    上图框内档数、卷数为 CBETA 全藏规模；下表为本站语料实算（单档体量上限 150 KB，
+    故与全藏规模有别）。标「本站未收」者，为整部文集逾本站上限（印顺、太虚、吕澂诸集即属此例）。
+    图可横向拖动。
+  </p>
+</figure>

@@ -406,6 +406,19 @@
     margin: 0;
   }
 
+  /* 藏经来源脉络图（CBETA 原图，浅底）
+   * 原图为白底 + 淡彩分类块 + 深灰字，墨夜主题下与全站不合。
+   * 以 CSS filter 覆写内嵌 SVG 的填色：素白近乎原样（微调对比），
+   * 墨夜则整体提亮并压低饱和，兼用背景色衬出纸面。
+   */
+  .canon-lineage-figure object {
+    filter: saturate(0.86) contrast(1.04);
+  }
+
+  [data-theme='ink'] .canon-lineage-figure object {
+    filter: invert(0.92) hue-rotate(180deg) saturate(0.5) brightness(1.06) contrast(0.96);
+  }
+
   /* 正文图片：加高反差衬底
    * 语料图片两类：
    *   ① GIF 残片（1,332 张）—— 带透明通道，墨色纯黑，本为白底之物。

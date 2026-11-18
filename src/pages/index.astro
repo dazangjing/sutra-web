@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import StatTable from '../components/StatTable.astro';
 import DonutChart from '../components/DonutChart.astro';
 import CategoryCard from '../components/CategoryCard.astro';
-import CanonLineage from '../components/CanonLineage.astro';
+import CanonLineageChart from '../components/CanonLineageChart.astro';
 import DocCard from '../components/DocCard.astro';
 import { site } from '../data/site';
 import { fixedCategories, topics } from '../data/collections';
@@ -301,7 +301,7 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
   </section>
 
   <!-- ══ 藏经来源脉络 ══ -->
-  <CanonLineage />
+  <CanonLineageChart />
 
   <!-- ══ 精选导读 ══ -->
   <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
