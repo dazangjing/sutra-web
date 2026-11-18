@@ -22,6 +22,8 @@ export const GET: APIRoute = async () => {
       s: d.summary ?? '',
       j: d.juan_count ?? 0,
       z: d.text_length ?? 0,
+      /** 配图幅数（>0 表示正文含图） */
+      p: d.image_count ?? 0,
       /** 所属集合（三大固定分类 + 专题） */
       m: collections.filter((col) => docMatches(doc, col)).map((col) => col.slug),
     };

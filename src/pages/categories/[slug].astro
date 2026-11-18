@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import DocCard from '../../components/DocCard.astro';
+import ImageMark from '../../components/ImageMark.astro';
 import { fixedCategories, topics, collectionMap } from '../../data/collections';
 import { collectDocs, groupByDivision } from '../../lib/collections';
 import { u } from '../../lib/url';
@@ -81,8 +82,9 @@ const representatives = divisions.slice(0, 12).map(([name, count]) => ({
                 <li class="flex items-baseline gap-2.5 border-b border-line-2 pb-2 text-[13px]">
                   <span class="shrink-0 text-ink-3">{name}</span>
                   <span class="text-ink-3">·</span>
-                  <a href={u(`/read/${doc.id}/`)} class="truncate text-ink-2 transition-colors hover:text-jade">
-                    {doc.data.title}
+                  <a href={u(`/read/${doc.id}/`)} class="flex min-w-0 flex-1 items-baseline gap-1.5 truncate text-ink-2 transition-colors hover:text-jade">
+                    <span class="truncate">{doc.data.title}</span>
+                    {doc.data.image_count && <ImageMark count={doc.data.image_count} />}
                   </a>
                   <span class="ml-auto shrink-0 font-mono text-[11px] text-ink-3">{count}</span>
                 </li>

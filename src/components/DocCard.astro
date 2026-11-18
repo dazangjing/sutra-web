@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { u } from '../lib/url';
+import ImageMark from './ImageMark.astro';
 
 interface Props {
   doc: CollectionEntry<'sutra'>;
@@ -35,8 +36,9 @@ const byline = data.translator ?? data.author ?? '';
     }
 
     <span class="flex min-w-0 flex-1 flex-col gap-1.5">
-      <span class="font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">
-        {data.title}
+      <span class="flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">
+        <span>{data.title}</span>
+        {data.image_count && <ImageMark count={data.image_count} />}
       </span>
 
       <span class="font-mono text-[11.5px] text-ink-3">
@@ -63,16 +65,6 @@ const byline = data.translator ?? data.author ?? '';
         }
         {data.canon && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{data.canon}</i>}
         {data.length && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{data.length}</i>}
-        {
-          data.image_count && (
-            <i
-              class="rounded-[5px] border border-cinnabar/30 bg-cinnabar/10 px-1.5 py-0.5 font-mono text-[10.5px] text-cinnabar not-italic"
-              title={`正文配图 ${data.image_count} 幅`}
-            >
-              图 {data.image_count}
-            </i>
-          )
-        }
       </span>
     </span>
 

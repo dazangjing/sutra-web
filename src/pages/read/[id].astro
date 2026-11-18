@@ -61,9 +61,10 @@ crumbs.push({ label: data.title });
   summary={data.summary}
   meta={meta}
   toc={toc}
+  imageCount={data.image_count ?? 0}
   footNote="回向:愿以此功德,庄严佛净土,上报四重恩,下济三途苦,若有见闻者,悉发菩提心,尽此一报身,同生极乐国."
-  prev={prev ? { title: prev.data.title, url: u(`/read/${prev.id}/`) } : undefined}
-  next={next ? { title: next.data.title, url: u(`/read/${next.id}/`) } : undefined}
+  prev={prev ? { title: prev.data.title, url: u(`/read/${prev.id}/`), imageCount: prev.data.image_count ?? 0 } : undefined}
+  next={next ? { title: next.data.title, url: u(`/read/${next.id}/`), imageCount: next.data.image_count ?? 0 } : undefined}
   bodyClass="page-reading"
 >
   <Content />

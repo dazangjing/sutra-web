@@ -1,10 +1,11 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import ImageMark from '../components/ImageMark.astro';
 
 export type Crumb = { label: string; href?: string };
 export type Meta = { label: string; value: string };
 export type Toc = { depth: number; slug: string; text: string };
-export type Page = { title: string; url: string };
+export type Page = { title: string; url: string; imageCount?: number };
 
 interface Props {
   title: string;
@@ -27,6 +28,8 @@ interface Props {
   meta?: Meta[];
   /** 篇目（构建期生成） */
   toc?: Toc[];
+  /** 正文配图幅数（>0 时于标题旁显含图标识） */
+  imageCount?: number;
   /** 篇末按语 */
   footNote?: string;
   prev?: Page;
@@ -47,6 +50,7 @@ const {
   summary,
   meta = [],
   toc = [],
+  imageCount = 0,
   footNote,
   prev,
   next,
@@ -99,8 +103,9 @@ const {
       }
 
       <!-- 标题 -->
-      <h1 class="font-serif text-[clamp(24px,4vw,38px)] leading-[1.24] font-semibold tracking-[0.05em] text-ink">
-        {title}
+      <h1 class="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-serif text-[clamp(24px,4vw,38px)] leading-[1.24] font-semibold tracking-[0.05em] text-ink">
+        <span>{title}</span>
+        {imageCount > 0 && <ImageMark count={imageCount} size={20} class="translate-y-[-2px]" />}
       </h1>
       {tradTitle && <p class="mt-1.5 font-serif text-[15px] tracking-[0.08em] text-ink-3">{tradTitle}</p>}
       {subtitle && <p class="mt-2 text-[14px] text-ink-2">{subtitle}</p>}
@@ -213,13 +218,19 @@ const {
             {prev && (
               <a href={prev.url} class="flex flex-col gap-2 rounded-card border border-line bg-panel px-4.5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:bg-panel-2">
                 <span class="font-mono text-[10.5px] tracking-[0.16em] text-ink-3">← 上一篇</span>
-                <span class="font-serif text-[15.5px] tracking-[0.04em] text-ink transition-colors hover:text-jade">{prev.title}</span>
+                <span class="flex flex-wrap items-center gap-x-2 font-serif text-[15.5px] tracking-[0.04em] text-ink transition-colors hover:text-jade">
+                  <span>{prev.title}</span>
+                  {prev.imageCount && <ImageMark count={prev.imageCount} />}
+                </span>
               </a>
             )}
             {next && (
               <a href={next.url} class="flex flex-col gap-2 rounded-card border border-line bg-panel px-4.5 py-4 text-right transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:bg-panel-2">
                 <span class="font-mono text-[10.5px] tracking-[0.16em] text-ink-3">下一篇 →</span>
-                <span class="font-serif text-[15.5px] tracking-[0.04em] text-ink transition-colors hover:text-jade">{next.title}</span>
+                <span class="flex flex-wrap items-center justify-end gap-x-2 font-serif text-[15.5px] tracking-[0.04em] text-ink transition-colors hover:text-jade">
+                  <span>{next.title}</span>
+                  {next.imageCount && <ImageMark count={next.imageCount} />}
+                </span>
               </a>
             )}
           </nav>

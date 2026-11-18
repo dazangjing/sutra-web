@@ -30,6 +30,8 @@ type Entry = {
   j: number;
   /** 字数 */
   z: number;
+  /** 配图幅数（>0 表示正文含图） */
+  p: number;
   /** 所属集合（三大固定分类 + 专辑） */
   m: string[];
 };
@@ -64,13 +66,30 @@ const esc = (value: string) =>
     (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!,
   );
 
+/** 含图标识：画框 + 山，与 ImageMark.astro 同形 */
+const imageMark = (count: number) => {
+  if (!count) return '';
+  const label = count > 1 ? `正文含图 ${count} 幅` : '正文含图';
+  return `<span class="inline-flex shrink-0 items-center gap-1 align-middle text-cinnabar" title="${label}" aria-label="${label}">
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" class="shrink-0 overflow-visible">
+        <rect x="1.4" y="2.6" width="13.2" height="10.8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.15"></rect>
+        <circle cx="5.5" cy="6" r="1.35" fill="currentColor"></circle>
+        <path d="M2.2 12.2 6 8.6l2.6 2.3 2.1-1.9 3.1 3.2" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      ${count > 1 ? `<span class="font-mono text-[10px] tabular-nums leading-none">${count}</span>` : ''}
+    </span>`;
+};
+
 const card = (entry: Entry, no: number) => `
   <li class="reveal is-in flex">
     <a href="${base}/read/${encodeURIComponent(entry.id)}/" class="group relative flex w-full items-start gap-4 overflow-hidden rounded-card border border-line bg-panel px-5 py-5 transition-all duration-300 hover:-translate-y-[3px] hover:border-line-2 hover:bg-panel-2 hover:shadow-panel">
       <span class="absolute inset-y-0 left-0 w-[2px] origin-top scale-y-0 bg-[linear-gradient(var(--yzj-jade),transparent)] transition-transform duration-300 group-hover:scale-y-100"></span>
       <span class="shrink-0 pt-0.5 font-mono text-[11.5px] tabular-nums text-ink-3">${String(no).padStart(3, '0')}</span>
       <span class="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span class="font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">${esc(entry.t)}</span>
+        <span class="flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">
+          <span>${esc(entry.t)}</span>
+          ${imageMark(entry.p)}
+        </span>
         <span class="font-mono text-[11.5px] text-ink-3">${esc(entry.a)}${entry.v ? ` · ${esc(entry.v)}` : ''}</span>
         <span class="line-clamp-2 text-[13px] leading-relaxed text-ink-2">${esc(entry.s)}</span>
         <span class="mt-0.5 flex flex-wrap gap-1.5">
