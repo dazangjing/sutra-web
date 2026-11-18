@@ -46,12 +46,17 @@
 - 正文图片须加衬底：语料 GIF 多带透明通道且墨色纯黑，墨夜主题下
   不衬底则对比仅 1.13:1，几不可辨 —— 一律衬 `#f4f1e8`。
 - 正文字体苹方 Light（`PingFang SC` / `font-weight: 300`），篇首标题用宋体存层级。
+- **含图标识**：正文含配图之篇目（`image_count > 0`，全站 186 篇、1,338 幅），
+  凡标题出现处（列表卡片、阅读页大标题与上下篇、分类页各部类首篇、目录检索结果）
+  皆以 `ImageMark.astro` 标注图标。多图者图标后附幅数。
+- 内嵌 SVG 图（如首页谱系图 `public/assets/canon-lineage.svg`）以 `<object>` 引入，
+  墨夜主题须对容器加 `invert + hue-rotate` 滤镜，否则白底原图在暗色下刺目。
 
 ## 构建与验证
 
 ```bash
 export PATH="/opt/homebrew/bin:$PATH" HOME="$PWD/.home" ASTRO_TELEMETRY_DISABLED=1
-./node_modules/.bin/astro build      # 约 30–60 秒，3,702 页
+./node_modules/.bin/astro build      # 约 25–60 秒，3,704 页
 ```
 
 - Astro 7 的 content store 约 288 MB，**必须**保留 `experimental.collectionStorage: 'chunked'`，
