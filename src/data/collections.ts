@@ -36,6 +36,8 @@ export type Collection = {
   kind: 'category' | 'topic';
   keywords: string[];
   rule: Rule;
+  /** 专题内以配图多寡为序（图像特多者先出） */
+  sortByImages?: boolean;
 };
 
 /* ── 禅门关键词（题名） ─────────────────────────────────── */
@@ -229,7 +231,7 @@ export const collections: Collection[] = [
     slug: 'maitreya',
     name: '弥勒菩萨',
     en: 'MAITREYA',
-    glyph: '弥',
+    glyph: '慈',
     accent: 'jade',
     desc: '未来佛弥勒（慈氏）之经论疏释与仪轨忏法。上生兜率、下生龙华、成佛说法之三部要典，与慈氏陀罗尼、瑜伽念诵、兜率往生集、龙华修证仪，俱在此中。',
     kind: 'topic',
@@ -256,6 +258,7 @@ export const collections: Collection[] = [
       // 凡正文配图一篇者皆入；minImages 为其下限，无图者不入。
       minImages: 1,
     },
+    sortByImages: true,
   },
 ];
 

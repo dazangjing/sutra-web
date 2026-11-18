@@ -14,7 +14,11 @@ export async function getStaticPaths() {
 const { topic } = Astro.props;
 const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
 const list = collectDocs(docs, topic);
-const divisions = groupByDivision(list);
+// 「图文并茂」以配图多寡为序——图像特多者先出，其余依部类之常序
+const sorted = topic.sortByImages
+  ? [...list].sort((a, b) => (b.data.image_count ?? 0) - (a.data.image_count ?? 0))
+  : list;
+const divisions = groupByDivision(sorted);
 ---
 
 <BaseLayout title={`${topic.name}专题`} description={topic.desc} bodyClass="page-topic">
@@ -43,7 +47,7 @@ const divisions = groupByDivision(list);
     </div>
 
     <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {list.slice(0, 300).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+      {sorted.slice(0, 300).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
     </ol>
 
     {list.length > 300 && (

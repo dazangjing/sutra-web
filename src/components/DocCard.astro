@@ -63,6 +63,16 @@ const byline = data.translator ?? data.author ?? '';
         }
         {data.canon && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{data.canon}</i>}
         {data.length && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{data.length}</i>}
+        {
+          data.image_count && (
+            <i
+              class="rounded-[5px] border border-cinnabar/30 bg-cinnabar/10 px-1.5 py-0.5 font-mono text-[10.5px] text-cinnabar not-italic"
+              title={`正文配图 ${data.image_count} 幅`}
+            >
+              图 {data.image_count}
+            </i>
+          )
+        }
       </span>
     </span>
 
