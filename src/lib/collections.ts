@@ -17,9 +17,10 @@ export function docMatches(doc: Doc, collection: Collection): boolean {
   const rule = collection.rule;
   const d = doc.data;
 
-  // 专题以**档号**为准（资料库专题档所列），不依关键词猜测
+  // 专题以**档号**为准（资料库专题档所列），不依关键词猜测。
+  // Astro 之 doc.id 为档号之小写（如 `t0452`），故比之时不拘大小写。
   if (collection.codes) {
-    return collection.codes.includes(doc.id);
+    return collection.codes.some((c) => c.toLowerCase() === doc.id.toLowerCase());
   }
 
   if (rule.guidesOnly) return d.category === 'modern';
@@ -70,9 +71,9 @@ export function collectDocs(docs: Doc[], collection: Collection): Doc[] {
 
   // 专题：依资料库专题档中之序（档号清单之先后），故与资料库一致
   if (collection.codes) {
-    const rank = new Map(collection.codes.map((id, i) => [id, i]));
+    const rank = new Map(collection.codes.map((c, i) => [c.toLowerCase(), i]));
     const result = matched.sort(
-      (a, b) => (rank.get(a.id) ?? 1e9) - (rank.get(b.id) ?? 1e9)
+      (a, b) => (rank.get(a.id.toLowerCase()) ?? 1e9) - (rank.get(b.id.toLowerCase()) ?? 1e9)
     );
     cache.set(key, result);
     return result;

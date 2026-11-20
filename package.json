@@ -10,7 +10,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "import:sutra": "python3 scripts/import-sutra.py --source ../sutra_md_zh --out src/content/sutra --guide src/content/guide --assets public/assets --max-bytes 150000"
+    "import:sutra": "python3 scripts/import-sutra.py --source ../sutra_md_zh --out src/content/sutra --guide src/content/guide --assets public/assets --max-bytes 150000",
+    "build:albums": "python3 scripts/build-albums.py --source ../sutra_md_zh --out src/data/albums.ts"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.9",

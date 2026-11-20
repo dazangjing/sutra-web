@@ -16,7 +16,7 @@
  *   exclude    题名排除词
  */
 
-import { albums, type Album } from './albums';
+import { albums, type Album, type AlbumSection } from './albums';
 
 export type Accent = 'jade' | 'gold' | 'violet' | 'cinnabar' | 'slate';
 
@@ -44,8 +44,8 @@ export type Collection = {
   sortByImages?: boolean;
   /** 专题之档号集合（专题以此为准，非以规则匹配） */
   codes?: string[];
-  /** 分节标题（专题档之节目） */
-  sections?: string[];
+  /** 分节（专题档之节目，各节含其档号） */
+  sections?: AlbumSection[];
 };
 
 /* ── 禅门关键词（题名） ─────────────────────────────────── */
@@ -110,7 +110,7 @@ export const collections: Collection[] = [
     accent: a.accent,
     desc: a.desc,
     kind: 'topic',
-    keywords: [],
+    keywords: a.keywords,
     rule: {},
     codes: a.codes,
     sections: a.sections,

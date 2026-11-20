@@ -14,15 +14,29 @@ export async function getStaticPaths() {
 const { topic } = Astro.props;
 const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
 const list = collectDocs(docs, topic);
-// 「图文并茂」以配图多寡为序——图像特多者先出，其余依部类之常序
-const sorted = topic.sortByImages
-  ? [...list].sort((a, b) => (b.data.image_count ?? 0) - (a.data.image_count ?? 0))
-  : list;
-const divisions = groupByDivision(sorted);
+
+// 专题档之节（各节含其档号）——取站点实有之篇目，依节分组
+// Astro 之 doc.id 为档号之小写，故索引时不拘大小写
+const byId = new Map(docs.map((d) => [d.id.toLowerCase(), d]));
+const sections = (topic.sections ?? [])
+  .map((s) => {
+    const items = s.codes.map((c) => byId.get(c.toLowerCase())).filter(Boolean);
+    // 图文并茂以配图多寡为序
+    if (topic.sortByImages) {
+      items.sort((a, b) => (b.data.image_count ?? 0) - (a.data.image_count ?? 0));
+    }
+    return { title: s.title, items };
+  })
+  .filter((s) => s.items.length > 0);
+
+// 「图文并茂」之类档数特多者，分节之外仍列全目
+const shown = sections.length ? sections : [{ title: '', items: list }];
+const divisions = groupByDivision(list);
+const total = list.length;
 ---
 
 <BaseLayout title={`${topic.name}专题`} description={topic.desc} bodyClass="page-topic">
-  <PageHero kicker={`/ ${topic.en}`} title={topic.name} glyph={topic.glyph} desc={topic.desc} count={`${list.length.toLocaleString('en-US')} 篇`} />
+  <PageHero kicker={`/ ${topic.en}`} title={topic.name} glyph={topic.glyph} desc={topic.desc} count={`${total.toLocaleString('en-US')} 篇`} />
 
   {
     divisions.length > 1 && (
@@ -43,16 +57,35 @@ const divisions = groupByDivision(sorted);
     <div class="reveal mb-8.5 flex items-center gap-4">
       <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">篇目一览</h2>
       <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
-      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{list.length.toLocaleString('en-US')} ITEMS</span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{total.toLocaleString('en-US')} ITEMS</span>
     </div>
 
-    <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {sorted.slice(0, 300).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
-    </ol>
+    {
+      shown.map((s) => (
+        <div class="mb-11 last:mb-0">
+          {s.title && (
+            <h3 class="reveal mb-4 flex items-baseline gap-3 font-serif text-[19px] font-semibold tracking-[0.06em] text-ink">
+              {s.title}
+              <span class="font-mono text-[11px] font-normal tracking-[0.12em] text-ink-3">
+                {s.items.length} 篇
+              </span>
+            </h3>
+          )}
+          <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {s.items.slice(0, 300).map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+          </ol>
+          {s.items.length > 300 && (
+            <p class="reveal mt-5 text-center font-mono text-[11.5px] text-ink-3">
+              此节共 {s.items.length.toLocaleString('en-US')} 篇，此处列出前 300 篇
+            </p>
+          )}
+        </div>
+      ))
+    }
 
-    {list.length > 300 && (
+    {total > 300 && (
       <p class="reveal mt-7 text-center font-mono text-[11.5px] text-ink-3">
-        共 {list.length.toLocaleString('en-US')} 篇，此处列出前 300 篇；完整目录请见
+        共 {total.toLocaleString('en-US')} 篇；完整目录请见
         <a href={u('/browse/')} class="text-jade hover:underline">大藏目录</a>
       </p>
     )}
