@@ -50,6 +50,7 @@ ALBUMS = OrderedDict([
     ('唯识宗', dict(slug='yogacara', glyph='识', en='YOGĀCĀRA', accent='violet')),
     ('中观宗', dict(slug='madhyamaka', glyph='中', en='MADHYAMAKA', accent='slate')),
     ('密教宗', dict(slug='esoteric', glyph='密', en='ESOTERIC', accent='violet')),
+    ('方志', dict(slug='gazetteers', glyph='志', en='GAZETTEERS', accent='slate')),
     ('图文并茂', dict(slug='illustrated', glyph='图', en='ILLUSTRATED', accent='cinnabar')),
 ])
 
