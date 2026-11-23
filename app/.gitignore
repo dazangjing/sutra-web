@@ -1,0 +1,25 @@
+# ── 构建产物 ───────────────────────────────────────────────
+dist/
+node_modules/
+src-tauri/target/
+
+# ── 语料包（由 scripts/build-corpus.py 生成，不入版本库）────
+# 体量约 190 MB（正文 JSON + 二进制索引 + 4,959 幅图），
+# 故不入库；构建时由 `npm run corpus` 重新生成。
+src-tauri/resources/corpus/
+
+# ── 生成物 ─────────────────────────────────────────────────
+# Tauri 依当前版本自动生成的 schema，改版本时会变，故不入库。
+src-tauri/gen/
+
+# 集合定义与生僻字对照表，由 scripts/ 下的脚本自 Web 站语料生成。
+# 二者皆小（126 KB + 82 KB），且生成需外部 XML 语料，
+# 故入库以免无网环境无法构建。
+# src/data/collections.json
+# src/data/gaiji.json
+
+# ── 杂项 ───────────────────────────────────────────────────
+.DS_Store
+*.log
+.home/
+.pnpm-store/

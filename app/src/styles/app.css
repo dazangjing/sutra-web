@@ -1,0 +1,961 @@
+/* ══════════════════════════════════════════════════════════════
+   阅藏经 · 桌面端版式
+   三栏：分类导航 | 内容区 | 阅读区
+   ══════════════════════════════════════════════════════════════ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--yzj-bg);
+}
+
+/* ── 标题栏 ─────────────────────────────────────────────────── */
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 46px;
+  flex-shrink: 0;
+  padding: 0 14px;
+  background: var(--yzj-titlebar);
+  border-bottom: 1px solid var(--yzj-line-2);
+  user-select: none;
+}
+
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.titlebar-seal {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--yzj-jade);
+  color: var(--yzj-jade);
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.titlebar-name {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--yzj-ink);
+}
+
+.titlebar-tag {
+  font-size: 11.5px;
+  color: var(--yzj-ink-3);
+  letter-spacing: 0.06em;
+}
+
+.titlebar-stats {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: var(--yzj-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.titlebar-stats b {
+  color: var(--yzj-jade);
+  font-weight: 600;
+}
+
+.titlebar-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--yzj-ink-2);
+  transition: all 0.2s;
+}
+
+.titlebar-btn:hover {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+/* ── 主体三栏 ───────────────────────────────────────────────── */
+.app-body {
+  display: grid;
+  grid-template-columns: 236px minmax(340px, 1fr) minmax(440px, 1.55fr);
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── 左栏 ───────────────────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--yzj-bg-soft);
+  border-right: 1px solid var(--yzj-line-2);
+}
+
+.sidebar-nav {
+  display: flex;
+  gap: 2px;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--yzj-line-2);
+}
+
+.sidebar-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 4px;
+  border-radius: 8px;
+  color: var(--yzj-ink-3);
+  font-size: 11px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.sidebar-tab:hover {
+  background: var(--yzj-panel);
+  color: var(--yzj-ink-2);
+}
+
+.sidebar-tab.is-active {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+.sidebar-tab-count {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 9px;
+  color: var(--yzj-ink-3);
+}
+
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px 20px;
+}
+
+.sidebar-group {
+  margin-bottom: 18px;
+}
+
+.sidebar-group-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 7px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: var(--yzj-ink-3);
+}
+
+.sidebar-group-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--yzj-line-2);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 7px;
+  color: var(--yzj-ink-2);
+  font-size: 13px;
+  text-align: left;
+  transition: all 0.18s;
+}
+
+.sidebar-item:hover {
+  background: var(--yzj-panel);
+  color: var(--yzj-ink);
+}
+
+.sidebar-item.is-active {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-ink);
+}
+
+.sidebar-glyph {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.sidebar-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-count {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--yzj-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 中栏 ───────────────────────────────────────────────────── */
+.app-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  border-right: 1px solid var(--yzj-line-2);
+  background: var(--yzj-bg);
+}
+
+.panel-head {
+  flex-shrink: 0;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--yzj-line-2);
+}
+
+.panel-title {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--yzj-ink);
+}
+
+.panel-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--yzj-ink-3);
+}
+
+.panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px 24px;
+}
+
+/* 检索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--yzj-line);
+  background: var(--yzj-panel);
+  transition: all 0.22s;
+}
+
+.search-box:focus-within {
+  border-color: var(--yzj-jade);
+  box-shadow: 0 0 0 1px var(--yzj-jade), 0 0 28px -12px var(--yzj-jade);
+}
+
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--yzj-ink);
+}
+
+.search-box input::placeholder {
+  color: var(--yzj-ink-3);
+}
+
+.search-kbd {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10px;
+  color: var(--yzj-ink-3);
+  border: 1px solid var(--yzj-line-2);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.search-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: var(--yzj-ink-3);
+}
+
+/* 篇目卡片 */
+.doc-card {
+  display: flex;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.doc-card:hover {
+  background: var(--yzj-panel);
+  border-color: var(--yzj-line-2);
+}
+
+.doc-card.is-current {
+  background: var(--yzj-panel-2);
+  border-color: var(--yzj-line);
+}
+
+.doc-card-no {
+  flex-shrink: 0;
+  width: 30px;
+  padding-top: 2px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--yzj-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--yzj-ink);
+  line-height: 1.45;
+}
+
+.doc-card:hover .doc-card-title {
+  color: var(--yzj-jade);
+}
+
+.doc-card-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-card-meta {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--yzj-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.doc-tag {
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--yzj-line-2);
+  background: var(--yzj-panel-2);
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 9.5px;
+  color: var(--yzj-ink-3);
+}
+
+.doc-tag.is-image {
+  border-color: color-mix(in srgb, var(--yzj-cinnabar) 40%, transparent);
+  color: var(--yzj-cinnabar);
+}
+
+.doc-card-snippet {
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-left: 2px solid var(--yzj-line);
+  background: var(--yzj-panel);
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--yzj-ink-2);
+  max-height: 68px;
+  overflow: hidden;
+}
+
+.doc-card-snippet mark {
+  background: color-mix(in srgb, var(--yzj-gold) 34%, transparent);
+  color: var(--yzj-ink);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* 含图标识 */
+.image-mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
+  align-self: center;
+  color: var(--yzj-cinnabar);
+}
+
+.image-mark span {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 9.5px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 空态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 56px 20px;
+  color: var(--yzj-ink-3);
+  font-size: 13px;
+  text-align: center;
+}
+
+.empty-mark {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 30px;
+  color: var(--yzj-line);
+}
+
+/* ── 右栏（阅读区）─────────────────────────────────────────── */
+.reader {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--yzj-bg-soft);
+}
+
+.reader-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--yzj-ink-3);
+}
+
+.reader-empty-enso {
+  opacity: 0.5;
+}
+
+.reader-empty-text {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: var(--yzj-ink-3);
+}
+
+.reader-head {
+  flex-shrink: 0;
+  padding: 15px 22px 0;
+}
+
+.reader-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--yzj-ink-3);
+}
+
+.reader-crumbs button:hover {
+  color: var(--yzj-jade);
+}
+
+.reader-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 9px;
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--yzj-ink);
+  line-height: 1.3;
+}
+
+.reader-trad {
+  margin-top: 3px;
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--yzj-ink-3);
+}
+
+.reader-byline {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--yzj-ink);
+}
+
+.reader-byline-label {
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--yzj-gold) 30%, transparent);
+  background: color-mix(in srgb, var(--yzj-gold) 12%, transparent);
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--yzj-gold);
+}
+
+.reader-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  margin-top: 9px;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--yzj-ink-3);
+}
+
+.reader-meta b {
+  color: var(--yzj-ink-2);
+  font-weight: 500;
+}
+
+/* 工具条 */
+.reader-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 11px;
+  padding: 7px 0;
+  border-top: 1px solid var(--yzj-line-2);
+  border-bottom: 1px solid var(--yzj-line-2);
+}
+
+.tool-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  border-radius: 5px;
+  color: var(--yzj-ink-2);
+  font-size: 11.5px;
+  transition: all 0.18s;
+}
+
+.tool-btn:hover {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+.tool-btn.is-active {
+  background: color-mix(in srgb, var(--yzj-jade) 16%, transparent);
+  color: var(--yzj-jade);
+}
+
+.tool-text {
+  padding: 3px 9px;
+  border-radius: 5px;
+  color: var(--yzj-ink-2);
+  font-size: 11.5px;
+  transition: all 0.18s;
+}
+
+.tool-text:hover {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+.tool-sep {
+  width: 1px;
+  height: 13px;
+  background: var(--yzj-line-2);
+  margin: 0 3px;
+}
+
+.tool-spacer {
+  flex: 1;
+}
+
+/* 篇目下拉 */
+.toc-menu {
+  position: relative;
+}
+
+.toc-summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 5px;
+  color: var(--yzj-ink-2);
+  font-size: 11.5px;
+  cursor: pointer;
+  list-style: none;
+  transition: all 0.18s;
+}
+
+.toc-summary::-webkit-details-marker {
+  display: none;
+}
+
+.toc-summary:hover {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+.toc-panel {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 40;
+  width: 300px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 7px;
+  border-radius: 9px;
+  border: 1px solid var(--yzj-line);
+  background: var(--yzj-bg);
+  box-shadow: 0 22px 50px -30px rgb(0 0 0 / 0.95);
+}
+
+.toc-item {
+  display: block;
+  width: 100%;
+  padding: 6px 9px;
+  border-radius: 5px;
+  color: var(--yzj-ink-2);
+  font-size: 12.5px;
+  text-align: left;
+  transition: all 0.16s;
+}
+
+.toc-item:hover {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+.toc-item.is-level3 {
+  padding-left: 22px;
+  font-size: 12px;
+  color: var(--yzj-ink-3);
+}
+
+/* 正文纸面 */
+.reader-body-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px 40px;
+}
+
+.reader-paper {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.6rem 2rem 3rem;
+  border-radius: 12px;
+  background: var(--yzj-reader);
+  border: 1px solid var(--yzj-line-2);
+}
+
+[data-theme='paper'] .reader-paper {
+  box-shadow: 0 22px 50px -34px rgb(22 32 43 / 0.18);
+}
+
+.reader-para {
+  position: relative;
+}
+
+.reader-para.is-annotated::before {
+  content: '';
+  position: absolute;
+  left: -0.85rem;
+  top: 0.55em;
+  width: 3px;
+  height: 1.1em;
+  border-radius: 2px;
+  background: var(--yzj-gold);
+}
+
+.reader-para.is-highlight {
+  background: color-mix(in srgb, var(--yzj-gold) 9%, transparent);
+  border-radius: 4px;
+}
+
+/* 篇末 */
+.reader-foot {
+  max-width: 46rem;
+  margin: 16px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.reader-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.reader-nav-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 13px;
+  border-radius: 9px;
+  border: 1px solid var(--yzj-line-2);
+  background: var(--yzj-panel);
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.reader-nav-item:hover {
+  border-color: var(--yzj-line);
+  background: var(--yzj-panel-2);
+}
+
+.reader-nav-item.is-next {
+  text-align: right;
+}
+
+.reader-nav-label {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--yzj-ink-3);
+}
+
+.reader-nav-title {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 14px;
+  color: var(--yzj-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reader-nav-item:hover .reader-nav-title {
+  color: var(--yzj-jade);
+}
+
+/* 批注列表 */
+.annotation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.annotation-item {
+  display: flex;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--yzj-line-2);
+  background: var(--yzj-panel);
+}
+
+.annotation-quote {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--yzj-ink-2);
+}
+
+.annotation-note {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed var(--yzj-line-2);
+  font-size: 12.5px;
+  color: var(--yzj-gold);
+}
+
+.annotation-del {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  color: var(--yzj-ink-3);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.annotation-del:hover {
+  background: color-mix(in srgb, var(--yzj-cinnabar) 16%, transparent);
+  color: var(--yzj-cinnabar);
+}
+
+/* 选中文本浮层 */
+.sel-pop {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid var(--yzj-line);
+  background: var(--yzj-bg);
+  box-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.9);
+}
+
+.sel-pop button {
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: var(--yzj-ink-2);
+  transition: all 0.16s;
+}
+
+.sel-pop button:hover {
+  background: var(--yzj-panel-2);
+  color: var(--yzj-jade);
+}
+
+.sel-pop textarea {
+  width: 230px;
+  min-height: 54px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--yzj-line);
+  background: var(--yzj-panel);
+  font-size: 12.5px;
+  color: var(--yzj-ink);
+  resize: vertical;
+}
+
+/* ── 状态栏 ─────────────────────────────────────────────────── */
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 14px;
+  background: var(--yzj-titlebar);
+  border-top: 1px solid var(--yzj-line-2);
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--yzj-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.statusbar-spacer {
+  flex: 1;
+}
+
+.statusbar b {
+  color: var(--yzj-ink-2);
+  font-weight: 500;
+}
+
+/* ── 启动态 ─────────────────────────────────────────────────── */
+.boot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100%;
+  background: var(--yzj-bg);
+}
+
+.boot-mark {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 14px;
+  border: 1.5px solid var(--yzj-jade);
+  color: var(--yzj-jade);
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 32px;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.boot-mark.err {
+  border-color: var(--yzj-cinnabar);
+  color: var(--yzj-cinnabar);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.boot-text {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: var(--yzj-ink-3);
+}
+
+.boot-error {
+  max-width: 620px;
+  padding: 13px 16px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--yzj-cinnabar) 30%, transparent);
+  background: color-mix(in srgb, var(--yzj-cinnabar) 8%, transparent);
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--yzj-cinnabar);
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.boot-hint {
+  font-size: 12px;
+  color: var(--yzj-ink-3);
+}
+
+.boot-hint code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--yzj-panel-2);
+  font-family: 'SF Mono', Menlo, monospace;
+  color: var(--yzj-jade);
+}
