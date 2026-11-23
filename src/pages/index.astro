@@ -116,7 +116,7 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
             { value: corpusTotals.works, unit: '篇入库' },
             { value: corpusTotals.juan, unit: '卷' },
             { value: Math.round(corpusTotals.chars / 1e4), unit: '万字正文' },
-            { value: topics.length, unit: '专题' },
+            { value: topics.length, unit: '专辑' },
           ].map((item) => (
             <li class="flex flex-col gap-1">
               <b class="font-mono text-[clamp(22px,3vw,32px)] leading-[1.1] font-medium tabular-nums text-ink" data-count={item.value}>
@@ -251,14 +251,15 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
     </p>
   </section>
 
-  <!-- ══ 分类内容 ══ -->
+  <!-- ══ 一级分类：三大固定分类 + 专辑 ══ -->
   <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
     <div class="reveal mb-8.5 flex items-center gap-4">
-      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">分类内容</h2>
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">一级分类</h2>
       <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
       <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">经 · 律 · 论 · 注疏史料 · 南传 · 近代</span>
     </div>
 
+    <!-- 三大固定分类 -->
     <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {
         fixedCategories.map((col) => (
@@ -275,26 +276,70 @@ const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(do
       }
     </div>
 
-    <div class="reveal mt-9 flex flex-col items-center gap-4 rounded-card border border-line bg-panel px-6 py-8 text-center">
-      <p class="font-mono text-[10.5px] tracking-[0.22em] text-ink-3">TOPICS · 专题</p>
-      <p class="max-w-[54ch] text-[13.5px] leading-[1.95] text-ink-2">
-        专题不拘于部类，而以宗派、门类为线索，横跨经律论注疏诸部，择取一组可连缀而读之典籍。
+    <!--
+      专辑：与三大固定分类**同为一级分类**，故另起一段，
+      以同等分量陈之 —— 非从属之次级板块。
+    -->
+    <div class="reveal mt-14">
+      <div class="mb-7 flex items-center gap-4">
+        <h3 class="shrink-0 font-serif text-[clamp(19px,2vw,24px)] font-semibold tracking-[0.08em] text-ink">专辑</h3>
+        <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+        <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">
+          {topics.length} 个 · 一级分类
+        </span>
+      </div>
+
+      <p class="mb-6 max-w-[62ch] text-[14px] leading-[1.95] text-ink-2">
+        专辑不拘于部类，而以宗派、门类为线索，横跨经律论注疏诸部，择取一组可连缀而读之典籍。
+        专辑与上方三大分类同为一级，各有其门径。
       </p>
-      <div class="mt-1 flex flex-wrap justify-center gap-2.5">
+
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {
           topics.map((topic) => (
             <a
               href={u(`/topics/${topic.slug}/`)}
-              class="inline-flex items-center gap-2 rounded-full border border-line bg-panel-2 px-4 py-2 text-[13px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+              class="group relative flex items-start gap-3.5 overflow-hidden rounded-card border border-line bg-panel px-4.5 py-4 transition-all duration-300 hover:-translate-y-[3px] hover:border-line-2 hover:bg-panel-2 hover:shadow-panel"
             >
-              <span class="font-serif text-jade">{topic.glyph}</span>
-              {topic.name}
-              <span class="font-mono text-[10.5px] text-ink-3">{topicCounts[topic.slug] ?? 0}</span>
+              <span
+                class="serif grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] border text-[19px] leading-none transition-colors"
+                class:list={[
+                  topic.accent === 'gold' && 'border-gold/35 bg-gold/10 text-gold',
+                  topic.accent === 'violet' && 'border-violet/35 bg-violet/10 text-violet',
+                  topic.accent === 'cinnabar' && 'border-cinnabar/35 bg-cinnabar/10 text-cinnabar',
+                  topic.accent === 'slate' && 'border-ink-3/45 bg-ink-3/10 text-ink-2',
+                  !['gold', 'violet', 'cinnabar', 'slate'].includes(topic.accent) && 'border-jade/35 bg-jade/10 text-jade',
+                ]}
+              >
+                {topic.glyph}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="flex items-baseline justify-between gap-2">
+                  <span class="truncate font-serif text-[16px] font-semibold tracking-[0.06em] text-ink transition-colors group-hover:text-jade">
+                    {topic.name}
+                  </span>
+                  <span class="shrink-0 font-mono text-[10.5px] text-ink-3 tabular-nums">
+                    {topicCounts[topic.slug] ?? 0}
+                  </span>
+                </span>
+                <span class="mt-1 block font-mono text-[9.5px] tracking-[0.2em] text-ink-3">
+                  {topic.en}
+                </span>
+                <span class="mt-1.5 block line-clamp-2 text-[12.5px] leading-[1.75] text-ink-2">
+                  {topic.desc}
+                </span>
+              </span>
             </a>
           ))
         }
-        <a href={u('/topics/')} class="rounded-full border border-line bg-panel-2 px-4 py-2 text-[13px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade">
-          全部专题 →
+      </div>
+
+      <div class="mt-6 flex justify-center">
+        <a
+          href={u('/topics/')}
+          class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-5 py-2.5 text-[13px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+        >
+          全部专辑 →
         </a>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './lib/api';
-import { collections, fixedCategories, topics } from './lib/collections';
+import { collections } from './lib/collections';
 import type { CorpusInfo, Doc, DocMeta, LocalState, SearchHit, View } from './lib/types';
 import Sidebar from './components/Sidebar';
 import Reader from './components/Reader';
@@ -49,6 +49,8 @@ export default function App() {
 
   // ── 视图 ────────────────────────────────────────────────────
   const [view, setView] = useState<View>('library');
+  /** 侧栏所选之一级分类（固定分类或专辑）；中栏据此陈列篇目 */
+  const [activeSlug, setActiveSlug] = useState<string>('tripitaka');
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [currentDoc, setCurrentDoc] = useState<Doc | null>(null);
   const [loadingDoc, setLoadingDoc] = useState(false);
@@ -220,6 +222,27 @@ export default function App() {
     );
   }, [currentId]);
 
+  // ── 侧栏所选一级分类之篇目 ────────────────────────────────
+  const activeCollection = useMemo(
+    () => collections.find((c) => c.slug === activeSlug),
+    [activeSlug],
+  );
+
+  const collectionDocs = useMemo(() => {
+    if (!activeCollection) return docs;
+    const col = activeCollection;
+    if (col.kind === 'album') {
+      // 专辑以档号为准，且依专辑档中之序
+      const byCode = new Map(docs.map((d) => [d.id.toUpperCase(), d]));
+      return col.codes
+        .map((code) => byCode.get(code.toUpperCase()))
+        .filter((d): d is DocMeta => Boolean(d));
+    }
+    if (col.slug === 'tripitaka') return docs;
+    if (col.slug === 'chan') return docs.filter((d) => d.division === '诸宗部');
+    return docs.filter((d) => d.canon.startsWith('YP') || d.canon.startsWith('TX'));
+  }, [activeCollection, docs]);
+
   if (!ready) {
     return (
       <div className="boot">
@@ -272,18 +295,20 @@ export default function App() {
           onOpenDoc={openDoc}
           shelfCount={Object.keys(local.shelf).length}
           notesCount={Object.values(local.annotations).reduce((n, l) => n + l.length, 0)}
+          activeSlug={activeSlug}
+          onSelectCollection={setActiveSlug}
         />
 
         {/* 中：内容区 */}
         <main className="app-main">
           {view === 'library' && (
             <DocList
-              docs={docs}
+              docs={collectionDocs}
               onOpenDoc={openDoc}
-              title="大藏目录"
-              subtitle={`全站 ${docs.length.toLocaleString('en-US')} 篇 · 按部类浏览`}
-              fixedCategories={fixedCategories}
-              topics={topics}
+              title={activeCollection?.name ?? '大藏目录'}
+              subtitle={`${collectionDocs.length.toLocaleString('en-US')} 篇 · ${
+                activeCollection?.kind === 'album' ? '专辑' : '一级分类'
+              }`}
             />
           )}
 

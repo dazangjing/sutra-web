@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Collection } from '../lib/collections';
 import type { DocMeta } from '../lib/types';
 import ImageMark from './ImageMark';
 
@@ -8,8 +7,6 @@ interface Props {
   onOpenDoc: (id: string) => void;
   title: string;
   subtitle: string;
-  fixedCategories: Collection[];
-  topics: Collection[];
 }
 
 const PAGE = 120;

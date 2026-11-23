@@ -31,6 +31,20 @@
   均为脚本生成的统计产物，勿手改；源头数据在 `src/data/collections.ts`
   与 `src/data/funding.ts`（后者为手工维护）。
 
+## 分类层级
+
+一级分类有二，皆为顶层（见 `src/data/collections.ts` 之 `Collection.kind`）：
+
+- **固定分类**（`kind: 'category'`）：大藏经 / 禅宗 / 近代著作。
+- **专辑**（`kind: 'album'`）：按宗派、门类的跨部类读本集合，15 个。
+  —— **与固定分类同为一级**，非其下从属。
+
+故：导航中专辑以「专辑」下拉收纳（每一专辑皆为一等条目），
+首页专辑与三大固定分类平级陈列，页脚、统计页、专辑页皆依此措辞。
+
+专辑之篇目以**档号**为准（资料库 `subjects/` 之专题档，见 `src/data/albums.ts`），
+不依题名关键词猜测。`topics` 为 `albums` 之旧称别名，存旧以兼容既有引用。
+
 ## 设计令牌
 
 主题双轨：墨夜（`ink`）↔ 素白（`paper`），由 `<html data-theme>` 切换，
@@ -57,6 +71,9 @@
 ## 桌面端（`app/`）
 
 - 技术栈：Tauri 2 + React 18 + TypeScript，主进程 Rust 1.77+。
+- **分类层级同 Web 站**：固定分类与专辑同为一级。桌面端之 `collections.json`
+  由 `app/scripts/build-collections.py` 自 `src/data/albums.ts` 生成，
+  `kind` 取 `category` / `album`；侧栏以「固定分类」与「专辑 · 一级」两组并列。
 - **语料管线**：`app/scripts/build-corpus.py` 是唯一入口，
   自 `src/content/sutra/*.md` 生成桌面端语料包（段落化 JSON + 二进制倒排索引）。
   路径皆相对仓库根解析，故脚本可自任意工作目录调用。

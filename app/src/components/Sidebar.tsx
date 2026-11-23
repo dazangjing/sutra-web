@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { ACCENT_VAR, collections, fixedCategories, topics } from '../lib/collections';
+import { useMemo } from 'react';
+import { ACCENT_VAR, albums, collections, fixedCategories } from '../lib/collections';
 import type { DocMeta, View } from '../lib/types';
 
 interface Props {
@@ -9,6 +9,10 @@ interface Props {
   onOpenDoc: (id: string) => void;
   shelfCount: number;
   notesCount: number;
+  /** 侧栏所选之一级分类（固定分类或专辑） */
+  activeSlug: string;
+  /** 择定一级分类：即以之为中栏之篇目来源 */
+  onSelectCollection: (slug: string) => void;
 }
 
 const TABS: { key: View; label: string; glyph: string }[] = [
@@ -25,8 +29,9 @@ export default function Sidebar({
   onOpenDoc,
   shelfCount,
   notesCount,
+  activeSlug,
+  onSelectCollection,
 }: Props) {
-  const [activeSlug, setActiveSlug] = useState<string>('tripitaka');
 
   const counts = useMemo(() => {
     const map = new Map<string, number>();
@@ -34,7 +39,7 @@ export default function Sidebar({
     for (const d of docs) byCode.set(d.id.toUpperCase(), d.id);
 
     for (const c of collections) {
-      if (c.kind === 'topic') {
+      if (c.kind === 'album') {
         let n = 0;
         for (const code of c.codes) if (byCode.has(code.toUpperCase())) n += 1;
         map.set(c.slug, n);
@@ -56,7 +61,7 @@ export default function Sidebar({
     const c = collections.find((x) => x.slug === activeSlug);
     if (!c) return [];
     const byCode = new Map(docs.map((d) => [d.id.toUpperCase(), d]));
-    if (c.kind === 'topic') {
+    if (c.kind === 'album') {
       return c.codes
         .map((code) => byCode.get(code.toUpperCase()))
         .filter((d): d is DocMeta => Boolean(d));
@@ -91,15 +96,19 @@ export default function Sidebar({
       </nav>
 
       <div className="sidebar-scroll">
+        {/*
+          一级分类：三大固定分类与专辑并列。
+          两者同为一级，故同列于此，仅以分组小标题分之。
+        */}
         <div className="sidebar-group">
-          <div className="sidebar-group-title">分类</div>
+          <div className="sidebar-group-title">固定分类</div>
           {fixedCategories.map((c) => (
             <button
               key={c.slug}
               type="button"
               className={`sidebar-item${activeSlug === c.slug ? ' is-active' : ''}`}
               onClick={() => {
-                setActiveSlug(c.slug);
+                onSelectCollection(c.slug);
                 onView('library');
               }}
               style={{ color: activeSlug === c.slug ? ACCENT_VAR[c.accent] : undefined }}
@@ -114,14 +123,14 @@ export default function Sidebar({
         </div>
 
         <div className="sidebar-group">
-          <div className="sidebar-group-title">专辑</div>
-          {topics.map((c) => (
+          <div className="sidebar-group-title">专辑 · 一级</div>
+          {albums.map((c) => (
             <button
               key={c.slug}
               type="button"
               className={`sidebar-item${activeSlug === c.slug ? ' is-active' : ''}`}
               onClick={() => {
-                setActiveSlug(c.slug);
+                onSelectCollection(c.slug);
                 onView('library');
               }}
               style={{ color: activeSlug === c.slug ? ACCENT_VAR[c.accent] : undefined }}

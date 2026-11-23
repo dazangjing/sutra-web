@@ -18,11 +18,11 @@ const accentClass: Record<string, { text: string; border: string; bg: string; gl
 };
 ---
 
-<BaseLayout title="专辑" description="大藏经专辑：按宗派与门类组织的跨部类读本集合。" bodyClass="page-topics">
+<BaseLayout title="专辑" description="大藏经专辑：按宗派与门类组织的一级分类，跨部类读本集合。" bodyClass="page-topics">
   <PageHero
-    kicker="/ TOPICS"
+    kicker="/ ALBUMS"
     title="专辑"
-    desc="专辑不拘于部类，而以宗派、门类为线索，横跨经律论注疏诸部，择取一组可连缀而读之典籍。"
+    desc="专辑与三大固定分类同为一级分类：不拘于部类，而以宗派、门类为线索，横跨经律论注疏诸部，择取一组可连缀而读之典籍。"
     count={`${topics.length} 个专辑`}
   />
 
@@ -66,7 +66,7 @@ const accentClass: Record<string, { text: string; border: string; bg: string; gl
   </section>
 
   <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">
-    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">三大固定分类</p>
+    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">同为一级分类 · 三大固定分类</p>
     <div class="flex flex-wrap justify-center gap-2.5">
       {
         fixedCategories.map((c) => (

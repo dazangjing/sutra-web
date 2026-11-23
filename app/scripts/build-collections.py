@@ -150,7 +150,8 @@ def main() -> int:
                 "glyph": album["glyph"],
                 "accent": album["accent"],
                 "desc": album["desc"],
-                "kind": "topic",
+                # 专辑与固定分类同为一级
+                "kind": "album",
                 "codes": album.get("codes", []),
                 "sections": album.get("sections", []),
             }

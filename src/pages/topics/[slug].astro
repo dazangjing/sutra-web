@@ -35,7 +35,7 @@ const divisions = groupByDivision(list);
 const total = list.length;
 ---
 
-<BaseLayout title={`${topic.name}专题`} description={topic.desc} bodyClass="page-topic">
+<BaseLayout title={topic.name} description={topic.desc} bodyClass="page-topic">
   <PageHero kicker={`/ ${topic.en}`} title={topic.name} glyph={topic.glyph} desc={topic.desc} count={`${total.toLocaleString('en-US')} 篇`} />
 
   {
@@ -92,8 +92,19 @@ const total = list.length;
   </section>
 
   <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">
-    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">相关专题与分类</p>
+    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">同为一级分类</p>
     <div class="flex flex-wrap justify-center gap-2.5">
+      {
+        fixedCategories.map((c) => (
+          <a
+            href={u(`/categories/${c.slug}/`)}
+            class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+          >
+            <span class="font-serif text-jade">{c.glyph}</span>
+            {c.name}
+          </a>
+        ))
+      }
       {
         topics
           .filter((t) => t.slug !== topic.slug)
@@ -106,16 +117,6 @@ const total = list.length;
               {t.name}
             </a>
           ))
-      }
-      {
-        fixedCategories.map((c) => (
-          <a
-            href={u(`/categories/${c.slug}/`)}
-            class="rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
-          >
-            {c.name}
-          </a>
-        ))
       }
     </div>
   </section>

@@ -1,12 +1,12 @@
 /**
- * 集合定义：三大固定分类 + 专题。
+ * 集合定义：一级分类。
  *
- * 固定分类（导航）：大藏经 / 禅宗 / 近代著作
- * 专题（/topics/）：按宗派与门类组织的跨部类读本集合
- *
- * 专题之篇目**以资料库 `subjects/` 之专题档为准**（见 `src/data/albums.ts`，
- * 由 `scripts/build-albums.py` 生成），逐档列明，故与资料库一一相符，
- * 无须于站点复以题名关键词猜测归属。
+ * 一级分类有二，皆为导航与首页之顶层：
+ *   1. **固定分类**（`kind: 'category'`）：大藏经 / 禅宗 / 近代著作
+ *      —— 依部类、藏经编号或导读与否划分，涵盖全站。
+ *   2. **专辑**（`kind: 'album'`）：按宗派、门类组织的跨部类读本集合。
+ *      —— 专辑与固定分类**同为一级**，不再从属其下；
+ *      每一专辑在导航、首页各占一席，篇数以资料库专题档为准。
  *
  * 固定分类之匹配规则（Rule）各组之间为「或」关系：
  *   divisions  部类命中（语料二十九部）
@@ -14,9 +14,13 @@
  *   title      题名含关键词
  *   canonName  藏经名称含关键词
  *   exclude    题名排除词
+ *
+ * 专辑之篇目**以资料库 `subjects/` 之专题档为准**（见 `src/data/albums.ts`，
+ * 由 `scripts/build-albums.py` 生成），逐档列明，故与资料库一一相符，
+ * 无须于站点复以题名关键词猜测归属。
  */
 
-import { albums, type Album, type AlbumSection } from './albums';
+import { albums as albumSource, type Album, type AlbumSection } from './albums';
 
 export type Accent = 'jade' | 'gold' | 'violet' | 'cinnabar' | 'slate';
 
@@ -37,14 +41,15 @@ export type Collection = {
   glyph: string;
   accent: Accent;
   desc: string;
-  kind: 'category' | 'topic';
+  /** 一级分类之别：category = 固定分类（按部类等划分），album = 专辑（按宗派门类） */
+  kind: 'category' | 'album';
   keywords: string[];
   rule: Rule;
-  /** 专题内以配图多寡为序（图像特多者先出） */
+  /** 专辑内以配图多寡为序（图像特多者先出） */
   sortByImages?: boolean;
-  /** 专题之档号集合（专题以此为准，非以规则匹配） */
+  /** 专辑之档号集合（专辑以此为准，非以规则匹配） */
   codes?: string[];
-  /** 分节（专题档之节目，各节含其档号） */
+  /** 分节（专辑档之节目，各节含其档号） */
   sections?: AlbumSection[];
 };
 
@@ -101,15 +106,15 @@ export const collections: Collection[] = [
     rule: { guidesOnly: true },
   },
 
-  /* ── 专题：自资料库之专题档 ───────────────────────────── */
-  ...albums.map((a: Album): Collection => ({
+  /* ── 专辑：自资料库之专题档，与固定分类同为一级 ─────────── */
+  ...albumSource.map((a: Album): Collection => ({
     slug: a.slug,
     name: a.name,
     en: a.en,
     glyph: a.glyph,
     accent: a.accent,
     desc: a.desc,
-    kind: 'topic',
+    kind: 'album',
     keywords: a.keywords,
     rule: {},
     codes: a.codes,
@@ -124,6 +129,9 @@ export const collectionMap = Object.fromEntries(collections.map((c) => [c.slug, 
   Collection
 >;
 
-/** 导航用：三大固定分类 + 专题入口 */
+/** 三大固定分类：按部类、藏经编号或导读与否划分 */
 export const fixedCategories = collections.filter((c) => c.kind === 'category');
-export const topics = collections.filter((c) => c.kind === 'topic');
+/** 专辑：按宗派与门类组织的跨部类读本集合，与固定分类同为一级 */
+export const albums = collections.filter((c) => c.kind === 'album');
+/** 旧称 topics（专辑）之别名，存旧以兼容既有引用 */
+export const topics = albums;
