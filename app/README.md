@@ -33,6 +33,23 @@
 Electron 同等功能安装包约 120 MB、内存占用约 150 MB；Tauri 版安装包
 为 Electron 的 1/6，运行时内存约为其 1/4。
 
+### 检索
+
+本地倒排索引，3,684 篇全库检索 **0–2 ms**：
+
+| 查询 | 命中 | 首位 |
+|---|---|---|
+| 般若 | 1,599 | 《大般若关》 |
+| 金刚般若波罗蜜经 | 2,556 | 《金刚般若波罗蜜经》 |
+| T0235 | 1 | 《金刚般若波罗蜜经》 |
+| 禅 | 2,148 | 《禅门要略》 |
+| 唯识 | 449 | 《唯识论》 |
+| 地藏 | 327 | 《地藏菩萨经》 |
+
+排序三则：**长词主导**（单字权重极低，否则无意义查询亦命中数千篇）、
+**字段加权**（题名 > 繁体题名 > 藏经编号 > 提要 > 正文）、
+**题名长度归一**（短而切题者先于长而含之者）。
+
 ## 三、架构
 
 ```
@@ -97,9 +114,18 @@ app/scripts/build-corpus.py
 cd app
 
 npm install          # 装依赖
-npm run corpus       # 构建语料包（约 40–100 秒，190 MB）
+npm run corpus       # 构建语料包（约 40–100 秒，192 MB）
 npm run app:dev      # 开发模式（Vite :5183 + Tauri）
 npm run app:build    # 打包（.app / .dmg / .nsis / .msi）
+```
+
+辅助命令：
+
+```bash
+npm run corpus:collections   # 自 albums.ts 生成集合定义
+npm run corpus:gaiji         # 扫 XML 档头建生僻字对照表（需 xml-p5）
+npm run icons                # 生成图标
+npm run preview              # 生成浏览器走查之桩数据
 ```
 
 ### 跨平台打包
@@ -113,6 +139,41 @@ macOS 上可打出 macOS 包；Windows 包（`.msi` / `.nsis`）须在 Windows �
     matrix:
       platform: [macos-latest, windows-latest]
 ```
+
+### 验证
+
+```bash
+# 集成测试（以真语料包为输入；语料未构建时自动跳过）
+cd src-tauri && cargo test --release
+
+# 检索对照表（人工核验排序）
+cargo run --release --example cli_search
+```
+
+`cli_search` 实测输出：
+
+```
+查询                    命中   耗时ms  首位
+般若                    1599    0     大般若关
+金刚般若波罗蜜经           2556    1     金刚般若波罗蜜经
+T0235                   1      0     金刚般若波罗蜜经
+禅                     2148    1     禅宗指掌
+唯识                    449     0     唯识论
+地藏                    327     0     地藏菩萨经
+```
+
+### 浏览器走查
+
+桌面端无 Tauri 主进程时，前端可独立于浏览器运行（便于 UI 走查）：
+
+```bash
+npm run preview   # 生成桩数据与 IPC 垫片
+npm run dev       # 浏览器开 http://localhost:5183
+```
+
+垫片仅于开发模式加载，打包后不入产物。
+但 `asset://` 图（配图、生僻字字形）须在真应用中方可显示 ——
+**浏览器走查不能替代实机验证**。
 
 ## 五、目录
 
