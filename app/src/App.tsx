@@ -15,6 +15,13 @@ import { toggleFullscreen, useMenuEvents } from './hooks/useMenuEvents';
 const LS_THEME = 'yzj-theme';
 const LS_SIZE = 'yzj-reader-size';
 
+declare global {
+  interface Window {
+    /** 浏览器预览用：IPC 垫片是否就绪 */
+    __YZJ_IPC_READY__?: boolean;
+  }
+}
+
 export default function App() {
   // ── 主题 ────────────────────────────────────────────────────
   const [theme, setTheme] = useState<'ink' | 'paper'>(
@@ -62,6 +69,24 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
+        // 浏览器预览时，IPC 垫片异步加载，须待其就绪
+        if (!('__TAURI_INTERNALS__' in window)) {
+          await new Promise<void>((resolve) => {
+            if (window.__YZJ_IPC_READY__) {
+              resolve();
+              return;
+            }
+            const timer = window.setTimeout(resolve, 1500);
+            window.addEventListener(
+              'yzj-ipc-ready',
+              () => {
+                window.clearTimeout(timer);
+                resolve();
+              },
+              { once: true },
+            );
+          });
+        }
         const [info, all, state] = await Promise.all([
           api.corpusInfo(),
           api.allDocs(),
@@ -205,13 +230,26 @@ export default function App() {
   }
 
   if (loadError) {
+    // 「非 Tauri 环境」与「语料缺失」二者不同，其 remedies 亦异
+    const notTauri = /invoke|__TAURI/i.test(loadError);
     return (
       <div className="boot">
         <div className="boot-mark err">阅</div>
-        <div className="boot-text">语料装载失败</div>
+        <div className="boot-text">
+          {notTauri ? '须在桌面端中运行' : '语料装载失败'}
+        </div>
         <pre className="boot-error">{loadError}</pre>
         <div className="boot-hint">
-          开发环境下请先运行：<code>npm run corpus</code>
+          {notTauri ? (
+            <>
+              浏览器中仅有前端，主进程命令不可用。请用 <code>npm run app:dev</code>{' '}
+              启动桌面端。
+            </>
+          ) : (
+            <>
+              开发环境下请先运行：<code>npm run corpus</code>
+            </>
+          )}
         </div>
       </div>
     );

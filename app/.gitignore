@@ -8,6 +8,10 @@ src-tauri/target/
 # 故不入库；构建时由 `npm run corpus` 重新生成。
 src-tauri/resources/corpus/
 
+# ── 浏览器预览桩数据 ────────────────────────────────────────
+# 由 scripts/make-preview.py 自语料包生成，体积约 1.4 MB，不入库。
+public/preview/
+
 # ── 生成物 ─────────────────────────────────────────────────
 # Tauri 依当前版本自动生成的 schema，改版本时会变，故不入库。
 src-tauri/gen/

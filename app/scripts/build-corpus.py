@@ -383,11 +383,25 @@ def write_index(path: Path, inverted: dict[str, set[int]], min_docs: int) -> dic
 
     文档 id 以 **delta varint** 编码（按升序排列，相邻差值多为 1），
     这是倒排表的标准压缩方式，体积可再降 3–4 倍。
+
+    **词的取舍**：中文二元组绝大多数只命中一篇，检索价值极微，
+    却占了 98% 的词条与体积，故滤去（`min_docs`）。
+    但**标识类**词（藏经编号如 T0235、篇目 id）天生只命中一篇 ——
+    一经滤去，「检 T0235」便查不到。故标识类词一律保留。
     """
     # 过滤：仅保留命中篇数 >= min_docs 的词。
-    # 只出现于一篇的二元组几乎无检索价值（标题匹配已覆盖），
-    # 却占了绝大多数词条 —— 此处砍掉 90% 以上体积而召回几无损失。
-    kept = {t: ids for t, ids in inverted.items() if len(ids) >= min_docs}
+    # 标识类词（拉丁字母 + 数字组成的编号）例外 —— 其命中数天然为一。
+    def is_identifier(term: str) -> bool:
+        """是否标识类词：含数字且以字母开头（如 t0235、x1084、g2268）。"""
+        if not any(c.isdigit() for c in term):
+            return False
+        return term[0].isalpha()
+
+    kept = {
+        t: ids
+        for t, ids in inverted.items()
+        if len(ids) >= min_docs or is_identifier(t)
+    }
 
     # 按词长降序 → 长词在前，检索时可先判长词提高精度
     terms = sorted(kept.keys(), key=lambda t: (-len(t), t))
@@ -448,11 +462,17 @@ def collect_assets(text: str) -> set[str]:
     return out
 
 
+def _resolve(root: Path, path: str) -> Path:
+    """相对路径相对仓库根解析，绝对路径原样返回。"""
+    p = Path(path)
+    return p if p.is_absolute() else (root / p)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="构建桌面端语料包")
-    ap.add_argument("--sutra", default="src/content/sutra", help="Markdown 语料目录")
-    ap.add_argument("--assets", default="public/assets", help="资源目录")
-    ap.add_argument("--out", default="app/src-tauri/resources/corpus", help="输出目录")
+    ap.add_argument("--sutra", default="src/content/sutra", help="Markdown 语料目录（相对仓库根）")
+    ap.add_argument("--assets", default="public/assets", help="资源目录（相对仓库根）")
+    ap.add_argument("--out", default="app/src-tauri/resources/corpus", help="输出目录（相对仓库根）")
     ap.add_argument("--no-assets", action="store_true", help="不复制资源（调试用）")
     ap.add_argument("--no-index", action="store_true", help="不建倒排索引（调试用）")
     ap.add_argument(
@@ -468,9 +488,12 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    sutra_dir = Path(args.sutra)
-    assets_dir = Path(args.assets)
-    out_dir = Path(args.out)
+    # 路径皆相对于仓库根解析，故脚本可自任意工作目录调用
+    root = Path(__file__).resolve().parents[2]
+    sutra_dir = _resolve(root, args.sutra)
+    assets_dir = _resolve(root, args.assets)
+    out_dir = _resolve(root, args.out)
+    gaiji_path = _resolve(root, args.gaiji)
 
     if not sutra_dir.is_dir():
         print(f"错误：找不到语料目录 {sutra_dir}", file=sys.stderr)
@@ -485,7 +508,7 @@ def main() -> int:
     md_files = sorted(sutra_dir.glob("*.md"))
     print(f"扫描语料：{len(md_files)} 篇")
 
-    load_gaiji(Path(args.gaiji))
+    load_gaiji(gaiji_path)
 
     entries: list[dict] = []
     # 倒排索引：词 → 篇目下标集合

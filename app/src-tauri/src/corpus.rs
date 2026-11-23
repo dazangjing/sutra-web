@@ -124,7 +124,8 @@ pub struct SearchResult {
 
 // ── 倒排索引 ──────────────────────────────────────────────────────
 
-struct InvertedIndex {
+/// 倒排索引：词 → 篇目下标列表。
+pub struct InvertedIndex {
     /// 词 → 篇目下标列表
     terms: HashMap<String, Vec<u32>>,
 }
@@ -270,6 +271,20 @@ impl Corpus {
 
 const STOP_CHARS: &str = "的了是在和与及或而之其此则为以于乎者也矣焉哉邪耶耳而已又亦且夫盖凡若诸彼其中之者一二三四五六七八九十百千万亿零〇";
 
+/// 该单字是否为停用字。
+fn is_stop_char(ch: char) -> bool {
+    STOP_CHARS.contains(ch)
+}
+
+/// 该二元组是否为停用词。
+///
+/// 停用表所收皆为单字，故二元组整体比对，几乎皆非停用词 ——
+/// 此与 Python 侧 `bg not in STOP_CHARS` 语义相同，
+/// 不可改为一字一字判，否则「般若」等词会被误弃。
+fn is_stop_bigram(bg: &str) -> bool {
+    STOP_CHARS.contains(bg)
+}
+
 fn is_cjk(ch: char) -> bool {
     let cp = ch as u32;
     (0x3400..=0x4DBF).contains(&cp)
@@ -300,14 +315,18 @@ pub fn tokenize(text: &str) -> Vec<String> {
         }
         let chars: Vec<char> = cjk.chars().collect();
         for (i, &ch) in chars.iter().enumerate() {
-            if !STOP_CHARS.contains(ch) {
+            if !is_stop_char(ch) {
                 tokens.push(ch.to_string());
             }
             if i + 1 < chars.len() {
+                // 二元组整体判定，与 Python 侧 `bg not in STOP_CHARS` 对齐：
+                // 停用表收的是单字，故二元组几乎皆非停用词。
+                // 若改为一字一字判，则「般若」这类词会因含「若」而被弃，
+                // 检索遂失「般若」这一高频要词。
                 let mut bg = String::new();
                 bg.push(ch);
                 bg.push(chars[i + 1]);
-                if !STOP_CHARS.contains(chars[i]) && !STOP_CHARS.contains(chars[i + 1]) {
+                if !is_stop_bigram(&bg) {
                     tokens.push(bg);
                 }
             }
@@ -335,6 +354,19 @@ pub fn tokenize(text: &str) -> Vec<String> {
 // ── 检索 ──────────────────────────────────────────────────────────
 
 /// 检索：返回按相关度排序的命中列表。
+///
+/// **打分要旨**
+///
+/// 1. **长词优先**：二元组以上之词（乃至整串）远较单字具体，
+///    故以长词为主、单字为辅。单字权重须压得极低，
+///    否则「不存在的词xyzzy」此类查询会因「不」「存」「在」等字
+///    而命中数千篇。
+/// 2. **字段加权**：题名命中 > 繁体题名 > 藏经编号 > 提要 > 正文。
+/// 3. **整串优先**：查询串若为某篇题名之完整包含，则该篇必居首 ——
+///    检「金刚般若波罗蜜经」，首当为《金刚般若波罗蜜经》，
+///    而非《金刚般若波罗蜜经破取著不坏假名论》。
+/// 4. **长词主导**：若查询含长词而某篇未命中之，则该篇大幅降权，
+///    使「须菩提」只出含此词之篇，不与仅含「须」「菩」「提」者混同。
 pub fn search(corpus: &Corpus, query: &str, limit: usize) -> SearchResult {
     let started = std::time::Instant::now();
     let query = query.trim();
@@ -349,42 +381,94 @@ pub fn search(corpus: &Corpus, query: &str, limit: usize) -> SearchResult {
     let lowered = query.to_lowercase();
     let tokens = tokenize(&lowered);
 
-    // 累加打分：长词权重更高（更具体）
-    let mut scores: HashMap<u32, f64> = HashMap::new();
-    let mut matched_terms: usize = 0;
+    // 以词长分组：长词（≥2 字）为主，单字为辅
+    let mut long_scores: HashMap<u32, f64> = HashMap::new();
+    let mut short_scores: HashMap<u32, f64> = HashMap::new();
+    let mut hit_long_terms: HashMap<u32, usize> = HashMap::new();
+    let mut n_long = 0usize;
 
     for tok in &tokens {
         let Some(ids) = corpus.index.get(tok) else {
             continue;
         };
-        matched_terms += 1;
-        // 权重随词长递增；单字权重低、二字及以上高
-        let weight = match tok.chars().count() {
-            1 => 1.0,
-            2 => 3.0,
-            3 => 5.0,
-            _ => 6.0,
+        let len = tok.chars().count();
+        let weight = match len {
+            1 => 0.05,   // 单字极轻：几乎只作兜底
+            2 => 4.0,
+            3 => 6.0,
+            _ => 8.0,
         };
+        if len >= 2 {
+            n_long += 1;
+        }
         for &id in ids {
-            *scores.entry(id).or_insert(0.0) += weight;
+            if len >= 2 {
+                *long_scores.entry(id).or_insert(0.0) += weight;
+                *hit_long_terms.entry(id).or_insert(0) += 1;
+            } else {
+                *short_scores.entry(id).or_insert(0.0) += weight;
+            }
         }
     }
 
-    // 归一：命中的查询词越多、覆盖查询比例越高，排名越前
+    // 若查询无长词（如单字「禅」），则退以单字计；
+    // 有长词时，单字分数**不引入新候选** —— 否则「不存在的词xyzzy」会因
+    // 「不」「存」「在」「之」「词」等字而命中数千篇。
+    // 单字仅用于长词命中者之辅证。
+    let long_total = n_long;
+    let mut scores = long_scores;
+    if long_total == 0 {
+        scores = short_scores;
+    } else {
+        // 单字分数仅为已命中长词之篇加一分，不新增候选
+        for (id, s) in short_scores {
+            if let Some(v) = scores.get_mut(&id) {
+                *v += s;
+            }
+        }
+    }
+
+    // 长词覆盖率：命中长词数 / 查询长词数
     let mut ranked: Vec<(u32, f64)> = scores.into_iter().collect();
-    let total_query_terms = tokens.len().max(1) as f64;
     for (id, score) in ranked.iter_mut() {
         let meta = &corpus.manifest.docs[*id as usize];
-        // 题名命中额外加权（题名匹配通常最relevant）
-        if meta.title.to_lowercase().contains(&lowered) {
-            *score *= 2.5;
-        } else if meta.title_trad.to_lowercase().contains(&lowered) {
-            *score *= 2.0;
-        } else if meta.canon.to_lowercase().contains(&lowered) {
-            *score *= 1.8;
+        let title = meta.title.to_lowercase();
+        let trad = meta.title_trad.to_lowercase();
+        let canon = meta.canon.to_lowercase();
+
+        // 字段加权
+        let mut factor = 1.0;
+        if title == lowered {
+            // 题名全同：最相关，必居首
+            factor *= 40.0;
+        } else if title.contains(&lowered) {
+            factor *= 8.0;
+        } else if trad == lowered {
+            factor *= 12.0;
+        } else if trad.contains(&lowered) {
+            factor *= 6.0;
+        } else if canon == lowered {
+            factor *= 10.0;
+        } else if canon.contains(&lowered) {
+            factor *= 5.0;
+        } else if meta.summary.to_lowercase().contains(&lowered) {
+            factor *= 2.5;
+        } else if title.contains(&tokens.iter().find(|t| t.chars().count() >= 2).map(|s| s.as_str()).unwrap_or(&lowered)) {
+            factor *= 1.8;
         }
-        // 覆盖率：命中词数占查询词数之比
-        *score *= 1.0 + (matched_terms as f64 / total_query_terms);
+        *score *= factor;
+
+        // 标题长度归一：题名愈短愈切题。
+        // 「般若」之命中，《般若波罗蜜多心经》（8 字）当先于
+        // 《圣八千颂般若波罗蜜多一百八名真实圆义陀罗尼经》（23 字）。
+        let title_len = meta.title.chars().count().max(1) as f64;
+        *score *= (12.0 / title_len).min(3.0);
+
+        // 覆盖率：命中长词越多者越前
+        if long_total > 0 {
+            let covered = hit_long_terms.get(id).copied().unwrap_or(0);
+            *score *= 1.0 + (covered as f64 / long_total as f64) * 2.0;
+        }
     }
     ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 

@@ -11,7 +11,10 @@
     "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build",
-    "corpus": "python3 scripts/build-corpus.py --sutra ../src/content/sutra --assets ../public/assets --out src-tauri/resources/corpus"
+    "corpus": "python3 scripts/build-corpus.py",
+    "corpus:collections": "python3 scripts/build-collections.py",
+    "corpus:gaiji": "python3 scripts/build-gaiji.py",
+    "icons": "python3 scripts/make-icons.py"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",

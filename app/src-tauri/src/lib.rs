@@ -7,7 +7,7 @@
 //!   * 书架、阅读进度、批注的本地持久化
 //!   * 导出（Markdown / 纯文本）
 
-mod corpus;
+pub mod corpus;
 
 use std::collections::HashMap;
 use std::fs;

@@ -88,7 +88,6 @@ def main() -> int:
     xml_root = Path(sys.argv[1]) if len(sys.argv) > 1 else root.parent / "xml-p5"
     corpus = root / "app" / "src-tauri" / "resources" / "corpus"
     out = root / "app" / "src" / "data" / "gaiji.json"
-
     if not xml_root.is_dir():
         print(f"错误：找不到 XML 语料目录 {xml_root}", file=sys.stderr)
         return 1
