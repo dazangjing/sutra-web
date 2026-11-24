@@ -22,7 +22,7 @@ concurrency:
 jobs:
   macos:
     name: Build macOS installer
-    runs-on: macos-latest
+    runs-on: macos-15-intel
     steps:
       - name: Checkout
         uses: actions/checkout@v4
