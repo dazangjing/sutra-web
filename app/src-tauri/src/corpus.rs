@@ -28,7 +28,20 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
+
+/// URI 编码字符集，与 Tauri 内部所用者同（tauri::protocol::ENCODE_URI_COMPONENT）。
+const ENCODE_URI_COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'-')
+    .remove(b'_')
+    .remove(b'.')
+    .remove(b'!')
+    .remove(b'~')
+    .remove(b'*')
+    .remove(b'\'')
+    .remove(b'(')
+    .remove(b')');
 
 // ── 元数据 ────────────────────────────────────────────────────────
 
@@ -68,6 +81,9 @@ pub struct DocMeta {
     pub tags: Vec<String>,
     #[serde(default)]
     pub order: u32,
+    /// 导读（Web 站 front matter 之 `guide` 字段；首页「精选导读」用之）
+    #[serde(default)]
+    pub guide: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -86,6 +102,15 @@ pub struct Manifest {
 pub struct Paragraph {
     pub t: String,
     pub level: u8,
+    /// 独占一行之图（渲染时居中）
+    #[serde(default)]
+    pub img: bool,
+    /// 无序列表项（渲染时作 <li>）
+    #[serde(default)]
+    pub li: bool,
+    /// 引用块（渲染时作 <blockquote>）
+    #[serde(default)]
+    pub quote: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -211,6 +236,8 @@ pub struct Corpus {
     pub index: InvertedIndex,
     /// 篇目 id → 下标
     pub by_id: HashMap<String, usize>,
+    /// 资源占位（`asset://`）→ 运行时绝对 URL 之前缀
+    pub asset_prefix: String,
     /// 文档缓存：id → 正文
     docs_cache: Mutex<HashMap<String, Arc<Doc>>>,
 }
@@ -237,11 +264,17 @@ impl Corpus {
             .map(|(i, d)| (d.id.clone(), i))
             .collect();
 
+        // 资源 URL 前缀：Tauri 之 asset 协议以请求之绝对路径匹配 scope，
+        // 故须于运行时以实际资源目录拼出绝对 URL —— 安装位置各异，
+        // 语料中只存相对占位（`asset://figures/…`），此处补全。
+        let asset_prefix = asset_url_prefix(&assets_root(&root));
+
         Ok(Self {
             root,
             manifest,
             index,
             by_id,
+            asset_prefix,
             docs_cache: Mutex::new(HashMap::new()),
         })
     }
@@ -253,7 +286,16 @@ impl Corpus {
         }
         let path = self.root.join("docs").join(format!("{id}.json"));
         let raw = fs::read_to_string(&path).map_err(|e| format!("读取篇目 {id} 失败：{e}"))?;
-        let doc: Doc = serde_json::from_str(&raw).map_err(|e| format!("解析篇目 {id} 失败：{e}"))?;
+        let mut doc: Doc =
+            serde_json::from_str(&raw).map_err(|e| format!("解析篇目 {id} 失败：{e}"))?;
+        // 资源占位 → 绝对 URL（缓存前替换，检索摘录亦得此图）
+        if self.asset_prefix != "asset://" {
+            for para in &mut doc.paragraphs {
+                if para.t.contains("asset://") {
+                    para.t = para.t.replace("asset://", &self.asset_prefix);
+                }
+            }
+        }
         let doc = Arc::new(doc);
         self.docs_cache
             .lock()
@@ -585,4 +627,64 @@ fn highlight(text: &str, start: usize, end: usize, radius: usize) -> String {
 /// 资源目录（供 asset:// 协议解析）。
 pub fn assets_root(corpus_root: &Path) -> PathBuf {
     corpus_root.join("assets")
+}
+
+/// 资源目录 → `asset://` 绝对 URL 之前缀。
+///
+/// Tauri 之 asset 协议取请求之 `uri.path()` 与 scope（绝对路径 glob）比对，
+/// 故 URL 须含绝对路径：`asset://localhost/<绝对路径>/…`。
+/// 编码字符集与 Tauri 内部一致，中文等非 ASCII 字节原样保留（由 URL 解析还原）。
+fn asset_url_prefix(assets: &Path) -> String {
+    let path = assets.to_string_lossy();
+    let encoded = utf8_percent_encode(&path, ENCODE_URI_COMPONENT).to_string();
+    format!("asset://localhost/{encoded}/")
+}
+
+// ── 测试 ──────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// 资源 URL 前缀须为绝对路径形态 —— asset 协议据此匹配 scope，
+    /// 若为相对路径则无论 URL 写成何样皆不得其图。
+    #[test]
+    fn test_asset_url_prefix_is_absolute() {
+        let prefix = asset_url_prefix(Path::new(
+            "/Applications/阅藏经.app/Contents/Resources/corpus/assets",
+        ));
+        assert!(
+            prefix.starts_with("asset://localhost/"),
+            "前缀形态有误：{prefix}"
+        );
+        assert!(prefix.ends_with('/'), "前缀须以斜杠收尾：{prefix}");
+
+        // 斜杠等经百分号编码发出，asset 协议解码后取其路径，故解码后须为绝对路径
+        let decoded = percent_encoding::percent_decode_str(&prefix["asset://localhost/".len()..])
+            .decode_utf8_lossy();
+        assert!(decoded.starts_with('/'), "解码后非绝对路径：{decoded}");
+        assert!(decoded.contains("阅藏经.app"), "路径有误：{decoded}");
+    }
+
+    /// 取文时资源占位须换成绝对 URL，且该 URL 所指之文件确实在包内。
+    #[test]
+    fn test_doc_assets_point_to_real_files() {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/corpus");
+        if !root.join("manifest.json").exists() {
+            return; // 语料未构建，跳过
+        }
+        let corpus = Corpus::load(root).unwrap();
+        let doc = corpus.doc("b0071").unwrap();
+        let html: String = doc.paragraphs.iter().map(|p| p.t.as_str()).collect();
+
+        let Some(pos) = html.find("asset://localhost/") else {
+            panic!("正文配图未换成绝对 URL");
+        };
+        let url = &html[pos..];
+        let end = url.find('"').unwrap();
+        let url = &url[..end];
+        let path = url.trim_start_matches("asset://localhost/");
+        let path = percent_encoding::percent_decode_str(path).decode_utf8_lossy();
+        assert!(Path::new(&*path).exists(), "资源不存在于包内：{path}");
+    }
 }

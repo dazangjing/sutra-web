@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './lib/api';
 import { collections } from './lib/collections';
-import type { CorpusInfo, Doc, DocMeta, LocalState, SearchHit, View } from './lib/types';
+import { collectionBySlug } from './lib/nav';
+import type { CorpusInfo, Doc, DocMeta, LocalState, Route, SearchHit } from './lib/types';
 import Sidebar from './components/Sidebar';
 import Reader from './components/Reader';
 import DocList from './components/DocList';
@@ -10,6 +11,9 @@ import ShelfPanel from './components/ShelfPanel';
 import NotesPanel from './components/NotesPanel';
 import TitleBar from './components/TitleBar';
 import StatusBar from './components/StatusBar';
+import Home from './components/Home';
+import About from './components/About';
+import Donate from './components/Donate';
 import { toggleFullscreen, useMenuEvents } from './hooks/useMenuEvents';
 
 const LS_THEME = 'yzj-theme';
@@ -38,6 +42,11 @@ export default function App() {
   );
   useEffect(() => {
     document.documentElement.style.setProperty('--reader-size', `${readerSize}px`);
+    // 倍率：供容器查询之自动字号相乘（正文底字 17px 为一倍）
+    document.documentElement.style.setProperty(
+      '--reader-ratio',
+      String(readerSize / 17),
+    );
     localStorage.setItem(LS_SIZE, String(readerSize));
   }, [readerSize]);
 
@@ -47,13 +56,19 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // ── 视图 ────────────────────────────────────────────────────
-  const [view, setView] = useState<View>('library');
-  /** 侧栏所选之一级分类（固定分类或专辑）；中栏据此陈列篇目 */
-  const [activeSlug, setActiveSlug] = useState<string>('tripitaka');
+  // ── 路由 ────────────────────────────────────────────────────
+  const [history, setHistory] = useState<Route[]>([{ kind: 'home' }]);
+  const route = history[history.length - 1];
+  /** 正文页所自之集合（回溯一级目录之高亮与面包屑） */
+  const [lastCollection, setLastCollection] = useState<string | null>(null);
+  /** 展开侧栏专辑组之请求（自首页「专辑」入口触发） */
+  const [albumsPulse, setAlbumsPulse] = useState(0);
+  const expandAlbums = useCallback(() => setAlbumsPulse((n) => n + 1), []);
+
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [currentDoc, setCurrentDoc] = useState<Doc | null>(null);
   const [loadingDoc, setLoadingDoc] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
 
   // ── 检索 ────────────────────────────────────────────────────
   const [query, setQuery] = useState('');
@@ -66,6 +81,7 @@ export default function App() {
   const [local, setLocal] = useState<LocalState>({ shelf: {}, progress: {}, annotations: {} });
 
   const searchTimer = useRef<number | undefined>(undefined);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // ── 启动：装载语料与本地状态 ────────────────────────────────
   useEffect(() => {
@@ -98,6 +114,11 @@ export default function App() {
         setDocs(all);
         setLocal(state);
         setReady(true);
+        // 续读：上次所读之篇
+        const last = state.lastRead;
+        if (last && all.some((d) => d.id === last.id)) {
+          setHistory([{ kind: 'doc', id: last.id }]);
+        }
       } catch (err) {
         setLoadError(String(err));
         setReady(true);
@@ -105,19 +126,62 @@ export default function App() {
     })();
   }, []);
 
-  // ── 打开篇目 ────────────────────────────────────────────────
-  const openDoc = useCallback(async (id: string) => {
-    setLoadingDoc(true);
-    try {
-      const doc = await api.getDoc(id);
-      setCurrentId(id);
-      setCurrentDoc(doc);
-    } catch (err) {
-      console.error('打开篇目失败', err);
-    } finally {
-      setLoadingDoc(false);
+  // ── 导航 ────────────────────────────────────────────────────
+  const routeRef = useRef<Route>(route);
+  routeRef.current = route;
+
+  const go = useCallback((r: Route) => {
+    setHistory((prev) => {
+      const top = prev[prev.length - 1];
+      // 正文换篇：替换栈顶，不累叠
+      if (top.kind === 'doc' && r.kind === 'doc') return [...prev.slice(0, -1), r];
+      if (top.kind === r.kind && r.kind !== 'doc') return prev;
+      return [...prev, r];
+    });
+    const from = routeRef.current;
+    if (r.kind === 'collection') {
+      setLastCollection(r.slug);
+    } else if (r.kind === 'doc' && from.kind !== 'collection' && from.kind !== 'doc') {
+      // 自检索、书架等处入正文者，不隶属任何集合
+      setLastCollection(null);
     }
   }, []);
+
+  const back = useCallback(() => {
+    setHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+  }, []);
+
+  // ── 正文：随路由装载 ────────────────────────────────────────
+  useEffect(() => {
+    if (route.kind !== 'doc') {
+      setCurrentId(null);
+      setCurrentDoc(null);
+      setDocError(null);
+      return;
+    }
+    let cancelled = false;
+    setLoadingDoc(true);
+    setDocError(null);
+    api
+      .getDoc(route.id)
+      .then((doc) => {
+        if (cancelled) return;
+        setCurrentId(route.id);
+        setCurrentDoc(doc ?? null);
+        if (!doc) setDocError('本地语料中未见此篇，或其正文尚未载入。');
+      })
+      .catch((err) => {
+        if (!cancelled) setDocError(String(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingDoc(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [route]);
+
+  const openDoc = useCallback((id: string) => go({ kind: 'doc', id }), [go]);
 
   // ── 检索（防抖）────────────────────────────────────────────
   const runSearch = useCallback(async (q: string) => {
@@ -144,16 +208,16 @@ export default function App() {
       setQuery(q);
       window.clearTimeout(searchTimer.current);
       searchTimer.current = window.setTimeout(() => runSearch(q), 140);
+      // 输入即出结果：内容区切至检索
+      if (q.trim() && route.kind !== 'search') go({ kind: 'search' });
     },
-    [runSearch],
+    [runSearch, route.kind, go],
   );
 
-  // ⌘K / Ctrl+K 聚焦检索
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const focusSearch = useCallback(() => {
-    setView('search');
+    go({ kind: 'search' });
     setTimeout(() => searchInputRef.current?.focus(), 30);
-  }, []);
+  }, [go]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -186,12 +250,25 @@ export default function App() {
   }, []);
 
   const setProgress = useCallback(async (id: string, paragraph: number) => {
-    setLocal((prev) => ({ ...prev, progress: { ...prev.progress, [id]: paragraph } }));
+    setLocal((prev) => ({
+      ...prev,
+      progress: { ...prev.progress, [id]: paragraph },
+      lastRead: { id, at: Date.now() },
+    }));
     await api.setProgress(id, paragraph).catch(() => {});
   }, []);
 
   const addAnnotation = useCallback(
-    async (id: string, annotation: { paragraph: number; quote: string; note: string; color: string }) => {
+    async (
+      id: string,
+      annotation: {
+        paragraph: number;
+        quote: string;
+        note: string;
+        color: string;
+        underline?: boolean;
+      },
+    ) => {
       const next = await api.addAnnotation(id, { ...annotation, createdAt: Date.now() });
       setLocal(next);
     },
@@ -213,7 +290,7 @@ export default function App() {
     };
   }, [currentId, docs]);
 
-  // ── 当前篇目所属的专辑 ────────────────────────────────────
+  // ── 当前篇目所属之专辑 ────────────────────────────────────
   const docCollections = useMemo(() => {
     if (!currentId) return [];
     const upper = currentId.toUpperCase();
@@ -222,15 +299,34 @@ export default function App() {
     );
   }, [currentId]);
 
-  // ── 侧栏所选一级分类之篇目 ────────────────────────────────
-  const activeCollection = useMemo(
-    () => collections.find((c) => c.slug === activeSlug),
-    [activeSlug],
-  );
+  // ── 各集合之篇数 ────────────────────────────────────────────
+  const counts = useMemo(() => {
+    const map = new Map<string, number>();
+    const byCode = new Map(docs.map((d) => [d.id.toUpperCase(), d]));
+    for (const c of collections) {
+      if (c.kind === 'album') {
+        let n = 0;
+        for (const code of c.codes) if (byCode.has(code.toUpperCase())) n += 1;
+        map.set(c.slug, n);
+      } else if (c.slug === 'tripitaka') {
+        map.set(c.slug, docs.length);
+      } else if (c.slug === 'chan') {
+        map.set(c.slug, docs.filter((d) => d.division === '诸宗部').length);
+      } else {
+        map.set(
+          c.slug,
+          docs.filter((d) => d.canon.startsWith('YP') || d.canon.startsWith('TX')).length,
+        );
+      }
+    }
+    return map;
+  }, [docs]);
 
+  /** 集合之篇目（依集合定义取之） */
   const collectionDocs = useMemo(() => {
-    if (!activeCollection) return docs;
-    const col = activeCollection;
+    if (route.kind !== 'collection') return [];
+    const col = collectionBySlug(route.slug);
+    if (!col) return [];
     if (col.kind === 'album') {
       // 专辑以档号为准，且依专辑档中之序
       const byCode = new Map(docs.map((d) => [d.id.toUpperCase(), d]));
@@ -241,12 +337,35 @@ export default function App() {
     if (col.slug === 'tripitaka') return docs;
     if (col.slug === 'chan') return docs.filter((d) => d.division === '诸宗部');
     return docs.filter((d) => d.canon.startsWith('YP') || d.canon.startsWith('TX'));
-  }, [activeCollection, docs]);
+  }, [route, docs]);
+
+  const activeCollection = useMemo(() => {
+    const slug = route.kind === 'collection' ? route.slug : lastCollection;
+    return slug ? collectionBySlug(slug) : undefined;
+  }, [route, lastCollection]);
+
+  const shelfCount = Object.keys(local.shelf).length;
+  const notesCount = Object.values(local.annotations).reduce((n, l) => n + l.length, 0);
 
   if (!ready) {
     return (
       <div className="boot">
-        <div className="boot-mark">阅</div>
+        <div className="boot-mark" aria-hidden="true">
+          <svg viewBox="0 0 44 44" width="100%" height="100%">
+            <circle
+              className="enso-path"
+              cx="22"
+              cy="22"
+              r="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              pathLength="100"
+              strokeDasharray="100 0"
+            />
+          </svg>
+        </div>
         <div className="boot-text">正在装载语料…</div>
       </div>
     );
@@ -257,7 +376,18 @@ export default function App() {
     const notTauri = /invoke|__TAURI/i.test(loadError);
     return (
       <div className="boot">
-        <div className="boot-mark err">阅</div>
+        <div className="boot-mark err" aria-hidden="true">
+          <svg viewBox="0 0 44 44" width="100%" height="100%">
+            <circle
+              cx="22"
+              cy="22"
+              r="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.3"
+            />
+          </svg>
+        </div>
         <div className="boot-text">
           {notTauri ? '须在桌面端中运行' : '语料装载失败'}
         </div>
@@ -284,26 +414,42 @@ export default function App() {
         theme={theme}
         onToggleTheme={() => setTheme((t) => (t === 'ink' ? 'paper' : 'ink'))}
         corpus={corpus}
+        query={query}
+        onQueryChange={onQueryChange}
+        onFocusSearch={focusSearch}
+        onOpenShelf={() => go({ kind: 'shelf' })}
+        onOpenNotes={() => go({ kind: 'notes' })}
+        shelfCount={shelfCount}
+        notesCount={notesCount}
+        inputRef={searchInputRef}
       />
 
       <div className="app-body">
-        {/* 左：分类导航 */}
+        {/* 左：一级目录 */}
         <Sidebar
-          view={view}
-          onView={setView}
-          docs={docs}
-          onOpenDoc={openDoc}
-          shelfCount={Object.keys(local.shelf).length}
-          notesCount={Object.values(local.annotations).reduce((n, l) => n + l.length, 0)}
-          activeSlug={activeSlug}
-          onSelectCollection={setActiveSlug}
+          route={route}
+          onNavigate={go}
+          counts={counts}
+          activeSlug={route.kind === 'collection' ? route.slug : lastCollection}
+          albumsPulse={albumsPulse}
         />
 
-        {/* 中：内容区 */}
+        {/* 右：内容区 —— 可为首页、列表页、正文、检索、书架、批注、关于与捐助 */}
         <main className="app-main">
-          {view === 'library' && (
+          {route.kind === 'home' && (
+            <Home
+              corpus={corpus}
+              docs={docs}
+              counts={counts}
+              onNavigate={go}
+              onExpandAlbums={expandAlbums}
+            />
+          )}
+
+          {route.kind === 'collection' && (
             <DocList
               docs={collectionDocs}
+              collection={activeCollection}
               onOpenDoc={openDoc}
               title={activeCollection?.name ?? '大藏目录'}
               subtitle={`${collectionDocs.length.toLocaleString('en-US')} 篇 · ${
@@ -312,20 +458,43 @@ export default function App() {
             />
           )}
 
-          {view === 'search' && (
+          {route.kind === 'doc' && (
+            <Reader
+              doc={currentDoc}
+              loading={loadingDoc}
+              theme={theme}
+              readerSize={readerSize}
+              onReaderSize={setReaderSize}
+              prev={neighbors.prev}
+              next={neighbors.next}
+              onOpenDoc={openDoc}
+              onBack={back}
+              error={docError}
+              sourceLabel={activeCollection?.name}
+              onToggleShelf={toggleShelf}
+              inShelf={currentId ? Boolean(local.shelf[currentId]) : false}
+              collections={docCollections}
+              progress={currentId ? local.progress[currentId] : undefined}
+              onProgress={setProgress}
+              annotations={currentId ? local.annotations[currentId] ?? [] : []}
+              onAddAnnotation={addAnnotation}
+              onRemoveAnnotation={removeAnnotation}
+            />
+          )}
+
+          {route.kind === 'search' && (
             <SearchPanel
-              inputRef={searchInputRef}
               query={query}
-              onQueryChange={onQueryChange}
               hits={hits}
               total={searchTotal}
               elapsedMs={searchMs}
               searching={searching}
               onOpenDoc={openDoc}
+              onFocusSearch={focusSearch}
             />
           )}
 
-          {view === 'shelf' && (
+          {route.kind === 'shelf' && (
             <ShelfPanel
               docs={docs}
               local={local}
@@ -343,7 +512,7 @@ export default function App() {
             />
           )}
 
-          {view === 'notes' && (
+          {route.kind === 'notes' && (
             <NotesPanel
               docs={docs}
               local={local}
@@ -360,27 +529,10 @@ export default function App() {
               }}
             />
           )}
-        </main>
 
-        {/* 右：阅读区 */}
-        <Reader
-          doc={currentDoc}
-          loading={loadingDoc}
-          theme={theme}
-          readerSize={readerSize}
-          onReaderSize={setReaderSize}
-          prev={neighbors.prev}
-          next={neighbors.next}
-          onOpenDoc={openDoc}
-          onToggleShelf={toggleShelf}
-          inShelf={currentId ? Boolean(local.shelf[currentId]) : false}
-          collections={docCollections}
-          progress={currentId ? local.progress[currentId] : undefined}
-          onProgress={setProgress}
-          annotations={currentId ? local.annotations[currentId] ?? [] : []}
-          onAddAnnotation={addAnnotation}
-          onRemoveAnnotation={removeAnnotation}
-        />
+          {route.kind === 'about' && <About assetPrefix={corpus?.assetPrefix ?? ''} />}
+          {route.kind === 'donate' && <Donate />}
+        </main>
       </div>
 
       <StatusBar

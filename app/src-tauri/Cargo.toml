@@ -1,6 +1,6 @@
 [package]
 name = "yuezangjing-desktop"
-version = "1.0.0"
+version = "0.1.0"
 description = "阅藏经 · 桌面端"
 authors = ["阅藏经"]
 edition = "2021"
@@ -22,6 +22,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 memchr = "2"
 encoding_rs = "0.8"
+percent-encoding = "2"
 
 [profile.release]
 codegen-units = 1

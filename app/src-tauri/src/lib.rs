@@ -32,6 +32,18 @@ pub struct LocalState {
     /// 批注：篇目 id → 批注列表
     #[serde(default)]
     pub annotations: HashMap<String, Vec<Annotation>>,
+    /// 最后所读之篇（启动时续读）
+    #[serde(default)]
+    pub last_read: Option<LastRead>,
+}
+
+/// 最后所读之篇。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LastRead {
+    pub id: String,
+    /// 记录时间（毫秒时间戳）
+    pub at: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,6 +58,9 @@ pub struct Annotation {
     /// 颜色标记：jade / gold / violet / cinnabar
     #[serde(default = "default_color")]
     pub color: String,
+    /// 是否为划线（选中之文字加横线，而不仅是批注）
+    #[serde(default)]
+    pub underline: bool,
     /// 创建时间
     pub created_at: i64,
 }
@@ -90,6 +105,10 @@ pub struct CorpusInfo {
     pub total_chars: u64,
     pub total_juan: u64,
     pub version: u32,
+    /// 资源之绝对 URL 前缀（`asset://localhost/<绝对路径>/`）。
+    /// Tauri 之 `asset://` 协议以请求之 `uri.path()` 与 scope（绝对路径 glob）
+    /// 比对，故前端不能自造相对路径，须以此绝对前缀拼接。
+    pub asset_prefix: String,
 }
 
 /// 语料概况（启动时取一次）。
@@ -102,6 +121,7 @@ fn corpus_info(state: State<'_, AppState>) -> CorpusInfo {
         total_chars: m.total_chars,
         total_juan: m.total_juan,
         version: m.version,
+        asset_prefix: state.corpus.asset_prefix.clone(),
     }
 }
 
@@ -182,7 +202,12 @@ fn toggle_shelf(id: String, state: State<'_, AppState>) -> Result<LocalState, St
 fn set_progress(id: String, paragraph: u32, state: State<'_, AppState>) -> Result<(), String> {
     {
         let mut local = state.local.lock().unwrap();
-        local.progress.insert(id, paragraph);
+        local.progress.insert(id.clone(), paragraph);
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64)
+            .unwrap_or(0);
+        local.last_read = Some(LastRead { id, at: now });
     }
     state.save_local()
 }
@@ -342,7 +367,12 @@ fn export_annotations(
             out.push_str(&format!("*{}：{}*\n\n", meta.byline_label, meta.byline));
         }
         for ann in list {
-            out.push_str(&format!("> {}\n\n", ann.quote));
+            // 划线者以 <u> 记之（Markdown 通用下划线之记法）
+            if ann.underline {
+                out.push_str(&format!("> <u>{}</u>\n\n", ann.quote));
+            } else {
+                out.push_str(&format!("> {}\n\n", ann.quote));
+            }
             if !ann.note.is_empty() {
                 out.push_str(&format!("{}\n\n", ann.note));
             }

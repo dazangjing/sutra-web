@@ -5,28 +5,32 @@
    ══════════════════════════════════════════════════════════════ */
 
 :root {
-  --yzj-bg: #05070a;
-  --yzj-bg-soft: #080b10;
-  --yzj-panel: rgb(255 255 255 / 0.03);
-  --yzj-panel-2: rgb(255 255 255 / 0.06);
-  --yzj-ink: #e2e9e6;
-  --yzj-ink-2: #9dadaa;
-  --yzj-ink-3: #6d7c79;
-  --yzj-line: rgb(125 226 199 / 0.16);
-  --yzj-line-2: rgb(180 200 210 / 0.1);
+  --yzj-bg: #2b2f35;
+  --yzj-bg-soft: #24282d;
+  /* 内容栏目：较整体底色略浅 */
+  --yzj-surface: #333940;
+  --yzj-panel: rgb(255 255 255 / 0.05);
+  --yzj-panel-2: rgb(255 255 255 / 0.09);
+  --yzj-ink: #e6ece9;
+  --yzj-ink-2: #b3bfbc;
+  --yzj-ink-3: #96a3a0;
+  --yzj-line: rgb(125 226 199 / 0.2);
+  --yzj-line-2: rgb(190 210 220 / 0.14);
   --yzj-jade: #5fe3c0;
   --yzj-jade-2: #2fb392;
   --yzj-gold: #e3c069;
   --yzj-gold-2: #b9922f;
   --yzj-violet: #9b8cf5;
   --yzj-cinnabar: #e0644f;
-  --yzj-reader: #0e131a;
-  --yzj-titlebar: #080b10;
+  --yzj-reader: #333940;
+  --yzj-titlebar: #24282d;
 }
 
 [data-theme='paper'] {
   --yzj-bg: #ffffff;
   --yzj-bg-soft: #f7f9fb;
+  /* 内容栏目：较整体底色略浅 */
+  --yzj-surface: #ffffff;
   --yzj-panel: rgb(15 60 90 / 0.035);
   --yzj-panel-2: rgb(15 60 90 / 0.07);
   --yzj-ink: #16202b;
@@ -265,5 +269,39 @@ a {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ── 动效令牌与圆相 ─────────────────────────────────────────── */
+:root {
+  --yzj-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/**
+ * 圆相：一笔成环而留缺口（88 12 之 dasharray）。
+ * 描线自缺口渐次合拢，复归于未始 —— 恰如呼吸。
+ */
+.enso-path {
+  stroke-dasharray: 88 12;
+  animation: yz-enso 4.6s var(--yzj-ease) infinite;
+  transform-origin: center;
+}
+
+@keyframes yz-enso {
+  0% {
+    stroke-dashoffset: 88;
+    opacity: 0.25;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  92% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 88;
+    opacity: 0.25;
   }
 }

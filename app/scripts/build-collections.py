@@ -98,6 +98,15 @@ def parse_albums(path: Path) -> list[dict]:
     return albums
 
 
+def strip_md(text: str) -> str:
+    """去 Markdown 粗体标记，仅留文字。
+
+    `albums.ts` 之 desc 以 `**…**` 强调关键词（Web 站以 Markdown 渲染），
+    桌面端为纯文本，故去其记号而存其意。
+    """
+    return re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[2]
     albums = parse_albums(root / "src" / "data" / "albums.ts")
@@ -149,7 +158,7 @@ def main() -> int:
                 "en": album["en"],
                 "glyph": album["glyph"],
                 "accent": album["accent"],
-                "desc": album["desc"],
+                "desc": strip_md(album["desc"]),
                 # 专辑与固定分类同为一级
                 "kind": "album",
                 "codes": album.get("codes", []),

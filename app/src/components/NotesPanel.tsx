@@ -62,7 +62,10 @@ export default function NotesPanel({ docs, local, onOpenDoc, onRemove, onExport 
                 {g.list.map((a, i) => (
                   <div key={i} className="annotation-item">
                     <div className="annotation-quote">
-                      <div>「{a.quote}」</div>
+                      <div className={a.underline ? 'annotation-text is-underlined' : 'annotation-text'}>
+                        「{a.quote}」
+                      </div>
+                      {a.underline && <div className="annotation-tag">划线</div>}
                       {a.note && <div className="annotation-note">{a.note}</div>}
                       <div className="mono" style={{ marginTop: 5, fontSize: 10.5, opacity: 0.6 }}>
                         第 {a.paragraph + 1} 段

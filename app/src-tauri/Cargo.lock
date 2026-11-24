@@ -5012,10 +5012,11 @@ dependencies = [
 
 [[package]]
 name = "yuezangjing-desktop"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "encoding_rs",
  "memchr",
+ "percent-encoding",
  "serde",
  "serde_json",
  "tauri",

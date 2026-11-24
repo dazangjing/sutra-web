@@ -24,7 +24,7 @@ except ImportError:
 OUT = Path(__file__).resolve().parents[1] / "src-tauri" / "icons"
 
 # 墨夜底 + 翠绿描边，与站点墨夜主题同源
-BG = (5, 7, 10, 255)
+BG = (43, 47, 53, 255)
 JADE = (95, 227, 192, 255)
 JADE_DIM = (47, 179, 146, 255)
 
@@ -36,17 +36,20 @@ def draw_seal(size: int, supersample: int = 4) -> Image.Image:
 
     d = ImageDraw.Draw(img)
 
-    # 圆相：留一道缺口（enso 之意）
+    # 圆相：闭环 —— 一笔周而复始，唯留一线交叠处为接
     r = s * 0.38
     cx = cy = s / 2
     bbox = (cx - r, cy - r, cx + r, cy + r)
-    # 用一段圆弧模拟开口
-    d.arc(bbox, start=-72, end=252, fill=JADE, width=int(s * 0.022))
+    # 全环描线，两端稍重，以示首尾相衔（闭环之意）
+    width = max(1, int(s * 0.022))
+    d.ellipse(bbox, outline=JADE, width=width)
+    # 首尾交叠处：加一小段浓墨，使环之接痕可见
+    d.arc(bbox, start=-78, end=-58, fill=JADE, width=width + max(1, int(s * 0.006)))
 
-    # 内圈淡环
+    # 内圈淡环（亦闭环）
     r2 = s * 0.30
     bbox2 = (cx - r2, cy - r2, cx + r2, cy + r2)
-    d.arc(bbox2, start=-72, end=252, fill=JADE_DIM, width=int(s * 0.008))
+    d.ellipse(bbox2, outline=JADE_DIM, width=max(1, int(s * 0.007)))
 
     # 「阅」字：优先用系统宋体，取不到则以方框代替
     glyph = "阅"

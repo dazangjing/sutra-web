@@ -1,0 +1,92 @@
+name: Release 阅藏经桌面端
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  macos:
+    name: Build macOS installer
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Build corpus
+        run: npm run corpus
+        working-directory: app
+
+      - name: Build and release macOS installer
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: app
+          tagName: ${{ github.ref_name }}
+          releaseName: 阅藏经 ${{ github.ref_name }}
+          releaseBody: '阅藏经桌面端 ${{ github.ref_name }}。安装包内置全量语料，可离线阅读与检索。'
+          releaseDraft: false
+          prerelease: false
+          args: --bundles dmg
+
+  windows:
+    name: Build Windows installers
+    needs: macos
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Build corpus
+        run: python scripts/build-corpus.py
+        working-directory: app
+
+      - name: Build and release Windows installers
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: app
+          tagName: ${{ github.ref_name }}
+          releaseName: 阅藏经 ${{ github.ref_name }}
+          releaseBody: '阅藏经桌面端 ${{ github.ref_name }}。安装包内置全量语料，可离线阅读与检索。'
+          releaseDraft: false
+          prerelease: false
+          args: --bundles msi,nsis

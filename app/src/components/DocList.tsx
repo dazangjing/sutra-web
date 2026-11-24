@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Collection } from '../lib/collections';
 import type { DocMeta } from '../lib/types';
 import ImageMark from './ImageMark';
 
@@ -7,13 +8,17 @@ interface Props {
   onOpenDoc: (id: string) => void;
   title: string;
   subtitle: string;
+  /** 集合定义；含分部类者，按部类分组陈列 */
+  collection?: Collection | null;
 }
 
 const PAGE = 120;
+const GROUP_PAGE = 30;
 
-export default function DocList({ docs, onOpenDoc, title, subtitle }: Props) {
+export default function DocList({ docs, onOpenDoc, title, subtitle, collection }: Props) {
   const [shown, setShown] = useState(PAGE);
   const [filter, setFilter] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +39,50 @@ export default function DocList({ docs, onOpenDoc, title, subtitle }: Props) {
     );
   }, [docs, filter]);
 
+  /** 按集合之部类分组；无部类者返回 null（平铺陈列） */
+  const groups = useMemo(() => {
+    const sections = collection?.sections ?? [];
+    if (sections.length === 0) return null;
+    const byCode = new Map(filtered.map((d) => [d.id.toUpperCase(), d]));
+    const used = new Set<string>();
+    const list = sections
+      .map((s) => {
+        const items = s.codes
+          .map((code) => byCode.get(code.toUpperCase()))
+          .filter((d): d is DocMeta => Boolean(d));
+        items.forEach((d) => used.add(d.id));
+        return { key: s.title, title: s.title, items };
+      })
+      .filter((g) => g.items.length > 0);
+    const rest = filtered.filter((d) => !used.has(d.id));
+    if (rest.length > 0) list.push({ key: '__rest', title: '其他', items: rest });
+    return list;
+  }, [collection, filtered]);
+
   const visible = filtered.slice(0, shown);
+
+  const renderCard = (d: DocMeta, i: number) => (
+    <button
+      key={d.id}
+      type="button"
+      className="doc-card"
+      onClick={() => onOpenDoc(d.id)}
+    >
+      <span className="doc-card-no">{String(i + 1).padStart(3, '0')}</span>
+      <span className="doc-card-body">
+        <span className="doc-card-title">
+          <span className="doc-card-title-text">{d.title}</span>
+          {d.imageCount > 0 && <ImageMark count={d.imageCount} />}
+        </span>
+        <span className="doc-card-meta">
+          {d.byline && `${d.byline} · `}
+          {d.canon && `${d.canon} · `}
+          {d.division && `${d.division} · `}
+          {d.juanCount > 0 && `${d.juanCount} 卷`}
+        </span>
+      </span>
+    </button>
+  );
 
   return (
     <>
@@ -71,37 +119,45 @@ export default function DocList({ docs, onOpenDoc, title, subtitle }: Props) {
       </div>
 
       <div className="panel-scroll" ref={scrollRef}>
-        {visible.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="empty">
             <div className="empty-mark">空</div>
             <div>无匹配篇目</div>
           </div>
+        ) : groups ? (
+          <div className="doc-groups">
+            {groups.map((g) => {
+              const expanded = expandedGroups[g.key];
+              const items = expanded ? g.items : g.items.slice(0, GROUP_PAGE);
+              return (
+                <section key={g.key} className="doc-group">
+                  <h3 className="doc-group-title">
+                    <span className="doc-group-title-text">{g.title}</span>
+                    <span className="doc-group-count">{g.items.length}</span>
+                  </h3>
+                  <div className="doc-group-items doc-columns">{items.map((d, i) => renderCard(d, i))}</div>
+                  {!expanded && g.items.length > GROUP_PAGE && (
+                    <div className="doc-group-more">
+                      <button
+                        type="button"
+                        className="chip"
+                        onClick={() =>
+                          setExpandedGroups((prev) => ({ ...prev, [g.key]: true }))
+                        }
+                      >
+                        展开其余 {(g.items.length - GROUP_PAGE).toLocaleString('en-US')} 篇
+                      </button>
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
         ) : (
-          visible.map((d, i) => (
-            <button
-              key={d.id}
-              type="button"
-              className="doc-card"
-              onClick={() => onOpenDoc(d.id)}
-            >
-              <span className="doc-card-no">{String(i + 1).padStart(3, '0')}</span>
-              <span className="doc-card-body">
-                <span className="doc-card-title">
-                  <span className="doc-card-title-text">{d.title}</span>
-                  {d.imageCount > 0 && <ImageMark count={d.imageCount} />}
-                </span>
-                <span className="doc-card-meta">
-                  {d.byline && `${d.byline} · `}
-                  {d.canon && `${d.canon} · `}
-                  {d.division && `${d.division} · `}
-                  {d.juanCount > 0 && `${d.juanCount} 卷`}
-                </span>
-              </span>
-            </button>
-          ))
+          <div className="doc-columns">{visible.map((d, i) => renderCard(d, i))}</div>
         )}
 
-        {shown < filtered.length && (
+        {!groups && shown < filtered.length && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '18px 0 6px' }}>
             <button
               type="button"

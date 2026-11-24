@@ -51,41 +51,43 @@ export default function ShelfPanel({ docs, local, onOpenDoc, onRemove, onExport 
             </div>
           </div>
         ) : (
-          items.map(({ doc }) => (
-            <div key={doc.id} className="doc-card" style={{ cursor: 'default' }}>
-              <span className="doc-card-body">
+          <div className="doc-columns">
+            {items.map(({ doc }) => (
+              <div key={doc.id} className="doc-card" style={{ cursor: 'default' }}>
+                <span className="doc-card-body">
+                  <button
+                    type="button"
+                    className="doc-card-title"
+                    style={{ width: '100%', textAlign: 'left' }}
+                    onClick={() => onOpenDoc(doc.id)}
+                  >
+                    <span className="doc-card-title-text">{doc.title}</span>
+                    {doc.imageCount > 0 && <ImageMark count={doc.imageCount} />}
+                  </button>
+                  <span className="doc-card-meta">
+                    {doc.byline && `${doc.byline} · `}
+                    {doc.canon && `${doc.canon} · `}
+                    {doc.division && doc.division}
+                  </span>
+                  {local.progress[doc.id] !== undefined && (
+                    <span className="doc-card-tags">
+                      <span className="doc-tag">已读至第 {local.progress[doc.id] + 1} 段</span>
+                    </span>
+                  )}
+                </span>
                 <button
                   type="button"
-                  className="doc-card-title"
-                  style={{ width: '100%', textAlign: 'left' }}
-                  onClick={() => onOpenDoc(doc.id)}
+                  className="annotation-del"
+                  style={{ alignSelf: 'center' }}
+                  onClick={() => onRemove(doc.id)}
+                  title="移出书架"
+                  aria-label="移出书架"
                 >
-                  <span className="doc-card-title-text">{doc.title}</span>
-                  {doc.imageCount > 0 && <ImageMark count={doc.imageCount} />}
+                  ✕
                 </button>
-                <span className="doc-card-meta">
-                  {doc.byline && `${doc.byline} · `}
-                  {doc.canon && `${doc.canon} · `}
-                  {doc.division && doc.division}
-                </span>
-                {local.progress[doc.id] !== undefined && (
-                  <span className="doc-card-tags">
-                    <span className="doc-tag">已读至第 {local.progress[doc.id] + 1} 段</span>
-                  </span>
-                )}
-              </span>
-              <button
-                type="button"
-                className="annotation-del"
-                style={{ alignSelf: 'center' }}
-                onClick={() => onRemove(doc.id)}
-                title="移出书架"
-                aria-label="移出书架"
-              >
-                ✕
-              </button>
-            </div>
-          ))
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </>

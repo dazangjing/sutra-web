@@ -65,6 +65,8 @@ def main() -> int:
   // 先置同步桩：React StrictMode 于渲染期即调用 transformCallback，
   // 若等异步取数完成则 React 早已报错。
   let m = null, d = null;
+  // 本地状态（书架 / 进度 / 批注）—— 供走查划线与批注
+  const local = { shelf: {}, progress: {}, annotations: {} };
   const ready = Promise.all([
     fetch('/preview/manifest.json').then(r => r.json()),
     fetch('/preview/docs.json').then(r => r.json()),
@@ -89,7 +91,9 @@ def main() -> int:
     switch (cmd) {
       case 'corpus_info':
         return { docCount: m.docCount, assetCount: m.assetCount,
-                 totalChars: m.totalChars, totalJuan: m.totalJuan, version: m.version };
+                 totalChars: m.totalChars, totalJuan: m.totalJuan, version: m.version,
+                 // 预览时无 Tauri 之 asset:// 协议，故留空（前端退回同源路径）
+                 assetPrefix: '' };
       case 'all_docs':
         return m.docs;
       case 'get_doc':
@@ -100,7 +104,27 @@ def main() -> int:
         return { hits, total: hits.length, elapsedMs: 0 };
       }
       case 'get_local':
-        return { shelf: {}, progress: {}, annotations: {} };
+        return local;
+      case 'set_local':
+        Object.assign(local, args.local);
+        return undefined;
+      case 'toggle_shelf':
+        if (local.shelf[args.id]) delete local.shelf[args.id];
+        else local.shelf[args.id] = Date.now();
+        return local;
+      case 'set_progress':
+        local.progress[args.id] = args.paragraph;
+        return undefined;
+      case 'add_annotation': {
+        const list = local.annotations[args.id] || (local.annotations[args.id] = []);
+        list.push({ ...args.annotation, createdAt: Date.now() });
+        return local;
+      }
+      case 'remove_annotation': {
+        const list = local.annotations[args.id] || [];
+        list.splice(args.index, 1);
+        return local;
+      }
       default:
         throw new Error('未实现：' + cmd);
     }

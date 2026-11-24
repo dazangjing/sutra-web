@@ -5,13 +5,13 @@
    墨夜 (ink) ↔ 素白 (paper)，由 <html data-theme> 切换
    ══════════════════════════════════════════════════════════════ */
 :root {
-  --yzj-bg: #05070a;
+  --yzj-bg: #2b2f35;
   --yzj-bg-soft: #080b10;
   --yzj-panel: rgb(255 255 255 / 0.03);
   --yzj-panel-2: rgb(255 255 255 / 0.06);
   --yzj-ink: #e2e9e6;
   --yzj-ink-2: #9dadaa;
-  --yzj-ink-3: #6d7c79;
+  --yzj-ink-3: #96a3a0;
   --yzj-line: rgb(125 226 199 / 0.16);
   --yzj-line-2: rgb(180 200 210 / 0.1);
   --yzj-jade: #5fe3c0;

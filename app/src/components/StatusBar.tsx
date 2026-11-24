@@ -19,7 +19,7 @@ export default function StatusBar({ docCount, corpus, currentDoc, progress }: Pr
             卷数 <b>{corpus.totalJuan.toLocaleString('en-US')}</b>
           </span>
           <span>
-            正文 <b>{(corpus.totalChars / 10000).toFixed(1)}</b> 万字
+            <b>{(corpus.totalChars / 10000).toFixed(1)}</b> 万字
           </span>
         </>
       )}

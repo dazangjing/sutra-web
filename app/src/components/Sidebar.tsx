@@ -1,175 +1,192 @@
-import { useMemo } from 'react';
-import { ACCENT_VAR, albums, collections, fixedCategories } from '../lib/collections';
-import type { DocMeta, View } from '../lib/types';
+import { useEffect, useMemo, useState } from 'react';
+import { ACCENT_VAR } from '../lib/collections';
+import { buildNav } from '../lib/nav';
+import type { Route } from '../lib/types';
 
 interface Props {
-  view: View;
-  onView: (v: View) => void;
-  docs: DocMeta[];
-  onOpenDoc: (id: string) => void;
-  shelfCount: number;
-  notesCount: number;
-  /** 侧栏所选之一级分类（固定分类或专辑） */
-  activeSlug: string;
-  /** 择定一级分类：即以之为中栏之篇目来源 */
-  onSelectCollection: (slug: string) => void;
+  route: Route;
+  onNavigate: (r: Route) => void;
+  /** 各集合之篇数（slug → 篇数） */
+  counts: Map<string, number>;
+  /** 正文页所承之集合（回溯其一级目录之高亮） */
+  activeSlug: string | null;
+  /** 展开专辑组之请求（自首页「专辑」入口触发；递增值即一次请求） */
+  albumsPulse?: number;
 }
 
-const TABS: { key: View; label: string; glyph: string }[] = [
-  { key: 'library', label: '目录', glyph: '藏' },
-  { key: 'shelf', label: '书架', glyph: '架' },
-  { key: 'search', label: '检索', glyph: '寻' },
-  { key: 'notes', label: '批注', glyph: '注' },
-];
-
+/**
+ * 左侧一级目录
+ *
+ * 八项：首页、大藏经、入门、禅宗、专辑、近代著作、关于、捐助。
+ * 「专辑」可展开为二级；其余直达内容区。
+ *
+ * 可折叠：收起时仅余一窄条（字形与图标），鼠标移入即展开 ——
+ * 如抽屉然，暂收而不失其用。
+ */
 export default function Sidebar({
-  view,
-  onView,
-  docs,
-  onOpenDoc,
-  shelfCount,
-  notesCount,
+  route,
+  onNavigate,
+  counts,
   activeSlug,
-  onSelectCollection,
+  albumsPulse = 0,
 }: Props) {
+  const nav = useMemo(() => buildNav(), []);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  /** 侧栏收起与否：收起时仅余字形（图标）一窄条 */
+  const [collapsed, setCollapsed] = useState(false);
 
-  const counts = useMemo(() => {
-    const map = new Map<string, number>();
-    const byCode = new Map<string, string>();
-    for (const d of docs) byCode.set(d.id.toUpperCase(), d.id);
+  // 当前路由落在某组之内时，展开该组
+  useEffect(() => {
+    if (route.kind !== 'collection') return;
+    const group = nav.find((n) => n.kind === 'group' && n.children.some((c) => c.route.kind === 'collection' && c.route.slug === route.slug));
+    if (group && group.kind === 'group') {
+      setExpanded((prev) => (prev[group.key] === false ? prev : { ...prev, [group.key]: true }));
+    }
+  }, [route, nav]);
 
-    for (const c of collections) {
-      if (c.kind === 'album') {
-        let n = 0;
-        for (const code of c.codes) if (byCode.has(code.toUpperCase())) n += 1;
-        map.set(c.slug, n);
-      } else if (c.slug === 'tripitaka') {
-        map.set(c.slug, docs.length);
-      } else if (c.slug === 'chan') {
-        map.set(c.slug, docs.filter((d) => d.division === '诸宗部').length);
-      } else {
-        map.set(
-          c.slug,
-          docs.filter((d) => d.canon.startsWith('YP') || d.canon.startsWith('TX')).length,
-        );
+  // 首页「专辑」入口：展开专辑组
+  useEffect(() => {
+    if (albumsPulse > 0) setExpanded((prev) => ({ ...prev, albums: true }));
+  }, [albumsPulse]);
+
+  // ⌘B 折叠 / 展开侧栏
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setCollapsed((c) => !c);
       }
-    }
-    return map;
-  }, [docs]);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
-  const list = useMemo(() => {
-    const c = collections.find((x) => x.slug === activeSlug);
-    if (!c) return [];
-    const byCode = new Map(docs.map((d) => [d.id.toUpperCase(), d]));
-    if (c.kind === 'album') {
-      return c.codes
-        .map((code) => byCode.get(code.toUpperCase()))
-        .filter((d): d is DocMeta => Boolean(d));
-    }
-    if (c.slug === 'tripitaka') return docs;
-    if (c.slug === 'chan') return docs.filter((d) => d.division === '诸宗部');
-    return docs.filter((d) => d.canon.startsWith('YP') || d.canon.startsWith('TX'));
-  }, [activeSlug, docs]);
+  const isActive = (kind: Route['kind'], slug?: string) => {
+    if (route.kind === 'collection') return kind === 'collection' && route.slug === slug;
+    if (route.kind === 'doc') return kind === 'collection' && slug === activeSlug;
+    return route.kind === kind;
+  };
 
   return (
-    <aside className="sidebar">
-      <nav className="sidebar-nav">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            className={`sidebar-tab${view === t.key ? ' is-active' : ''}`}
-            onClick={() => onView(t.key)}
-          >
-            <span className="serif" style={{ fontSize: 15 }}>
-              {t.glyph}
-            </span>
-            <span>{t.label}</span>
-            {t.key === 'shelf' && shelfCount > 0 && (
-              <span className="sidebar-tab-count">{shelfCount}</span>
-            )}
-            {t.key === 'notes' && notesCount > 0 && (
-              <span className="sidebar-tab-count">{notesCount}</span>
-            )}
-          </button>
-        ))}
-      </nav>
+    <aside className={`sidebar${collapsed ? ' is-collapsed' : ''}`}>
+      <div className="sidebar-head">
+        <button
+          type="button"
+          className="sidebar-toggle"
+          onClick={() => setCollapsed((c) => !c)}
+          title={collapsed ? '展开侧边栏（⌘B）' : '收起侧边栏（⌘B）'}
+          aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? (
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path
+                d="M6 3.5 10.5 8 6 12.5M2.5 3v10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path
+                d="M10 3.5 5.5 8 10 12.5M13.5 3v10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </button>
+      </div>
 
       <div className="sidebar-scroll">
-        {/*
-          一级分类：三大固定分类与专辑并列。
-          两者同为一级，故同列于此，仅以分组小标题分之。
-        */}
-        <div className="sidebar-group">
-          <div className="sidebar-group-title">固定分类</div>
-          {fixedCategories.map((c) => (
-            <button
-              key={c.slug}
-              type="button"
-              className={`sidebar-item${activeSlug === c.slug ? ' is-active' : ''}`}
-              onClick={() => {
-                onSelectCollection(c.slug);
-                onView('library');
-              }}
-              style={{ color: activeSlug === c.slug ? ACCENT_VAR[c.accent] : undefined }}
-            >
-              <span className="sidebar-glyph">{c.glyph}</span>
-              <span className="sidebar-label">{c.name}</span>
-              <span className="sidebar-count">
-                {(counts.get(c.slug) ?? 0).toLocaleString('en-US')}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className="sidebar-group">
-          <div className="sidebar-group-title">专辑 · 一级</div>
-          {albums.map((c) => (
-            <button
-              key={c.slug}
-              type="button"
-              className={`sidebar-item${activeSlug === c.slug ? ' is-active' : ''}`}
-              onClick={() => {
-                onSelectCollection(c.slug);
-                onView('library');
-              }}
-              style={{ color: activeSlug === c.slug ? ACCENT_VAR[c.accent] : undefined }}
-            >
-              <span className="sidebar-glyph">{c.glyph}</span>
-              <span className="sidebar-label">{c.name}</span>
-              <span className="sidebar-count">
-                {(counts.get(c.slug) ?? 0).toLocaleString('en-US')}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* 当前集合的篇目预览：点选即读 */}
-        {list.length > 0 && (
-          <div className="sidebar-group">
-            <div className="sidebar-group-title">篇目</div>
-            {list.slice(0, 80).map((d) => (
+        <nav className="nav-list">
+          {nav.map((item) =>
+            item.kind === 'leaf' ? (
               <button
-                key={d.id}
+                key={item.key}
                 type="button"
-                className="sidebar-item"
-                onClick={() => onOpenDoc(d.id)}
-                title={d.title}
-                style={{ fontSize: 12 }}
+                className={`nav-item${
+                  isActive(item.route.kind, item.route.kind === 'collection' ? item.route.slug : undefined)
+                    ? ' is-active'
+                    : ''
+                }`}
+                onClick={() => onNavigate(item.route)}
+                title={item.label}
+                style={
+                  item.accent && isActive(item.route.kind, item.route.kind === 'collection' ? item.route.slug : undefined)
+                    ? { color: ACCENT_VAR[item.accent] }
+                    : undefined
+                }
               >
-                <span className="sidebar-label" style={{ paddingLeft: 4 }}>
-                  {d.title}
-                </span>
+                <span className="sidebar-glyph">{item.glyph}</span>
+                <span className="sidebar-label">{item.label}</span>
+                {item.route.kind === 'collection' && (
+                  <span className="sidebar-count">
+                    {(counts.get(item.route.slug) ?? 0).toLocaleString('en-US')}
+                  </span>
+                )}
               </button>
-            ))}
-            {list.length > 80 && (
-              <div style={{ padding: '4px 8px', fontSize: 11, color: 'var(--yzj-ink-3)' }}>
-                尚余 {(list.length - 80).toLocaleString('en-US')} 篇，于中栏查看
+            ) : (
+              <div key={item.key} className="nav-group">
+                <button
+                  type="button"
+                  className={`nav-item nav-group-toggle${
+                    expanded[item.key] ? ' is-expanded' : ''
+                  }`}
+                  onClick={() =>
+                    setExpanded((prev) => ({ ...prev, [item.key]: !prev[item.key] }))
+                  }
+                  aria-expanded={expanded[item.key]}
+                  title={item.label}
+                >
+                  <span className="sidebar-glyph">{item.glyph}</span>
+                  <span className="sidebar-label">{item.label}</span>
+                  <span className="nav-group-caret" aria-hidden="true">
+                    {expanded[item.key] ? '▾' : '▸'}
+                  </span>
+                </button>
+
+                {expanded[item.key] && (
+                  <div className="nav-children">
+                    {item.children.map((child) => {
+                      const slug = child.route.kind === 'collection' ? child.route.slug : '';
+                      const active = isActive('collection', slug);
+                      return (
+                        <button
+                          key={child.key}
+                          type="button"
+                          className={`nav-item nav-item-child${active ? ' is-active' : ''}`}
+                          onClick={() => onNavigate(child.route)}
+                          title={child.label}
+                          style={active && child.accent ? { color: ACCENT_VAR[child.accent] } : undefined}
+                        >
+                          <span className="sidebar-glyph">{child.glyph}</span>
+                          <span className="sidebar-label">{child.label}</span>
+                          <span className="sidebar-count">
+                            {(counts.get(slug) ?? 0).toLocaleString('en-US')}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            ),
+          )}
+        </nav>
+
+        <div className="sidebar-foot-note">
+          <span className="serif">阅</span>
+          <span className="sidebar-foot-text">遍阅大藏 · 云水禅心</span>
+        </div>
       </div>
+
     </aside>
   );
 }
