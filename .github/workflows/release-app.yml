@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to add Windows installers to
+        required: true
+        default: v0.1
+        type: string
 
 permissions:
   contents: write
@@ -14,6 +21,7 @@ concurrency:
 
 jobs:
   macos:
+    if: github.event_name == 'push'
     name: Build macOS installer
     runs-on: macos-latest
     steps:
@@ -50,6 +58,7 @@ jobs:
           args: --bundles dmg
 
   windows:
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.macos.result == 'success') }}
     name: Build Windows installers
     needs: macos
     runs-on: windows-latest
@@ -84,9 +93,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: app
-          tagName: ${{ github.ref_name }}
-          releaseName: 阅藏经 ${{ github.ref_name }}
-          releaseBody: '阅藏经桌面端 ${{ github.ref_name }}。安装包内置全量语料，可离线阅读与检索。'
+          tagName: ${{ inputs.release_tag || github.ref_name }}
+          releaseName: 阅藏经 ${{ inputs.release_tag || github.ref_name }}
+          releaseBody: '阅藏经桌面端 ${{ inputs.release_tag || github.ref_name }}。安装包内置全量语料，可离线阅读与检索。'
           releaseDraft: false
           prerelease: false
           args: --bundles msi,nsis

@@ -236,6 +236,8 @@ macOS 上可打出 macOS 包；Windows 包（`.msi` / `.nsis`）须在 Windows �
 （例如 `v0.1`）后，工作流会构建 macOS `.dmg` 与 Windows `.msi` / `.exe`，
 并将安装包附于同名 GitHub Release。Tauri 与 Cargo 的应用版本用语义版本号
 （本次为 `0.1.0`），发布标签依用户所用的 `v0.1`。
+若 macOS runner 暂不可用，可在 GitHub Actions 手动运行此工作流并指定既有标签；
+手动运行会略过 macOS job，仅为该 Release 补建 Windows 安装包。
 
 ### 验证
 
