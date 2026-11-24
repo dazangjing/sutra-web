@@ -11,6 +11,11 @@ on:
         required: true
         default: v0.1
         type: string
+      build_macos:
+        description: Build macOS too (disable only when retrying Windows after macOS succeeded)
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -21,6 +26,7 @@ concurrency:
 
 jobs:
   macos:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_macos }}
     name: Build macOS installer
     runs-on: macos-15-intel
     steps:
@@ -57,7 +63,7 @@ jobs:
           args: --bundles dmg
 
   windows:
-    if: ${{ always() && needs.macos.result == 'success' }}
+    if: ${{ always() && (needs.macos.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.build_macos == false && needs.macos.result == 'skipped')) }}
     name: Build Windows installers
     needs: macos
     runs-on: windows-latest

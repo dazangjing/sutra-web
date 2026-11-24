@@ -49,6 +49,11 @@
     "copyright": "© 2026 阅藏经",
     "category": "Education",
     "shortDescription": "阅藏经 · 大藏经桌面阅读器",
-    "longDescription": "阅藏经桌面端：内置 CBETA 大藏经全量语料（3,684 篇、4,959 幅图，含正文插图与生僻字字形图），离线全文检索、书架与阅读进度、批注摘录、一键导出。"
+    "longDescription": "阅藏经桌面端：内置 CBETA 大藏经全量语料（3,684 篇、4,959 幅图，含正文插图与生僻字字形图），离线全文检索、书架与阅读进度、批注摘录、一键导出。",
+    "windows": {
+      "wix": {
+        "language": "zh-CN"
+      }
+    }
   }
 }

@@ -237,7 +237,8 @@ macOS 上可打出 macOS 包；Windows 包（`.msi` / `.nsis`）须在 Windows �
 并将安装包附于同名 GitHub Release。Tauri 与 Cargo 的应用版本用语义版本号
 （本次为 `0.1.0`），发布标签依用户所用的 `v0.1`。
 可在 GitHub Actions 手动运行此工作流并指定既有标签，以重新构建 macOS 与 Windows
-安装包；macOS 完成后才构建 Windows，并上传至同一 Release。
+安装包；默认两平台皆构建，macOS 完成后才构建 Windows。若 macOS 已成功而仅 Windows
+失败，可将 `build_macos` 设为 `false`，只重试 Windows，避免重复上传 macOS 安装包。
 
 ### 验证
 
