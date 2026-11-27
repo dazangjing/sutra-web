@@ -1,0 +1,8 @@
+{
+  "src": "/Users/jk/workspace/codebase/xml-p5",
+  "dst": "/Users/jk/workspace/codebase/sutra_json",
+  "lib_root": "/Users/jk/workspace/codebase/yuezangjing/sutra_md_zh",
+  "md_root": "/Users/jk/workspace/codebase/yuezangjing/sutra_md_zh",
+  "subject_root": "/Users/jk/workspace/codebase/yuezangjing/sutra_subject",
+  "assets_root": "/Users/jk/workspace/codebase/yuezangjing/sutra_assets"
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "description": "分类表：大藏经二十六部（部别轴 D01–D26）＋撰述四组（撰述轴 A01–A04）。分类规则表见 sutra/rules.py，本表提供部别与撰述之名称、序号与目录名。",
+  "axes": {
+    "division": "部别轴：依经典之内涵归入大藏经二十六部，序号 1–26。",
+    "authorship": "撰述轴：依著者/译者之来源与时代归组，序号 27–30。"
+  },
+  "divisions": [
+    {"code": "D01", "index": 1, "name": "阿含部", "desc": "四阿含及阿含类经"},
+    {"code": "D02", "index": 2, "name": "本缘部", "desc": "本生、缘起、因缘故事类"},
+    {"code": "D03", "index": 3, "name": "般若部", "desc": "般若类，含圆觉类"},
+    {"code": "D04", "index": 4, "name": "法华部", "desc": "法华类"},
+    {"code": "D05", "index": 5, "name": "华严部", "desc": "华严类"},
+    {"code": "D06", "index": 6, "name": "宝积部", "desc": "宝积类"},
+    {"code": "D07", "index": 7, "name": "涅盘部", "desc": "涅槃类（含大般涅槃）"},
+    {"code": "D08", "index": 8, "name": "大集部", "desc": "大集类"},
+    {"code": "D09", "index": 9, "name": "经集部", "desc": "单译小经、南传经书"},
+    {"code": "D10", "index": 10, "name": "密教部", "desc": "密教仪轨、陀罗尼、课法"},
+    {"code": "D11", "index": 11, "name": "律部", "desc": "律藏、羯磨、戒本"},
+    {"code": "D12", "index": 12, "name": "释经论部", "desc": "释经类论书"},
+    {"code": "D13", "index": 13, "name": "毗昙部", "desc": "毗昙论书、南传论藏"},
+    {"code": "D14", "index": 14, "name": "中观部", "desc": "中观、般若空慧类"},
+    {"code": "D15", "index": 15, "name": "瑜伽部", "desc": "唯识、瑜伽系论书"},
+    {"code": "D16", "index": 16, "name": "论集部", "desc": "论书、颂偈类"},
+    {"code": "D17", "index": 17, "name": "经疏部", "desc": "经疏、讲经抄记、忏法经解"},
+    {"code": "D18", "index": 18, "name": "律疏部", "desc": "律疏、钞、记"},
+    {"code": "D19", "index": 19, "name": "论疏部", "desc": "论疏、记解"},
+    {"code": "D20", "index": 20, "name": "诸宗部", "desc": "宗派著述、颂文、敦煌杂著"},
+    {"code": "D21", "index": 21, "name": "史传部", "desc": "传记、年谱、寺志、史料笔记"},
+    {"code": "D22", "index": 22, "name": "事汇部", "desc": "法数、事汇类聚"},
+    {"code": "D23", "index": 23, "name": "外教部", "desc": "外道典籍、外教劝善书"},
+    {"code": "D24", "index": 24, "name": "目录部", "desc": "经录、目录、编纂说明"},
+    {"code": "D25", "index": 25, "name": "古逸部", "desc": "古逸、疑伪未辨之经"},
+    {"code": "D26", "index": 26, "name": "疑似部", "desc": "疑似伪经"}
+  ],
+  "authorship": [
+    {"code": "A01", "index": 27, "name": "印度撰述", "desc": "原典出自印度西域者，含译经"},
+    {"code": "A02", "index": 28, "name": "中国撰述", "desc": "汉地撰述、编纂、注疏"},
+    {"code": "A03", "index": 29, "name": "其他撰述", "desc": "藏·日·韩·越等域外撰述"},
+    {"code": "A04", "index": 30, "name": "现代撰述", "desc": "近现代著作（含古经之近现代点校／整理本）"}
+  ]
+}

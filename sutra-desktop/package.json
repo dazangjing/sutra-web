@@ -1,0 +1,39 @@
+{
+  "name": "sutra-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "阅藏经 · 桌面端（macOS / Windows）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "tauri": "tauri",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build",
+    "corpus": "python3 scripts/build-corpus.py",
+    "corpus:gaiji": "python3 scripts/build-gaiji.py",
+    "icons": "python3 ../packages/sutra-shared/scripts/make-icons.py"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "@tauri-apps/plugin-fs": "^2.4.4",
+    "@tauri-apps/plugin-opener": "^2.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sutra-shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.9.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

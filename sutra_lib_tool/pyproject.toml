@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sutra-lib-tool"
+version = "1.0.0"
+description = "CBETA TEI P5 XML → 统一 JSON 转换工具链"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["cbeta", "tei", "tripiṭaka", "json-schema", "xml"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Text Processing :: Markup :: XML",
+]
+dependencies = [
+    "lxml>=4.6",
+    "jsonschema>=4.0",
+]
+
+[project.scripts]
+sutra-tool = "main:main"
+
+[tool.setuptools]
+packages = ["sutra", "sutra.lib", "sutra.md", "sutra.lineage", "sutra.lineage.data"]
+py-modules = ["main"]
+
+[tool.setuptools.package-data]
+sutra = ["schema/*.json", "docs/*.md", "data/*.json"]
+"sutra.lineage.data" = ["*.json", "*.py"]

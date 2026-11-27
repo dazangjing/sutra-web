@@ -1,0 +1,23 @@
+// Maven 仓库之镜像设置
+//
+// 本机网络可能屏蔽 Maven Central（返回 403），故于各工程之 `build.gradle`
+// 中引入本脚本，令镜像可由属性 `mavenMirror` 切换：
+//
+//   ./gradlew assembleRelease -PmavenMirror=https://maven.aliyun.com/repository/public
+//
+// 或于 `~/.gradle/gradle.properties` 中设 `mavenMirror=...` 以长期生效。
+//
+// 未设该属性时，仍用官方源（google() + mavenCentral()）。
+//
+// **此文件为共享层**，各工程皆引用之 —— 免得逐处修改
+// （且 Capacitor 生成的 build.gradle 会被 `cap sync` 覆盖）。
+
+def mirrorUrl = project.findProperty('mavenMirror')
+
+ext.applyMavenMirror = { handler ->
+    handler.google()
+    if (mirrorUrl) {
+        handler.maven { url mirrorUrl }
+    }
+    handler.mavenCentral()
+}

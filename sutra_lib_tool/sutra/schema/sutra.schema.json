@@ -1,0 +1,1211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cbeta.org/schema/sutra/1.0/sutra.schema.json",
+  "title": "CBETA 佛经统一 JSON Schema",
+  "description": "CBETA TEI P5 佛经 XML 的统一 JSON 表达格式。本 Schema 约束所有由 xml-p5 转换而来的佛经 JSON 档案。每个 JSON 档案对应一部经典（一个 TEI <text>），包含大藏经与卷册资讯、经典书目、TEI 档头、经文内容树、注释索引、纯文字全文与统计。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "canon",
+    "volume",
+    "work",
+    "header",
+    "body",
+    "back",
+    "text",
+    "stats"
+  ],
+  "properties": {
+    "schema_version": {
+      "description": "本 JSON 格式的版本号（语意化版本）。",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "id": {
+      "description": "经典唯一识别码，等同 TEI 根元素的 xml:id（亦即来源档名去掉副档名）。",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9]+$"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "canon": {
+      "$ref": "#/$defs/canon"
+    },
+    "volume": {
+      "$ref": "#/$defs/volume"
+    },
+    "text_element": {
+      "description": "TEI <text> 元素自身的识别与属性（例如 cb:behaviour）。",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "attrs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "work": {
+      "$ref": "#/$defs/work"
+    },
+    "header": {
+      "$ref": "#/$defs/header"
+    },
+    "body": {
+      "$ref": "#/$defs/section"
+    },
+    "back": {
+      "$ref": "#/$defs/section"
+    },
+    "notes": {
+      "description": "全文所有 <note> 注释的扁平索引（含巢状于其他注释之内者），仅供检索；完整结构仍保留在 body/back 的节点树中。",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/note_index_entry"
+      }
+    },
+    "text": {
+      "description": "经文全文纯文字（不含注释内容与异文异读，<lb>/<pb> 以换行表示）。",
+      "type": "string"
+    },
+    "stats": {
+      "$ref": "#/$defs/stats"
+    }
+  },
+  "$defs": {
+    "source": {
+      "description": "来源档案资讯。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xml_path",
+        "xml_bytes"
+      ],
+      "properties": {
+        "xml_path": {
+          "description": "来源 XML 档案路径（相对于 xml-p5 根目录）。",
+          "type": "string"
+        },
+        "xml_bytes": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "xml_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "converter": {
+          "type": "string"
+        },
+        "xml_declaration": {
+          "description": "XML 宣告（<?xml … ?>）的内容。",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "version": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "encoding": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "standalone": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        },
+        "xml_pis": {
+          "description": "根元素之前／之后的处理指示（PI），例如指向 CBETA TEI RelaxNG 的 xml-model。",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "target",
+              "text"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "canon": {
+      "description": "大藏经（藏经类别）资讯。directory 为该大藏经的输出目录。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "name",
+        "name_short",
+        "name_en",
+        "abbreviation",
+        "volumes",
+        "directory"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]+$"
+        },
+        "name": {
+          "description": "大藏经中文全名。",
+          "type": "string"
+        },
+        "name_short": {
+          "description": "大藏经中文简称。",
+          "type": "string"
+        },
+        "name_en": {
+          "description": "大藏经英文名。",
+          "type": "string"
+        },
+        "abbreviation": {
+          "type": "string"
+        },
+        "volumes": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "directory": {
+          "description": "输出目录名，格式为 {大藏经代码}-{大藏经名称}（例如 A-趙城金藏）。同一大藏经的所有卷册经文与 index.json 都位于此目录。",
+          "type": "string"
+        }
+      }
+    },
+    "volume": {
+      "description": "卷册（册次）资讯。本语料中同一大藏经的所有卷册经文都存放在同一个大藏经目录下，故卷册本身没有独立目录。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "number",
+        "canon_code"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]+[0-9]+$"
+        },
+        "number": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "canon_code": {
+          "type": "string",
+          "pattern": "^[A-Z]+$"
+        }
+      }
+    },
+    "work": {
+      "description": "经典书目资讯。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "number",
+        "number_display",
+        "title",
+        "titles",
+        "authors",
+        "extent",
+        "juan_count",
+        "languages"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "number": {
+          "description": "藏经编号（TEI <idno type=\"no\"> 之值）。",
+          "type": "string"
+        },
+        "number_display": {
+          "description": "藏经编号之惯用显示格式，例如 T0001、A1057。",
+          "type": "string"
+        },
+        "title": {
+          "description": "正题名（优先取中文 level=m 标题）。",
+          "type": "string"
+        },
+        "titles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/title_entry"
+          }
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "byline": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "extent": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "juan_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "language_details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language_entry"
+          }
+        },
+        "source_bibl": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "responsibility": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resp",
+              "name"
+            ],
+            "properties": {
+              "resp": {
+                "$ref": "#/$defs/nullable_string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "juan_index": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/juan_entry"
+          }
+        }
+      }
+    },
+    "header": {
+      "description": "TEI <teiHeader> 的结构化内容。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publication",
+        "encoding",
+        "responsibility",
+        "characters",
+        "revision",
+        "tree"
+      ],
+      "properties": {
+        "publication": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "idno"
+          ],
+          "properties": {
+            "edition": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "extent": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "publisher": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "email": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "address": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "availability": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "date": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "idno": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "canon",
+                "vol",
+                "no"
+              ],
+              "properties": {
+                "canon": {
+                  "$ref": "#/$defs/nullable_string"
+                },
+                "vol": {
+                  "$ref": "#/$defs/nullable_string"
+                },
+                "no": {
+                  "$ref": "#/$defs/nullable_string"
+                }
+              }
+            },
+            "source_bibl": {
+              "$ref": "#/$defs/nullable_string"
+            },
+            "manuscript": {
+              "type": [
+                "object",
+                "null"
+              ]
+            }
+          }
+        },
+        "encoding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "project_desc",
+            "punctuation",
+            "editorial_decl",
+            "tag_usage"
+          ],
+          "properties": {
+            "project_desc": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/text_entry"
+              }
+            },
+            "punctuation": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "resp": {
+                    "$ref": "#/$defs/nullable_string"
+                  }
+                }
+              }
+            },
+            "editorial_decl": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/text_entry"
+              }
+            },
+            "tag_usage": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "gi",
+                  "witnesses"
+                ],
+                "properties": {
+                  "gi": {
+                    "type": "string"
+                  },
+                  "witnesses": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "text"
+                      ],
+                      "properties": {
+                        "id": {
+                          "$ref": "#/$defs/nullable_string"
+                        },
+                        "text": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responsibility": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resp",
+              "name"
+            ],
+            "properties": {
+              "resp": {
+                "$ref": "#/$defs/nullable_string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "id": {
+                "$ref": "#/$defs/nullable_string"
+              }
+            }
+          }
+        },
+        "characters": {
+          "description": "<charDecl> 中的异体字 / 缺字（gaiji）宣告。",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "properties",
+              "mappings"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "mappings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "value"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "cb_dec": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "revision": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "when",
+              "text"
+            ],
+            "properties": {
+              "when": {
+                "$ref": "#/$defs/nullable_string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/language_entry"
+          }
+        },
+        "tree": {
+          "description": "<teiHeader> 的完整节点树，确保档头内任何内容都不遗失。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "attrs": {
+          "description": "<teiHeader> 元素自身的属性。",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "section": {
+      "description": "经文内容区段（<body> 或 <back>）。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blocks"
+      ],
+      "properties": {
+        "blocks": {
+          "description": "区段内容的节点阵列（元素节点、纯文字节点、注解节点、处理指示节点）。",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "id": {
+          "description": "对应 XML 的 xml:id。",
+          "type": "string"
+        },
+        "attrs": {
+          "$ref": "#/$defs/attrs"
+        }
+      }
+    },
+    "node": {
+      "description": "节点：纯文字节点、元素节点、注解节点或处理指示节点。四者以 type 互斥，故 anyOf 与 oneOf 接受同一组实例；采 anyOf 可在首个命中时短路（验证速度约快三成）。",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/text_node"
+        },
+        {
+          "$ref": "#/$defs/element_node"
+        },
+        {
+          "$ref": "#/$defs/comment_node"
+        },
+        {
+          "$ref": "#/$defs/pi_node"
+        }
+      ]
+    },
+    "text_node": {
+      "description": "纯文字节点。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "text"
+      ],
+      "properties": {
+        "type": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string"
+        },
+        "ws": {
+          "description": "true 表示此段为纯 ASCII 空白的 XML 排版文字（不计入纯文字正文，但节点树中完整保留）。",
+          "type": "boolean"
+        }
+      }
+    },
+    "element_node": {
+      "description": "TEI 元素节点。type 为 TEI/CBETA 元素本地名；ns=\"cb\" 表示 CBETA 专属命名空间元素。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "text"
+      ],
+      "properties": {
+        "type": {
+          "description": "TEI / CBETA 元素名。",
+          "type": "string",
+          "enum": [
+            "anchor",
+            "app",
+            "bibl",
+            "biblScope",
+            "byline",
+            "caesura",
+            "cell",
+            "char",
+            "charDecl",
+            "charName",
+            "charProp",
+            "choice",
+            "cit",
+            "corr",
+            "date",
+            "def",
+            "dialog",
+            "div",
+            "docNumber",
+            "edition",
+            "editor",
+            "email",
+            "entry",
+            "event",
+            "extent",
+            "figDesc",
+            "figure",
+            "form",
+            "foreign",
+            "formula",
+            "g",
+            "graphic",
+            "head",
+            "hi",
+            "idno",
+            "item",
+            "jhead",
+            "jl_byline",
+            "jl_juan",
+            "jl_title",
+            "juan",
+            "label",
+            "l",
+            "lb",
+            "lg",
+            "localName",
+            "list",
+            "mapping",
+            "milestone",
+            "mulu",
+            "name",
+            "note",
+            "num",
+            "orig",
+            "p",
+            "pb",
+            "ptr",
+            "quote",
+            "ref",
+            "reg",
+            "resp",
+            "respStmt",
+            "row",
+            "seg",
+            "sic",
+            "space",
+            "sp",
+            "table",
+            "t",
+            "term",
+            "title",
+            "trailer",
+            "tt",
+            "unclear",
+            "value",
+            "witness",
+            "sg",
+            "zi",
+            "yin",
+            "fan",
+            "TEI",
+            "teiHeader",
+            "fileDesc",
+            "titleStmt",
+            "editionStmt",
+            "publicationStmt",
+            "distributor",
+            "address",
+            "addrLine",
+            "availability",
+            "sourceDesc",
+            "encodingDesc",
+            "projectDesc",
+            "editorialDecl",
+            "punctuation",
+            "tagsDecl",
+            "namespace",
+            "tagUsage",
+            "listWit",
+            "profileDesc",
+            "langUsage",
+            "body",
+            "back",
+            "author",
+            "revisionDesc",
+            "change",
+            "language",
+            "msDesc",
+            "msIdentifier",
+            "settlement",
+            "repository"
+          ]
+        },
+        "ns": {
+          "description": "元素命名空间；cb 表示 CBETA 专属命名空间。省略即为 TEI。",
+          "const": "cb"
+        },
+        "id": {
+          "description": "对应 XML 的 xml:id。",
+          "type": "string"
+        },
+        "attrs": {
+          "description": "元素属性（xml:id 除外）。键为属性本地名，CBETA 命名空间属性以 cb_ 前缀表示。",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "text": {
+          "description": "此节点的纯文字内容（不含巢状 <note> 内容）。",
+          "type": "string"
+        },
+        "wit": {
+          "description": "见证本代码清单（<lem>/<rdg> 之 wit 属性）。",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lemma": {
+          "$ref": "#/$defs/witness_text"
+        },
+        "readings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/witness_text"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "app"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "lemma",
+              "readings"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "lemma"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "app"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "readings"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "app"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "def",
+                  "dialog",
+                  "div",
+                  "docNumber",
+                  "event",
+                  "fan",
+                  "jl_byline",
+                  "jl_juan",
+                  "jl_title",
+                  "jhead",
+                  "juan",
+                  "mulu",
+                  "sg",
+                  "t",
+                  "tt",
+                  "yin",
+                  "zi"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "ns"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "ns"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "def",
+                  "dialog",
+                  "div",
+                  "docNumber",
+                  "event",
+                  "fan",
+                  "jl_byline",
+                  "jl_juan",
+                  "jl_title",
+                  "jhead",
+                  "juan",
+                  "mulu",
+                  "sg",
+                  "t",
+                  "tt",
+                  "yin",
+                  "zi"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "comment_node": {
+      "description": "XML 注解节点（<!-- … -->），内容完整保留，但不计入纯文字正文。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "text"
+      ],
+      "properties": {
+        "type": {
+          "const": "comment"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "pi_node": {
+      "description": "XML 处理指示节点（<?…?>）。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "target",
+        "text"
+      ],
+      "properties": {
+        "type": {
+          "const": "pi"
+        },
+        "target": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "witness_text": {
+      "description": "<app> 中的 <lem> 或 <rdg>。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "text",
+        "wit"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "lem",
+            "rdg"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "attrs": {
+          "$ref": "#/$defs/attrs"
+        },
+        "wit": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "见证本代码清单（<lem>/<rdg> 之 wit 属性）。全语料皆存在。"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "title_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "lang": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "level": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "type": {
+          "$ref": "#/$defs/nullable_string"
+        }
+      }
+    },
+    "language_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ident"
+      ],
+      "properties": {
+        "ident": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/nullable_string"
+        }
+      }
+    },
+    "juan_entry": {
+      "description": "卷次索引，start/end 为卷次在全文 text 中的字元区间（半开区间）。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "start",
+        "end",
+        "char_count"
+      ],
+      "properties": {
+        "n": {
+          "type": [
+            "string",
+            "integer",
+            "null"
+          ]
+        },
+        "title": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "start": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "end": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "char_count": {
+          "$ref": "#/$defs/nonneg_int"
+        }
+      }
+    },
+    "note_index_entry": {
+      "description": "注释扁平索引项目。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "n": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "place": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "type": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "subtype": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "target": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "resp": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "rend": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "block_count",
+        "text_length",
+        "note_count",
+        "app_count",
+        "gaiji_count",
+        "juan_count"
+      ],
+      "properties": {
+        "block_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "text_length": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "char_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "note_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "app_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "gaiji_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "juan_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "line_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "comment_count": {
+          "$ref": "#/$defs/nonneg_int"
+        },
+        "pi_count": {
+          "$ref": "#/$defs/nonneg_int"
+        }
+      },
+      "description": "统计资料。comment_count / pi_count 为 XML 注解与处理指示的数量（完整保留于节点树中）。"
+    },
+    "attrs": {
+      "description": "属性物件：键为属性本地名，值为字串。",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "nonneg_int": {
+      "description": "非负整数。",
+      "type": "integer",
+      "minimum": 0
+    },
+    "nullable_string": {
+      "description": "可为 null 的字串（值不存在时以 null 表示）。",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "text_entry": {
+      "description": "带语言／类型标记的纯文字项目（<projectDesc>、<editorialDecl> 之条目）。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "lang": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

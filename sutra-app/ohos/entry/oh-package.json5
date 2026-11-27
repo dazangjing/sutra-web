@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "0.1.0",
+  "description": "阅藏经 · 鸿蒙端主模块",
+  "main": "",
+  "author": "阅藏经",
+  "license": "MIT",
+  "dependencies": {}
+}

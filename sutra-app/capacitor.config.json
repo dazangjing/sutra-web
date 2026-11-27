@@ -1,0 +1,14 @@
+{
+  "appId": "com.yuezangjing.app",
+  "appName": "阅藏经",
+  "webDir": "../dist/sutra-app",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}

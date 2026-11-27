@@ -1,0 +1,223 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import DonutChart from '../components/DonutChart.astro';
+import { corpusStats, corpusTotals } from 'sutra-shared/config/corpus-stats';
+import { canonSources, canonTotals } from 'sutra-shared/config/corpus-canon';
+import { canons } from 'sutra-shared/config/tripitaka';
+import { fixedCategories, topics } from 'sutra-shared/config/collections';
+import { u } from '../lib/url';
+
+const docs = await getCollection('sutra');
+const maxChars = Math.max(...corpusStats.map((c) => c.chars));
+
+const donutRows = corpusStats
+  .filter((c) => c.slug !== 'modern')
+  .map((c) => ({
+    name: c.name,
+    key: (['sutra', 'vinaya', 'shastra', 'commentary', 'other'].includes(c.slug)
+      ? c.slug
+      : 'misc') as 'sutra' | 'vinaya' | 'shastra' | 'commentary' | 'misc',
+    value: c.works,
+    desc: c.divisions.map((d) => d.name).join('、'),
+  }));
+const donutTotal = donutRows.reduce((s, r) => s + r.value, 0);
+---
+
+<BaseLayout title="藏经概览" description="大藏经部类统计、藏经源流与历代刻藏概览。" bodyClass="page-stats">
+  <PageHero
+    kicker="/ STATISTICS"
+    title="藏经概览"
+    desc="一部大藏经，是两千余年间无数译经、刻经、印经者留下的体量。以下以篇、卷、字为经纬，勾勒其构成与流变。"
+    count={`${corpusTotals.works.toLocaleString('en-US')} 篇入库`}
+  />
+
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">分类总览</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">
+        {corpusTotals.juan.toLocaleString('en-US')} 卷 · {(corpusTotals.chars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万字
+      </span>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
+      <div class="reveal">
+        <DonutChart rows={donutRows} total={donutTotal} />
+      </div>
+
+      <div class="reveal grid gap-4">
+        {
+          corpusStats.map((cat) => (
+            <div class="flex items-center gap-4 rounded-card border border-line bg-panel px-5 py-4">
+              <span class="w-20 shrink-0 font-serif text-[16px] font-semibold tracking-[0.1em] text-ink">
+                {cat.name}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="bar block">
+                  <i style={`--w:${((cat.chars / maxChars) * 100).toFixed(1)}%`}></i>
+                </span>
+                <span class="mt-2 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[11px] text-ink-3">
+                  {cat.divisions.map((d) => (
+                    <span>
+                      {d.name}
+                      <span class="text-ink-2">{d.works}</span>
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <span class="w-24 shrink-0 text-right font-mono text-[12px] tabular-nums text-ink-2">
+                {cat.works} 篇
+                <span class="block text-[11px] text-ink-3">{(cat.chars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万字</span>
+              </span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <p class="mt-4 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
+      ※ 统计依 CBETA 佛典数据库语料实算；单档体量上限 150 KB，另完整收录经典导读所必需的整部大藏。
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">经文来源分布</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">
+        {canonTotals.sources} 种来源 · {canonTotals.works.toLocaleString('en-US')} 篇
+      </span>
+    </div>
+
+    <div class="reveal overflow-x-auto rounded-card border border-line bg-panel shadow-panel">
+      <table class="stat-table min-w-[640px]">
+        <caption class="sr-only">经文来源分布</caption>
+        <thead>
+          <tr>
+            <th scope="col">藏经来源</th>
+            <th scope="col" class="text-right">篇数</th>
+            <th scope="col" class="text-right">卷数</th>
+            <th scope="col" class="text-right">字数</th>
+            <th scope="col" class="w-[22%]">占比</th>
+          </tr>
+        </thead>
+        <tbody>
+          {canonSources.map((src) => {
+            const pct = (src.works / canonTotals.works) * 100;
+            return (
+              <tr>
+                <td>
+                  <strong class="font-serif text-[15px] font-semibold tracking-[0.03em]">{src.name}</strong>
+                </td>
+                <td class="text-right font-mono text-[14px] tabular-nums">{src.works.toLocaleString('en-US')}</td>
+                <td class="text-right font-mono text-[14px] tabular-nums text-ink-2">{src.juan.toLocaleString('en-US')}</td>
+                <td class="text-right font-mono text-[14px] tabular-nums">{(src.chars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万</td>
+                <td>
+                  <span class="flex items-center gap-3">
+                    <span class="bar min-w-16 flex-1">
+                      <i style={`--w:${pct.toFixed(2)}%`}></i>
+                    </span>
+                    <span class="w-12 shrink-0 text-right font-mono text-[11.5px] tabular-nums text-ink-3">{pct.toFixed(1)}%</span>
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-3.5 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
+      ※ 依 CBETA 佛典数据库各藏收录情况实算；同一部经在不同藏中重出者，按档分别计入。
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">{canons.title}</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{canons.rows.length} 藏</span>
+    </div>
+
+    <div class="reveal overflow-x-auto rounded-card border border-line bg-panel shadow-panel">
+      <table class="stat-table min-w-[820px]">
+        <caption class="sr-only">历代大藏经刻藏概览</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="w-20">时代</th>
+            <th scope="col">藏经</th>
+            <th scope="col" class="text-right">刊刻年代</th>
+            <th scope="col" class="text-right">部数</th>
+            <th scope="col" class="text-right">卷数</th>
+            <th scope="col">特色与流布</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            canons.rows.map((canon) => (
+              <tr>
+                <td>
+                  <span class="inline-grid min-w-10 place-items-center rounded-[5px] border border-line bg-panel-2 px-2 py-1 font-serif text-[12px] text-ink-2">
+                    {canon.dynasty}
+                  </span>
+                </td>
+                <td>
+                  <strong class="font-serif text-[15.5px] font-semibold tracking-[0.04em]">{canon.name}</strong>
+                </td>
+                <td class="text-right font-mono text-[13px] tabular-nums text-ink-2">{canon.year}</td>
+                <td class="text-right font-mono text-[13px] tabular-nums text-ink-2">{canon.parts}</td>
+                <td class="text-right font-mono text-[13px] tabular-nums text-ink-2">{canon.volumes}</td>
+                <td class="text-[13px] text-ink-2">{canon.feature}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-3.5 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
+      ※ 部分藏本卷数依帙号、函次统计口径不同而有出入，「约」字表示概数。
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">本站收录</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+    </div>
+    <ul class="reveal grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        fixedCategories.map((col) => {
+          const stat = corpusStats.find((c) => c.slug === col.slug);
+          return (
+            <li class="rounded-card border border-line bg-panel px-5 py-4">
+              <a href={u(`/categories/${col.slug}/`)} class="group flex items-baseline justify-between gap-3">
+                <span class="font-serif text-[16px] font-semibold tracking-[0.08em] text-ink group-hover:text-jade">
+                  {col.name}
+                </span>
+                <span class="font-mono text-[12px] tabular-nums text-ink-2">{stat?.works ?? 0} 篇</span>
+              </a>
+              <p class="mt-2 text-[12.5px] leading-relaxed text-ink-3">{col.desc}</p>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <ul class="reveal mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        topics.map((topic) => (
+          <li>
+            <a
+              href={u(`/topics/${topic.slug}/`)}
+              class="group flex items-baseline justify-between gap-3 rounded-chip border border-line bg-panel px-4 py-2.5 text-[13px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+            >
+              <span>{topic.name}</span>
+              <span class="font-mono text-[11px] text-ink-3">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>

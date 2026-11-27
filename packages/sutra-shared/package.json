@@ -1,0 +1,36 @@
+{
+  "name": "sutra-shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "阅藏经 · 公共层：全局配置、Markdown 佛经内容、设计令牌、共享类型",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config/index.ts",
+    "./config/site": "./src/config/site.ts",
+    "./config/collections": "./src/config/collections.ts",
+    "./config/albums": "./src/config/albums.ts",
+    "./config/funding": "./src/config/funding.ts",
+    "./config/info": "./src/config/info.ts",
+    "./config/corpus-stats": "./src/config/corpus-stats.ts",
+    "./config/corpus-canon": "./src/config/corpus-canon.ts",
+    "./config/canon-lineage": "./src/config/canon-lineage.ts",
+    "./config/hot-reads": "./src/config/hot-reads.ts",
+    "./config/sutra": "./src/config/sutra.ts",
+    "./config/tripitaka": "./src/config/tripitaka.ts",
+    "./types": "./src/types/index.ts",
+    "./styles/tokens.css": "./src/styles/tokens.css",
+    "./styles/global.css": "./src/styles/global.css",
+    "./content/*": "./src/content/*"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

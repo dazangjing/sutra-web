@@ -1,0 +1,409 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StatTable from '../components/StatTable.astro';
+import DonutChart from '../components/DonutChart.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import CanonLineageChart from '../components/CanonLineageChart.astro';
+import DocCard from '../components/DocCard.astro';
+import { site } from 'sutra-shared/config/site';
+import { fixedCategories, topics } from 'sutra-shared/config/collections';
+import { collectDocs } from '../lib/collections';
+import { corpusStats, corpusTotals } from 'sutra-shared/config/corpus-stats';
+import { u } from '../lib/url';
+
+const docs = (await getCollection('sutra')).sort((a, b) => a.data.order - b.data.order);
+
+// 统计表：按语料部别展开
+type Row = {
+  name: string;
+  group: string;
+  works: number;
+  juan: number;
+  chars: number;
+};
+const rows: Row[] = [];
+for (const cat of corpusStats) {
+  for (const div of cat.divisions) {
+    rows.push({
+      name: div.name,
+      group: cat.name,
+      works: div.works,
+      juan: 0,
+      chars: 0,
+    });
+  }
+}
+// 逐档补算卷数与字数
+for (const doc of docs) {
+  const row = rows.find((r) => r.name === doc.data.division);
+  if (!row) continue;
+  row.juan += doc.data.juan_count ?? 0;
+  row.chars += doc.data.text_length ?? 0;
+}
+rows.sort((a, b) => b.chars - a.chars);
+const totalChars = rows.reduce((s, r) => s + r.chars, 0);
+const totalWorks = rows.reduce((s, r) => s + r.works, 0);
+const totalJuan = rows.reduce((s, r) => s + r.juan, 0);
+
+const donutRows = corpusStats
+  .filter((c) => c.slug !== 'modern')
+  .map((c) => ({
+    name: c.name,
+    key: (['sutra', 'vinaya', 'shastra', 'commentary', 'other'].includes(c.slug)
+      ? c.slug
+      : 'misc') as 'sutra' | 'vinaya' | 'shastra' | 'commentary' | 'misc',
+    value: c.works,
+    desc: c.divisions.map((d) => d.name).join('、'),
+  }));
+const donutTotal = donutRows.reduce((s, r) => s + r.value, 0);
+
+// 精选：附有本站导读的经典
+const featured = docs.filter((d) => d.data.guide).slice(0, 8);
+
+// 三大固定分类的篇数
+const fixedCounts = Object.fromEntries(
+  fixedCategories.map((col) => [col.slug, collectDocs(docs, col).length]),
+);
+const topicCounts = Object.fromEntries(topics.map((t) => [t.slug, collectDocs(docs, t).length]));
+---
+
+<BaseLayout description={site.description} bodyClass="page-home">
+  <!-- ══ HERO ══ -->
+  <section class="mx-auto grid min-h-[78vh] max-w-[1260px] grid-cols-1 items-center gap-10 px-4 pt-14 pb-12 sm:px-8 sm:pt-24 lg:grid-cols-[minmax(0,1fr)_auto]">
+    <div class="relative z-10 max-w-[720px]">
+      <p class="mb-6.5 inline-flex items-center gap-2.5 rounded-full border border-line bg-panel px-4 py-1.5 font-mono text-[11.5px] tracking-[0.18em] text-ink-2">
+        <span class="h-[7px] w-[7px] animate-pulse rounded-full bg-jade shadow-[0_0_0_0_rgb(95_227_192/0.6)]"></span>
+        开源 · 自律 · 深入经藏 · 智慧增长
+      </p>
+
+      <h1 class="flex items-start gap-0.5 font-serif text-[clamp(62px,13vw,132px)] leading-[0.98] font-medium tracking-[0.02em]">
+        {
+          [...site.title].map((char, i) => (
+            <span
+              class="bg-gradient-to-b from-ink to-jade bg-clip-text text-transparent [animation:char-rise_0.95s_var(--ease-zen)_backwards]"
+              style={`animation-delay:${0.05 + i * 0.11}s`}
+            >
+              {char}
+            </span>
+          ))
+        }
+        <span class="mb-2.5 ml-3.5 grid h-[54px] w-[54px] -rotate-6 place-items-center rounded-[8px] bg-[linear-gradient(150deg,#c9413a,#8d2a24)] font-serif text-[24px] text-white shadow-[0_10px_26px_-12px_rgba(201,65,58,0.8)] [animation:char-rise_0.95s_var(--ease-zen)_backwards] [animation-delay:0.42s] sm:mb-6">
+          {site.sealChar}
+        </span>
+      </h1>
+
+      <p class="relative mt-5.5 pl-[18px] font-serif text-[clamp(17px,2.1vw,21px)] tracking-[0.22em] text-gold before:absolute before:top-[0.35em] before:bottom-[0.35em] before:left-0 before:w-[2px] before:rounded before:bg-[linear-gradient(var(--yzj-gold),transparent)]">
+        {site.motto}
+      </p>
+
+      <p class="mt-4.5 max-w-[54ch] text-[15.5px] leading-[2] text-ink-2">
+        佛经从第一次结集至今，语言文化迭代，整理翻译偏差，本站按照经律论和近现代著述分类，转为markdown格式阅读。阅藏先祛魅, 高效读原典。
+      </p>
+
+      <div class="mt-8.5 flex flex-wrap gap-3">
+        <a href={u('/categories/tripitaka/')} class="group inline-flex items-center gap-2.5 rounded-full bg-[linear-gradient(135deg,var(--yzj-jade),var(--yzj-jade-2))] px-6 py-3 text-[14px] font-semibold tracking-[0.06em] text-[#04211c] shadow-[0_12px_30px_-14px_rgb(95_227_192/0.85)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_-14px_rgb(95_227_192/0.95)]">
+          开始阅读
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </a>
+        <a href={u('/stats/')} class="rounded-full border border-line bg-panel px-6 py-3 text-[14px] tracking-[0.06em] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">藏经统计</a>
+        <a href={u('/browse/')} class="rounded-full border border-line bg-panel px-6 py-3 text-[14px] tracking-[0.06em] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">检索目录</a>
+      </div>
+
+      <ul class="mt-11 grid grid-cols-2 gap-4 border-t border-line pt-6.5 sm:grid-cols-4 sm:gap-5">
+        {
+          [
+            { value: corpusTotals.works, unit: '篇入库' },
+            { value: corpusTotals.juan, unit: '卷' },
+            { value: Math.round(corpusTotals.chars / 1e4), unit: '万字正文' },
+            { value: topics.length, unit: '专辑' },
+          ].map((item) => (
+            <li class="flex flex-col gap-1">
+              <b class="font-mono text-[clamp(22px,3vw,32px)] leading-[1.1] font-medium tabular-nums text-ink" data-count={item.value}>
+                0
+              </b>
+              <span class="text-[11.5px] tracking-[0.18em] text-ink-3">{item.unit}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="relative hidden aspect-square w-[clamp(220px,26vw,330px)] place-items-center lg:grid" aria-hidden="true">
+      <svg class="absolute inset-0 h-full w-full text-jade" viewBox="0 0 200 200">
+        <circle class="enso-path" cx="100" cy="100" r="78" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" pathLength="100"></circle>
+      </svg>
+      <div class="absolute inset-0">
+        <span class="absolute inset-[12%] animate-[ring-breathe_6s_ease-in-out_infinite] rounded-full border border-line"></span>
+        <span class="absolute inset-[24%] animate-[ring-breathe_6s_ease-in-out_infinite_1.4s] rounded-full border border-line"></span>
+        <span class="absolute inset-[36%] animate-[ring-breathe_6s_ease-in-out_infinite_2.8s] rounded-full border border-line"></span>
+      </div>
+    </div>
+
+    <a href="#stats" class="absolute bottom-5 left-4 flex items-center gap-2.5 font-mono text-[10.5px] tracking-[0.28em] text-ink-3 sm:left-8">
+      SCROLL
+      <svg viewBox="0 0 16 24" width="13" height="20" aria-hidden="true" class="animate-[scroll-hint_2.2s_ease-in-out_infinite]"><path d="M8 3v16M3 14l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+  </section>
+
+  <!-- ══ 大藏经统计表格 ══ -->
+  <section id="stats" class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">大藏经统计</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">
+        {totalWorks} 篇 · {totalJuan.toLocaleString('en-US')} 卷 · {totalChars.toLocaleString('en-US')} 字
+      </span>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div class="reveal overflow-x-auto rounded-card border border-line bg-panel shadow-panel">
+        <table class="stat-table min-w-[660px]">
+          <caption class="sr-only">大藏经部别分类统计</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="w-20">部类</th>
+              <th scope="col">归类</th>
+              <th scope="col" class="text-right">篇数</th>
+              <th scope="col" class="text-right">卷数</th>
+              <th scope="col" class="text-right">字数</th>
+              <th scope="col" class="w-[30%]">字数占比</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rows.map((row) => (
+                <tr>
+                  <td>
+                    <strong class="font-serif text-[14.5px] font-semibold tracking-[0.04em]">{row.name}</strong>
+                  </td>
+                  <td>
+                    <span class="font-mono text-[11.5px] text-ink-3">{row.group}</span>
+                  </td>
+                  <td class="text-right font-mono text-[14.5px] tabular-nums">{row.works}</td>
+                  <td class="text-right font-mono text-[14.5px] tabular-nums text-ink-2">{row.juan || '—'}</td>
+                  <td class="text-right font-mono text-[14.5px] tabular-nums">{(row.chars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万</td>
+                  <td>
+                    <span class="flex items-center gap-3">
+                      <span class="bar min-w-20 flex-1">
+                        <i style={`--w:${((row.chars / totalChars) * 100).toFixed(2)}%`}></i>
+                      </span>
+                      <span class="w-12 shrink-0 text-right font-mono text-[11.5px] tabular-nums text-ink-3">
+                        {((row.chars / totalChars) * 100).toFixed(1)}%
+                      </span>
+                    </span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>
+                <strong class="font-serif text-[14.5px] font-semibold tracking-[0.04em] text-jade">合计</strong>
+              </td>
+              <td>
+                <span class="font-mono text-[11.5px] text-ink-3">全部分类</span>
+              </td>
+              <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{totalWorks}</td>
+              <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{totalJuan.toLocaleString('en-US')}</td>
+              <td class="text-right font-mono text-[14.5px] font-medium tabular-nums">{(totalChars / 1e4).toLocaleString('en-US', { maximumFractionDigits: 1 })} 万</td>
+              <td>
+                <span class="flex items-center gap-3">
+                  <span class="bar min-w-20 flex-1">
+                    <i style="--w:100%;background:linear-gradient(90deg,var(--yzj-gold-2),var(--yzj-gold));box-shadow:0 0 12px -2px rgb(227 192 105 / 0.7)"></i>
+                  </span>
+                  <span class="w-12 shrink-0 text-right font-mono text-[11.5px] tabular-nums text-ink-3">100%</span>
+                </span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <aside class="reveal flex flex-col gap-5">
+        <DonutChart rows={donutRows} total={donutTotal} />
+
+        <div class="rounded-card border border-line bg-panel p-5 shadow-panel">
+          <p class="mb-3.5 font-mono text-[10.5px] tracking-[0.22em] text-ink-3">TRIPITAKA SECTIONS</p>
+          <ul class="mb-3.5 grid gap-2.5">
+            {
+              corpusStats
+                .filter((c) => c.slug !== 'modern')
+                .map((c) => (
+                  <li class="grid grid-cols-[44px_1fr_auto] items-baseline gap-2.5 text-[13px]">
+                    <span class="rounded-[5px] border border-jade/30 bg-jade/10 px-1 py-0.5 text-center font-serif text-[12px] text-jade">
+                      {c.name}
+                    </span>
+                    <span class="truncate text-ink-2">{c.divisions.map((d) => d.name).join('、')}</span>
+                    <span class="font-mono text-[11px] text-ink-3">{c.works}</span>
+                  </li>
+                ))
+            }
+          </ul>
+          <a href={u('/stats/')} class="font-mono text-[11.5px] tracking-[0.1em] text-jade hover:underline">查看藏经源流与刻藏概览 →</a>
+        </div>
+      </aside>
+    </div>
+
+    <p class="mt-4 px-0.5 font-mono text-[11.5px] tracking-[0.04em] text-ink-3">
+      ※ 统计依 CBETA 佛典数据库语料实算（单档体量上限 150 KB，另含经典导读必备之整部大藏）；各藏本编次略有出入，仅供浏览参考。
+    </p>
+  </section>
+
+  <!-- ══ 一级分类：三大固定分类 + 专辑 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">一级分类</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">经 · 律 · 论 · 注疏史料 · 南传 · 近代</span>
+    </div>
+
+    <!-- 三大固定分类 -->
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {
+        fixedCategories.map((col) => (
+          <CategoryCard
+            slug={col.slug}
+            name={col.name}
+            en={col.en}
+            glyph={col.glyph}
+            accent={col.accent}
+            desc={col.desc}
+            docs={collectDocs(docs, col)}
+          />
+        ))
+      }
+    </div>
+
+    <!--
+      专辑：与三大固定分类**同为一级分类**，故另起一段，
+      以同等分量陈之 —— 非从属之次级板块。
+    -->
+    <div class="reveal mt-14">
+      <div class="mb-7 flex items-center gap-4">
+        <h3 class="shrink-0 font-serif text-[clamp(19px,2vw,24px)] font-semibold tracking-[0.08em] text-ink">专辑</h3>
+        <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+        <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">
+          {topics.length} 个 · 一级分类
+        </span>
+      </div>
+
+      <p class="mb-6 max-w-[62ch] text-[14px] leading-[1.95] text-ink-2">
+        专辑不拘于部类，而以宗派、门类为线索，横跨经律论注疏诸部，择取一组可连缀而读之典籍。
+        专辑与上方三大分类同为一级，各有其门径。
+      </p>
+
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {
+          topics.map((topic) => (
+            <a
+              href={u(`/topics/${topic.slug}/`)}
+              class="group relative flex items-start gap-3.5 overflow-hidden rounded-card border border-line bg-panel px-4.5 py-4 transition-all duration-300 hover:-translate-y-[3px] hover:border-line-2 hover:bg-panel-2 hover:shadow-panel"
+            >
+              <span
+                class="serif grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] border text-[19px] leading-none transition-colors"
+                class:list={[
+                  topic.accent === 'gold' && 'border-gold/35 bg-gold/10 text-gold',
+                  topic.accent === 'violet' && 'border-violet/35 bg-violet/10 text-violet',
+                  topic.accent === 'cinnabar' && 'border-cinnabar/35 bg-cinnabar/10 text-cinnabar',
+                  topic.accent === 'slate' && 'border-ink-3/45 bg-ink-3/10 text-ink-2',
+                  !['gold', 'violet', 'cinnabar', 'slate'].includes(topic.accent) && 'border-jade/35 bg-jade/10 text-jade',
+                ]}
+              >
+                {topic.glyph}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="flex items-baseline justify-between gap-2">
+                  <span class="truncate font-serif text-[16px] font-semibold tracking-[0.06em] text-ink transition-colors group-hover:text-jade">
+                    {topic.name}
+                  </span>
+                  <span class="shrink-0 font-mono text-[10.5px] text-ink-3 tabular-nums">
+                    {topicCounts[topic.slug] ?? 0}
+                  </span>
+                </span>
+                <span class="mt-1 block font-mono text-[9.5px] tracking-[0.2em] text-ink-3">
+                  {topic.en}
+                </span>
+                <span class="mt-1.5 block line-clamp-2 text-[12.5px] leading-[1.75] text-ink-2">
+                  {topic.desc}
+                </span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="mt-6 flex justify-center">
+        <a
+          href={u('/topics/')}
+          class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-5 py-2.5 text-[13px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+        >
+          全部专辑 →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 藏经来源脉络 ══ -->
+  <CanonLineageChart />
+
+  <!-- ══ 精选导读 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 py-14 sm:px-8 sm:py-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">精选导读</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">附义理提要</span>
+    </div>
+
+    <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {featured.map((doc, i) => <DocCard doc={doc} index={i + 1} />)}
+    </ol>
+
+    <div class="reveal mt-8.5 flex justify-center">
+      <a href={u('/browse/')} class="rounded-full border border-line bg-panel px-6 py-3 text-[14px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]">
+        查看全部 {docs.length} 篇
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ 禅意引文 ══ -->
+  <section class="mx-auto max-w-[1260px] px-4 pb-16 sm:px-8 sm:pb-24">
+    <div class="reveal relative overflow-hidden rounded-card border border-line bg-panel px-6 py-14 text-center sm:py-16">
+      <span class="pointer-events-none absolute top-1/2 left-1/2 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-line-2"></span>
+      <span class="pointer-events-none absolute top-1/2 left-1/2 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-transparent border-t-jade/30 border-r-gold/25 animate-[spin_26s_linear_infinite]"></span>
+      <blockquote class="relative mb-3.5">
+        <p class="mb-2 font-serif text-[clamp(18px,2.4vw,24px)] tracking-[0.2em] text-ink">自性本来是佛，恁麽事却要修。</p>
+        <p class="font-serif text-[clamp(18px,2.4vw,24px)] tracking-[0.2em] text-ink">本自天真，不假修成。</p>
+      </blockquote>
+      <cite class="relative font-mono text-[11px] tracking-[0.18em] text-ink-3 not-italic">— 六祖大师 · 无相颂</cite>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  @keyframes char-rise {
+    from {
+      opacity: 0;
+      transform: translateY(34px) scale(0.94);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  @keyframes ring-breathe {
+    0%,
+    100% {
+      transform: scale(0.9);
+      opacity: 0.25;
+    }
+    50% {
+      transform: scale(1.04);
+      opacity: 0.7;
+    }
+  }
+</style>

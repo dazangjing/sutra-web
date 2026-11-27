@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+import Backdrop from '../components/Backdrop.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from 'sutra-shared/config/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  bodyClass?: string;
+  ogType?: string;
+}
+
+const {
+  title = site.title,
+  description = site.description,
+  bodyClass = '',
+  ogType = 'website',
+} = Astro.props;
+
+const pageTitle = title === site.title ? `${site.title} | ${site.tagline}` : `${title} | ${site.title}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="ink">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#05070a" />
+    <!-- NO AI：不供 AI 训练与模型代理取用；检索类爬虫不受影响 -->
+    <meta name="robots" content="noai, noimageai" />
+    <meta name="googlebot" content="noai, noimageai" />
+    <meta name="gptbot" content="noai, noimageai" />
+    <meta name="claudebot" content="noai, noimageai" />
+    <meta name="perplexitybot" content="noai, noimageai" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={import.meta.env.BASE_URL + 'seal.svg'} />
+    <meta property="og:site_name" content={site.title} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonical} />
+    <meta name="generator" content={Astro.generator} />
+    <script is:inline>
+      // 首屏前恢复主题，避免闪烁
+      (function () {
+        try {
+          var saved = localStorage.getItem('yzj-theme');
+          if (saved === 'paper' || saved === 'ink') document.documentElement.dataset.theme = saved;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body class={bodyClass}>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-0 focus:left-4 focus:z-50 focus:rounded-b-chip focus:bg-jade focus:px-5 focus:py-2.5 focus:font-bold focus:text-[#04211c]">
+      跳到正文
+    </a>
+
+    <div id="reading-progress" class="pointer-events-none fixed inset-x-0 top-0 z-[60] h-0.5 bg-[linear-gradient(90deg,var(--yzj-jade),var(--yzj-gold))]" style="width:0"></div>
+
+    <Backdrop />
+    <Header />
+
+    <main id="main" class="relative z-10">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <button id="to-top" type="button" class="fixed right-6 bottom-6 z-40 grid h-11 w-11 place-items-center rounded-full border border-line bg-bg-soft/90 text-jade opacity-0 pointer-events-none backdrop-blur-md transition-all duration-300 translate-y-3 hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_30px_-8px_var(--yzj-jade)] is-on:opacity-100 is-on:pointer-events-auto is-on:translate-y-0" aria-label="回到顶部">
+      <svg viewBox="0 0 20 20" width="19" height="19" aria-hidden="true"><path d="M10 16V5M4.5 10.5 10 5l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+
+    <script>
+      import '../scripts/app.ts';
+    </script>
+  </body>
+</html>

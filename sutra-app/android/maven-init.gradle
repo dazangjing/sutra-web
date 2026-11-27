@@ -1,0 +1,46 @@
+// Gradle 初始化脚本：全局替换 Maven 仓库
+//
+// 本机网络屏蔽 Maven Central（返回 403），而依赖多来自 node_modules 内之
+// Capacitor 各库（其 `build.gradle` 自带 repositories，无法由本工程改）。
+//
+// 故用**初始化脚本**于所有工程（含 node_modules 内者）之仓库配置生效后，
+// **移除** Maven Central（`repo.maven.apache.org`），代之以镜像 ——
+// 单纯前插不够：Gradle 仍会先试官方源，遇 403 即失败，不复试其后之镜像。
+//
+// 用法：
+//
+//   ./gradlew assembleRelease \
+//       -I maven-init.gradle \
+//       -PmavenMirror=https://maven.aliyun.com/repository/public
+//
+// 或于 `~/.gradle/init.d/` 下置一份，则无须每次指定 `-I`。
+//
+// **镜像为可选**：未设 `mavenMirror` 属性时，此脚本不做任何事。
+
+def mirrorUrl = System.getProperty('mavenMirror') ?:
+        (gradle.startParameter.projectProperties['mavenMirror'] ?: null)
+
+if (mirrorUrl) {
+    def replaceRepos = { RepositoryHandler repos ->
+        // 先记下官方源，待全部配置完毕后一并替换
+        def central = repos.findAll { r ->
+            r.hasProperty('url') && r.url?.toString()?.contains('repo.maven.apache.org')
+        }
+        if (!central.isEmpty()) {
+            repos.removeAll(central)
+            repos.maven { url mirrorUrl }
+        }
+    }
+
+    gradle.beforeProject { project ->
+        project.buildscript.repositories.whenObjectAdded { replaceRepos(project.buildscript.repositories) }
+        project.repositories.whenObjectAdded { replaceRepos(project.repositories) }
+    }
+
+    gradle.projectsLoaded {
+        gradle.rootProject.allprojects { p ->
+            p.buildscript.repositories.whenObjectAdded { replaceRepos(p.buildscript.repositories) }
+            p.repositories.whenObjectAdded { replaceRepos(p.repositories) }
+        }
+    }
+}

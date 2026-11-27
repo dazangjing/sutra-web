@@ -1,5 +1,13 @@
 packages:
-  - '.'
+  - 'sutra-web'
+  - 'sutra-desktop'
+  - 'sutra-app'
+  - 'packages/*'
+
 allowBuilds:
   esbuild: true
   sharp: true
+
+# 不于执行脚本前自动安装（避免本机 store-dir 与锁文件不一致时报错）；
+# 依赖变更后请自行运行 `pnpm install`。
+verifyDepsBeforeRun: false

@@ -1,0 +1,29 @@
+{
+  "name": "sutra-web",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "阅藏经 · Web 站",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check",
+    "import:sutra": "python3 scripts/import-sutra.py --source ../sutra_md_zh --assets-source ../sutra_assets --out src/content/sutra --guide src/content/guide --assets public/assets --max-bytes 150000",
+    "build:albums": "python3 scripts/build-albums.py --subjects ../sutra_subject/recipe --out ../packages/sutra-shared/src/config/albums.ts",
+    "build:index": "python3 scripts/build-list-index.py --content src/content/sutra --out public/index --albums ../packages/sutra-shared/src/config/albums.ts --collections ../packages/sutra-shared/src/config/collections.ts",
+    "build:content": "python3 scripts/build-content-index.py --content src/content/sutra --out public/content"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.3.9",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.5",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.4.12",
+    "rehype-slug": "^6.0.0",
+    "sutra-shared": "workspace:*",
+    "tailwindcss": "^4.3.5"
+  }
+}

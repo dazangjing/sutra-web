@@ -1,0 +1,25 @@
+# ── 构建产物 ───────────────────────────────────────────────
+dist/
+node_modules/
+android/app/build/
+android/build/
+android/.gradle/
+ios/build/
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/App/capacitor-cordova-ios-plugins/
+ohos/entry/build/
+ohos/.hvigor/
+ohos/oh_modules/
+ohos/local.properties
+
+# ── 语料包（由 scripts/build-corpus.py 生成，不入版本库）────
+# 体量约 1 GB（正文 JSON + 97 MB 二进制索引 + 8,149 幅图），
+# 故不入库；构建时由 `npm run corpus` 重新生成。
+public/corpus/
+
+# ── 系统 / 编辑器 ─────────────────────────────────────────
+.DS_Store
+*.log
+.home/
+.pnpm-store/

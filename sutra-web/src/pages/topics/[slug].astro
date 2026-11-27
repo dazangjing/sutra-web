@@ -1,0 +1,196 @@
+---
+/**
+ * 专辑页：篇目自**列表索引**取之
+ *
+ * 索引（构建期由 `scripts/build-list-index.py` 生成）：
+ *
+ *     index/cards/<slug>.json     卡片索引：专辑之卡片显示字段
+ *     index/sections/<slug>.json  分节索引：各节之标题与档号
+ *
+ * 页面于**构建期**写入各节首批卡片（故无 JS 之读者亦得见内容，
+ * 且首屏不待网络）；其余由 `src/scripts/list.ts` 按需增量补入。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { topics, fixedCategories } from 'sutra-shared/config/collections';
+import { loadCards, loadSections } from '../../lib/list-index';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  return topics.map((topic) => ({ params: { slug: topic.slug }, props: { topic } }));
+}
+
+const { topic } = Astro.props;
+const cards = await loadCards(topic.slug);
+const sections = await loadSections(topic.slug);
+
+// 卡片索引按 id 取用
+const byId = new Map(cards.map((c) => [c.i, c]));
+
+// 依分节索引编排；节内档号取自卡片索引（站内实有之篇目）
+// 无篇目之节略去 —— 故页面所渲染之节与脚本所取之节一一对应
+const shown = sections
+  .map((s) => {
+    const items = s.c
+      .map((code) => byId.get(code.toLowerCase()))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c));
+    // 「图文并茂」以配图多寡为序
+    if (topic.sortByImages) {
+      items.sort((a, b) => b.p - a.p);
+    }
+    return { title: s.t, items };
+  })
+  .filter((s) => s.items.length > 0);
+
+/** 各部类之篇数（自卡片索引实算） */
+const byDivision = new Map<string, number>();
+for (const card of cards) {
+  const key = card.v || '其他';
+  byDivision.set(key, (byDivision.get(key) ?? 0) + 1);
+}
+const divisions = [...byDivision.entries()].sort((a, b) => b[1] - a[1]);
+const total = cards.length;
+---
+
+<BaseLayout title={topic.name} description={topic.desc} bodyClass="page-topic">
+  <PageHero kicker={`/ ${topic.en}`} title={topic.name} glyph={topic.glyph} desc={topic.desc} count={`${total.toLocaleString('en-US')} 篇`} />
+
+  {
+    divisions.length > 1 && (
+      <section class="mx-auto max-w-[1260px] px-4 pb-10 sm:px-8">
+        <ul class="reveal flex flex-wrap gap-2">
+          {divisions.map(([name, count]) => (
+            <li class="rounded-full border border-line bg-panel px-3 py-1 font-mono text-[11px] tracking-[0.06em] text-ink-2">
+              {name}
+              <span class="text-ink-3">{count}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="mx-auto max-w-[1260px] px-4 pb-14 sm:px-8 sm:pb-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">篇目一览</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{total.toLocaleString('en-US')} ITEMS</span>
+    </div>
+
+    <div
+      id="collection-list"
+      data-base={import.meta.env.BASE_URL.replace(/\/+$/, '')}
+      data-slug={topic.slug}
+      data-sort-by-images={topic.sortByImages ? '1' : ''}
+    >
+      {
+        shown.map((s) => (
+          <div class="mb-11 last:mb-0">
+            {s.title && (
+              <h3 class="reveal mb-4 flex items-baseline gap-3 font-serif text-[19px] font-semibold tracking-[0.06em] text-ink">
+                {s.title}
+                <span class="font-mono text-[11px] font-normal tracking-[0.12em] text-ink-3">
+                  {s.items.length} 篇
+                </span>
+              </h3>
+            )}
+            <ol class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {s.items.slice(0, 60).map((card, i) => (
+                <li class="reveal is-in flex">
+                  <a
+                    href={u(`/read/${card.i}/`)}
+                    class="group relative flex w-full items-start gap-4 overflow-hidden rounded-card border border-line bg-panel px-5 py-5 transition-all duration-300 hover:-translate-y-[3px] hover:border-line-2 hover:bg-panel-2 hover:shadow-panel"
+                  >
+                    <span class="absolute inset-y-0 left-0 w-[2px] origin-top scale-y-0 bg-[linear-gradient(var(--yzj-jade),transparent)] transition-transform duration-300 group-hover:scale-y-100"></span>
+                    <span class="shrink-0 pt-0.5 font-mono text-[11.5px] tabular-nums text-ink-3">{String(i + 1).padStart(3, '0')}</span>
+                    <span class="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <span class="flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">
+                        <span>{card.t}</span>
+                        {card.p > 0 && (
+                          <span class="inline-flex shrink-0 items-center gap-1 align-middle text-cinnabar" title={`正文含图 ${card.p} 幅`} aria-label={`正文含图 ${card.p} 幅`}>
+                            <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" class="shrink-0 overflow-visible">
+                              <rect x="1.4" y="2.6" width="13.2" height="10.8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.15"></rect>
+                              <circle cx="5.5" cy="6" r="1.35" fill="currentColor"></circle>
+                              <path d="M2.2 12.2 6 8.6l2.6 2.3 2.1-1.9 3.1 3.2" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            {card.p > 1 && <span class="font-mono text-[10px] tabular-nums leading-none">{card.p}</span>}
+                          </span>
+                        )}
+                      </span>
+                      <span class="font-mono text-[11.5px] text-ink-3">{card.a}{card.v && ` · ${card.v}`}</span>
+                      {card.s && <span class="line-clamp-2 text-[13px] leading-relaxed text-ink-2">{card.s}</span>}
+                      <span class="mt-0.5 flex flex-wrap gap-1.5">
+                        {card.c && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{card.c}</i>}
+                        {card.j > 0 && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{card.j} 卷</i>}
+                      </span>
+                    </span>
+                    <span class="mt-1 h-5 w-5 shrink-0 self-center text-ink-3 transition-all duration-300 group-hover:translate-x-1 group-hover:text-jade">
+                      <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+            {s.items.length > 60 && (
+              <p class="reveal mt-5 text-center font-mono text-[11.5px] text-ink-3">
+                此节共 {s.items.length.toLocaleString('en-US')} 篇，此处列出前 60 篇
+              </p>
+            )}
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="reveal mt-9 flex flex-col items-center gap-3">
+      <button
+        id="collection-more"
+        type="button"
+        class="rounded-full border border-line bg-panel px-7 py-3 text-[14px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px(var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]"
+      >
+        载入更多
+      </button>
+      <p id="collection-hint" class="font-mono text-[11.5px] text-ink-3"></p>
+    </div>
+
+    {total > 300 && (
+      <p class="reveal mt-7 text-center font-mono text-[11.5px] text-ink-3">
+        共 {total.toLocaleString('en-US')} 篇；完整目录请见
+        <a href={u('/browse/')} class="text-jade hover:underline">大藏目录</a>
+      </p>
+    )}
+  </section>
+
+  <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">
+    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">同为一级分类</p>
+    <div class="flex flex-wrap justify-center gap-2.5">
+      {
+        fixedCategories.map((c) => (
+          <a
+            href={u(`/categories/${c.slug}/`)}
+            class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+          >
+            <span class="font-serif text-jade">{c.glyph}</span>
+            {c.name}
+          </a>
+        ))
+      }
+      {
+        topics
+          .filter((t) => t.slug !== topic.slug)
+          .map((t) => (
+            <a
+              href={u(`/topics/${t.slug}/`)}
+              class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+            >
+              <span class="font-serif text-jade">{t.glyph}</span>
+              {t.name}
+            </a>
+          ))
+      }
+    </div>
+  </section>
+
+  <script>
+    import '../../scripts/topic-list.ts';
+  </script>
+</BaseLayout>

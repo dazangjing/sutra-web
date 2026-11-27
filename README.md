@@ -26,14 +26,14 @@
 | 构建产物体积 | 约 461 MB（其中语料资源 234 MB） |
 
 > 以上数字由导入器自语料实算，随每次重新导入自动刷新
-> （见 `src/data/corpus-stats.ts`、`src/data/corpus-canon.ts` 与 `src/data/canon-lineage.ts`）。
+> （见 `packages/sutra-shared/src/config/corpus-stats.ts`、`corpus-canon.ts` 与 `canon-lineage.ts`）。
 
 ---
 
 ## ✦ 经文来源分布
 
 以《大正新修大藏经》为主干，兼收《卍续藏》《嘉兴藏》系统、藏外文献与石刻善本，构成一部可互补参校的阅读本。
-首页「藏经来源脉络」一节以图示呈现各藏承袭关系，各藏篇卷字数则由导入器自语料实算（`src/data/canon-lineage.ts`）。
+首页「藏经来源脉络」一节以图示呈现各藏承袭关系，各藏篇卷字数则由导入器自语料实算（`packages/sutra-shared/src/config/canon-lineage.ts`）。
 
 | 藏经来源 | 篇数 | 卷数 | 字数 | 占比 |
 |---|---:|---:|---:|---:|
@@ -114,8 +114,8 @@
 | 禅宗 | 505 | 诸宗部为骨干，跨部类收语录、灯录、坛经、传心法要等 |
 | 近代著作 | 7 | 赵朴初、汤用彤、印顺、黄夏年、丁福保等导读 |
 
-**专辑**不拘部类，而以宗派、门类为线索横跨全藏。专辑之篇目**以资料库
-`sutra_md_zh/subjects/` 之专题档为准**——逐档列明，故与资料库一一相符：
+**专辑**不拘部类，而以宗派、门类为线索横跨全藏。专辑之篇目**以专题档
+`sutra_subject/recipe/` 为准**——逐档列明，故与专题一一相符：
 
 | 专辑 | 篇数 | 分节 | 线索 |
 |---|---:|---:|---|
@@ -135,19 +135,84 @@
 | 弥勒菩萨专辑 | 27 | 5 | 本愿所问／上生兜率／下生与成佛／密教与瑜伽／兜率往生与龙华修证 |
 | 方志 | 16 | 6 | 都会丛录／两浙／浙东／淮南与江南／海表与岭南／闽、滇、蜀与燕北 |
 
-**专辑之生成**：由 `scripts/build-albums.py` 自资料库之 `subjects/` 生成
-`src/data/albums.ts`（档号清单、简介、分节、线索词），站点自此读取：
+**专辑之生成**：由 `sutra-web/scripts/build-albums.py` 自专题档 `sutra_subject/recipe/`
+生成 `packages/sutra-shared/src/config/albums.ts`（档号清单、简介、分节、线索词），
+三端皆自此读取（一级目录因之恒同）：
 
 ```bash
-python3 scripts/build-albums.py --source ../sutra_md_zh --out src/data/albums.ts
+python3 sutra-web/scripts/build-albums.py \
+  --subjects ../sutra_subject/recipe \
+  --out packages/sutra-shared/src/config/albums.ts
 ```
 
 先前专辑以「部类 / 藏经编号 / 题名 / 藏名」四组关键词之或运算匹配文档，
-与资料库专题档所列相去甚远（观音菩萨专辑误收二百余篇、天台宗命中率仅三成）；
-今改以**档号**为准，专题之篇目与资料库**一一相符**，站内亦依资料库之
+与专题档所列相去甚远（观音菩萨专辑误收二百余篇、天台宗命中率仅三成）；
+今改以**档号**为准，专题之篇目与专题档**一一相符**，站内亦依其
 分节编排。固定之三大分类（大藏经／禅宗／近代著作）仍以规则匹配。
 
 集合归属同时写入 `/search-index.json` 的 `m` 字段，故目录页可按分类与专辑即时筛选。
+
+---
+
+## ✦ 三端一体
+
+同一套语料、同一套界面基调、同一套设计令牌，编译为三种形态：
+
+| 工程 | 形态 | 技术栈 | 打包产物 |
+|---|---|---|---|
+| `sutra-web/` | Web 站 | Astro 7 + Tailwind CSS 4 + TypeScript | `dist/sutra-web` |
+| `sutra-desktop/` | 桌面端 | Tauri 2 + React 18 + TypeScript + Rust | `dist/sutra-macos`、`dist/sutra-windows` |
+| `sutra-app/` | 移动端 | Capacitor 7 + React 18 + TypeScript | `dist/sutra-android`、`dist/sutra-ios`、`dist/sutra-ohos` |
+
+**公共层** `packages/sutra-shared/` 承载三端共用者：全局配置（一级分类、专辑、
+语料统计、藏经谱系、捐助与关于）、共享类型、设计令牌（墨夜 ↔ 素白）。
+故改一处，三端同变 —— 一级目录因之恒同，统计数字因之恒同。
+
+**检索三端同法**：分词、停用词判定、字段加权、长词主导、题名长度归一，
+皆依同一套规则（Rust 与 Python、JS 三方严格一致，改一处须同步另一处）。
+桌面端与移动端之倒排索引格式亦同（magic `YZJI` + delta varint），
+两端产出之 `index.bin` **字节完全一致**，可互换、可互校。
+
+**打包规范**：全仓产物汇于根 `dist/`，**按最终输出之安装包分类**：
+
+```
+dist/
+├── sutra-web/        静态站点（非安装包）
+├── sutra-desktop/    桌面端前端产物（Tauri frontendDist，非安装包）
+├── sutra-app/        移动端前端产物（非安装包）
+├── sutra-macos/      安装包：sutra-macos-arm64-jk-v1.0.0.dmg
+├── sutra-windows/    安装包：sutra-windows-x64-jk-v1.0.0.msi
+├── sutra-android/    安装包：sutra-android-universal-jk-v1.0.0.apk
+├── sutra-ios/        安装包：sutra-ios-arm64-jk-v1.0.0.ipa
+└── sutra-ohos/       安装包：sutra-ohos-universal-jk-v1.0.0.hap
+```
+
+**安装包命名**：`sutra-{平台}-{架构缩写}-jk-v{版本}.{后缀}`
+——「jk」者，「阅藏经」之简（取其声母 j/j/j）；
+架构缩写：`x64`（Intel）、`arm64`（Apple Silicon／ARM）、`universal`（不限架构）。
+**Android 与鸿蒙恒为 `universal`** —— 二者之安装包不含原生库（纯 WebView 之壳），
+不受 ABI 限制；其余平台依本机之架构。
+打包工具所出之原名（`阅藏经_0.1.0_aarch64.dmg`、`app-release-unsigned.apk` 等）
+一概改为此名，以便发行与归档。
+
+```bash
+node sutra_lib_tool/scripts/build-dist.mjs web|desktop|macos|windows|android|ios|ohos|all
+```
+
+**Android 签名**：keystore 与密码不入版本库（`*.jks` 已列入 `.gitignore`），
+自环境变数取之：
+
+```bash
+export YUEZANG_KEYSTORE="$PWD/yuezang.jks"
+export YUEZANG_STORE_PASS=…      # keystore 之密码
+export YUEZANG_KEY_PASS=…        # 私钥之密码（同上则可省）
+export MAVEN_MIRROR=https://maven.aliyun.com/repository/public   # 若 Maven Central 被墙
+
+node sutra_lib_tool/scripts/build-dist.mjs android
+```
+
+缺签名材料则出未签名之 APK；归集之前必以 `apksigner verify` 验之，
+签名若缺即报警。
 
 ---
 
@@ -181,7 +246,7 @@ python3 scripts/build-albums.py --source ../sutra_md_zh --out src/data/albums.ts
 | 大模型 API（Token） | 860 | 语料整理、导读撰写、义理提要生成 |
 | **合计** | **2,680** | |
 
-捐助明细按年度归集（年内按时间倒序），列出序号、名字/网名、脱敏来源账号、日期与金额；「捐助进展」一节实时计算已收、尚缺与进度百分比。数据源为 `src/data/funding.ts`，改一处即全站更新。
+捐助明细按年度归集（年内按时间倒序），列出序号、名字/网名、脱敏来源账号、日期与金额；「捐助进展」一节实时计算已收、尚缺与进度百分比。数据源为 `packages/sutra-shared/src/config/funding.ts`，改一处即全站更新。
 
 四条运营原则：**完全公益**（读者免阅免登录免付费）· **开放为公**（源码与构建公开，可自行部署）· **成本公开**（数字逐项可核对，不作粉饰）· **缺口自担**（捐助不足由维护者自补，功能不减、内容不断）。
 
@@ -204,40 +269,68 @@ python3 scripts/build-albums.py --source ../sutra_md_zh --out src/data/albums.ts
 ## ✦ 目录结构
 
 ```
-yuezangjing/
-├── astro.config.mjs          # 站点配置（base / site / tailwind / sitemap / rehype-slug）
-├── scripts/import-sutra.py   # ★ 语料导入器：CBETA → Astro 内容集合
-├── scripts/build-albums.py   # ★ 专辑生成器：资料库 subjects/ → src/data/albums.ts
-├── src/
-│   ├── content.config.ts     # 内容集合 schema（zod 校验 front matter）
-│   ├── content/sutra/*.md    # ★ 经文正文（3,677 篇，由导入器生成）
-│   ├── content/guide/*.md    # 本站导读（23 篇，人工撰写，合并入正文）
-│   ├── content/pages/*.md    # 站点说明页（关于等，与正文同管线）
-│   ├── data/                 # 站点常量 / 导航 / 集合与专辑 / 语料统计 / 藏经谱系 / 运营与捐助
-│   │   ├── albums.ts         # ★ 专辑（由 build-albums.py 自资料库 subjects/ 生成）
-│   ├── lib/                  # base 安全的链接、集合匹配器
-│   ├── scripts/              # app.ts（全局交互）/ reader.ts（正文页交互）
-│   ├── styles/global.css     # Tailwind 令牌 + 双主题 + 组件层
-│   ├── components/           # Header / Footer / StatTable / DonutChart / DocCard / CategoryCard / CanonLineage / PageHero
-│   ├── layouts/BaseLayout.astro
-│   ├── layouts/Reading.astro      # ★ 通用阅读版式（上—中—下），正文页与关于页共用
-│   └── pages/
-│       ├── index.astro       # 首页（统计表格 + 藏经来源脉络 + 分类内容）
-│       ├── donate.astro      # 捐助与运营公开（成本 / 捐助明细 / 捐助进展 / 运营模式）
-│       ├── stats.astro       # 藏经概览（来源与分布）
-│       ├── browse.astro      # 大藏目录（即时检索）
-│       ├── about.astro       # 关于
-│       ├── 404.astro
-│       ├── rss.xml.ts        # RSS
-│       ├── search-index.json.ts
-│       ├── categories/[slug].astro   # 三大固定分类
-│       ├── topics/index.astro        # 专辑索引
-│       ├── topics/[slug].astro       # 专辑页
-│       └── read/[id].astro           # 正文页
-├── public/
-│   ├── seal.svg
-│   └── assets/            # 语料资源（figures / font / gaiji-CB / gif），由导入器复制
-└── .github/workflows/pages.yml
+yuezangjing/                    # monorepo 根（pnpm workspace）
+├── sutra-web/                  # Web 站 —— Astro 7 + Tailwind CSS 4 + TypeScript
+│   ├── astro.config.mjs        # 站点配置（base / site / tailwind / sitemap / rehype-slug）
+│   ├── scripts/
+│   │   ├── import-sutra.py     # ★ 语料导入器：CBETA → Astro 内容集合
+│   │   └── build-albums.py     # ★ 专辑生成器：专题档 recipe/ → 共享层 config/albums.ts
+│   ├── src/
+│   │   ├── content.config.ts   # 内容集合 schema（zod 校验 front matter）
+│   │   ├── content/sutra/*.md  # ★ 经文正文（3,677 篇，由导入器生成）
+│   │   ├── content/guide/*.md  # 本站导读（23 篇，人工撰写，合并入正文）
+│   │   ├── content/pages/*.md  # 站点说明页（关于等，与正文同管线）
+│   │   ├── lib/                # base 安全的链接、集合匹配器
+│   │   ├── scripts/            # app.ts（全局交互）/ reader.ts（正文页交互）
+│   │   ├── styles/global.css   # Tailwind 令牌 + 双主题 + 组件层
+│   │   ├── components/         # Header / Footer / StatTable / DonutChart / DocCard / CategoryCard / CanonLineage / PageHero
+│   │   ├── layouts/BaseLayout.astro
+│   │   ├── layouts/Reading.astro   # ★ 通用阅读版式（上—中—下），正文页与关于页共用
+│   │   └── pages/              # index / donate / stats / browse / about / 404 / rss / search-index
+│   │                           # / categories/[slug] / topics/* / read/[id]
+│   └── public/
+│       ├── seal.svg
+│       └── assets/            # 语料资源（figures / font / gaiji-CB / gif），由导入器复制
+│
+├── sutra-desktop/              # 桌面端 —— Tauri 2 + React 18 + TypeScript + Rust
+│   ├── src/                    # React 界面（与移动端共用多数组件）
+│   ├── src-tauri/              # Rust 主进程（语料装载 / 检索 / 协议 / 本地状态）
+│   │   ├── src/corpus.rs       # 语料与倒排索引（二进制 YZJI）
+│   │   └── tests/search_test.rs
+│   ├── scripts/                # build-corpus.py / build-gaiji.py / make-preview.py
+│   └── tauri.conf.json
+│
+├── sutra-app/                  # 移动端 —— Capacitor 7 + React 18 + TypeScript
+│   ├── src/                    # React 界面 + 移动端 API 层（Filesystem / Preferences / Share）
+│   ├── android/                # Capacitor 生成之 Android 工程
+│   ├── ios/                    # Capacitor 生成之 iOS 工程
+│   ├── ohos/                   # 手写之鸿蒙 hvigor 工程（Web 组件承载）
+│   ├── scripts/                # build-corpus.py / build-ohos.mjs
+│   └── capacitor.config.ts
+│
+├── packages/sutra-shared/      # ★ 公共层：三端共用，改一处三端同变
+│   ├── src/config/             # 全局配置：站点常量 / 一级分类与专辑 / 语料统计 / 藏经谱系 / 捐助 / 关于
+│   ├── src/types/              # 共享类型（篇目 / 段落 / 检索 / 批注 / 纠错）
+│   ├── src/styles/tokens.css   # 设计令牌（墨夜 ↔ 素白），三端同一套
+│   └── scripts/                # corpus_paths.py / binary_index.py / make-icons.py
+│
+├── sutra_lib_tool/             # ★ 语料处理工具链（CBETA xml-p5 → 统一 JSON → 结构化 Markdown）
+│   └── main.py                 # 命令入口：convert / validate / md / lib / simplify / ...
+│
+├── sutra_md_zh/                # 简体阅读版（由工具链生成，不入库）
+├── sutra_md_tw/                # 繁体阅读版（由工具链生成，不入库）
+├── sutra_subject/              # 专题与附录（recipe/ 专题档、other/ 脉络图等）
+├── sutra_assets/               # 语料资源（figures / font / gaiji-CB），由工具链生成，不入库
+│
+├── tools/
+│   ├── build.mjs               # ★ 打包：依平台归集产物至 dist/sutra-{平台}
+│   └── pnpm.sh                 # 本机 pnpm 之便捷入口
+│
+├── dist/                       # 打包产物（不入库）
+│   ├── sutra-web/  sutra-desktop/  sutra-macos/  sutra-windows/
+│   └── sutra-android/  sutra-ios/  sutra-ohos/
+│
+└── .github/workflows/          # pages.yml（Web 部署）/ release-app.yml（桌面）/ release-mobile.yml（移动）
 ```
 
 ---
@@ -247,11 +340,20 @@ yuezangjing/
 需要 Node 20+ 与 pnpm。
 
 ```bash
-pnpm install
-pnpm dev          # http://127.0.0.1:4321
-pnpm build        # 输出至 dist/（3,701 页，约 1 分钟）
-pnpm preview      # 预览构建产物
+pnpm install                  # 安装全仓依赖（workspace 联动）
+pnpm dev                      # Web 站 → http://127.0.0.1:4321
+pnpm dev:desktop              # 桌面端前端 → http://127.0.0.1:5183
+pnpm dev:app                  # 移动端前端 → http://127.0.0.1:5184
+
+node sutra_lib_tool/scripts/build-dist.mjs web      # Web 站 → dist/sutra-web（3,709 页，约 1 分钟）
+node sutra_lib_tool/scripts/build-dist.mjs desktop  # 桌面端前端 → dist/sutra-desktop
+node sutra_lib_tool/scripts/build-dist.mjs all      # 依序构建全部（本机可行者）
+pnpm --filter sutra-web preview   # 预览 Web 站构建产物
 ```
+
+> **本机若无 pnpm**，可用 `./sutra_lib_tool/scripts/pnpm.sh`（内含 DSH 运行时之 pnpm）。
+> **macOS 代码签名**：DSH 运行时之 node 载有 Team ID，rolldown 之原生绑定无签名，
+> 须用 Homebrew 之 node（`/opt/homebrew/bin/node`）构建，否则报「Cannot find native binding」。
 
 > **内容集合须分块存储**（`astro.config.mjs` 中的 `experimental.collectionStorage: 'chunked'`）。
 > 单文件模式下 Astro 会把整个 content data store（约 288 MB）内联成一个 JS 模块，
@@ -264,22 +366,70 @@ pnpm preview      # 预览构建产物
 
 ## ✦ 更新经藏内容
 
-正文由导入器从 CBETA 语料生成（语料默认位于 `../sutra_md_zh`）：
+正文由**语料处理工具链** `sutra_lib_tool/` 自 CBETA xml-p5 生成，
+产出物落于仓库根：`sutra_md_zh/`（简体）、`sutra_md_tw/`（繁体）、
+`sutra_subject/`（专题与附录）、`sutra_assets/`（资源）。
+
+> **所有佛经处理一律用此工具链**（全局规则），勿另写平行实现。
+> 命令入口：`python3 sutra_lib_tool/main.py <命令>`（或安装后 `sutra-tool <命令>`）。
+
+### 一、生成语料（改 xml-p5 或工具链后）
 
 ```bash
-pnpm import:sutra      # 等价于：
-# python3 scripts/import-sutra.py --source ../sutra_md_zh \
-#   --out src/content/sutra --guide src/content/guide --max-bytes 150000
+cd sutra_lib_tool
+python3 main.py convert          # xml-p5 → 统一 JSON
+python3 main.py md build --all   # 统一 JSON → 结构化 Markdown 阅读版
+python3 main.py simplify --dst ../sutra_md_zh   # 繁体 → 简体
+```
+
+路径由 `sutra_lib_tool/config.json` 之 `md_root` / `lib_root` / `subject_root` /
+`assets_root` 决定，环境变数 `SUTRA_MD_ROOT` / `SUTRA_SUBJECT_ROOT` /
+`SUTRA_ASSETS_ROOT` 可覆写之。
+
+### 二、导入各端
+
+```bash
+pnpm import:sutra      # Web 站：等价于
+# python3 sutra-web/scripts/import-sutra.py --source ../sutra_md_zh \
+#   --assets-source ../sutra_assets \
+#   --out sutra-web/src/content/sutra --guide sutra-web/src/content/guide --max-bytes 150000
+
+pnpm --filter sutra-desktop corpus   # 桌面端：段落化 JSON + 二进制倒排索引
+pnpm --filter sutra-app corpus       # 移动端：同格式（索引字节与桌面端完全一致）
+
 pnpm build
 ```
+
+### 三、建立本地索引（提速列表页与内容页）
+
+三端之列表页与内容页所需之数据，皆自**本地索引**取之，
+不随页面重复下传：
+
+```bash
+pnpm --filter sutra-web build:index     # 列表索引：筛选 + 各集合之卡片 + 专辑分节
+pnpm --filter sutra-web build:content   # 内容索引：正文分块（各块一档）
+```
+
+| 索引 | 位置 | 用途 |
+|---|---|---|
+| 筛选索引 `list.json` | `sutra-web/public/index/` | 目录页之检索与筛选（兼卡片字段） |
+| 卡片索引 `cards/<集合>.json` | 同上 | 各分类／专辑页之卡片 |
+| 分节索引 `sections/<专辑>.json` | 同上 | 专辑页之节次与各节档号 |
+| 内容索引 `content/<档号>/` | 同上 | 正文页：`<档号>/head.json`（元数据、块数、篇目）＋ `<档号>/<n>.json`（第 n 块） |
+
+**内容索引**者，正文预渲染为 HTML 而按段落切块，
+首块于构建期写入页面（故首屏不待网络，检索引擎亦得见首段与标题），
+其余于读者下滚时按需取之。桌面端与移动端之语料包同此法
+（`docs/<档号>/<n>.json`）。
 
 导入器要点：
 
 - 元数据以 `sutra_meta.jsonl` 为准，文件头为辅（语料两种版本皆兼容）。
 - 剥离语料自带的文件头与「目录」区块；站点目录由正文标题在**构建期**自动生成。
 - CBETA 音义／难字注释（形如 `[萨-产+(辛/工)](金刚云回光即以恵如照回一切故)`）共 165 处无效相对链接，还原为纯文本。
-- `src/content/guide/` 下的人工导读按**档号**显式映射并入对应经典正文末尾（见脚本内 `GUIDE_TO_CANON_ID`）。
-- 统计表 `src/data/corpus-stats.ts`、`src/data/corpus-canon.ts` 由语料实算，重新导入即刷新。
+- `sutra-web/src/content/guide/` 下的人工导读按**档号**显式映射并入对应经典正文末尾（见脚本内 `GUIDE_TO_CANON_ID`）。
+- 统计表 `packages/sutra-shared/src/config/corpus-stats.ts`、
+  `corpus-canon.ts`、`canon-lineage.ts` 由语料实算，重新导入即刷新。
 
 ---
 

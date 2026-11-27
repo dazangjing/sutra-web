@@ -3,23 +3,28 @@
   "type": "module",
   "version": "1.0.0",
   "private": true,
-  "description": "阅藏经 —— AI大藏经全集在线阅读",
+  "description": "阅藏经 —— AI大藏经全集在线阅读（Web 站 / 桌面端 / 移动端 三端一体）",
   "license": "MIT",
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "import:sutra": "python3 scripts/import-sutra.py --source ../sutra_md_zh --out src/content/sutra --guide src/content/guide --assets public/assets --max-bytes 150000",
-    "build:albums": "python3 scripts/build-albums.py --source ../sutra_md_zh --out src/data/albums.ts"
+    "build": "node sutra_lib_tool/scripts/build-dist.mjs web",
+    "build:all": "node sutra_lib_tool/scripts/build-dist.mjs all",
+    "build:web": "node sutra_lib_tool/scripts/build-dist.mjs web",
+    "build:desktop": "node sutra_lib_tool/scripts/build-dist.mjs desktop",
+    "build:app": "node sutra_lib_tool/scripts/build-dist.mjs app",
+    "build:macos": "node sutra_lib_tool/scripts/build-dist.mjs macos",
+    "build:windows": "node sutra_lib_tool/scripts/build-dist.mjs windows",
+    "build:android": "node sutra_lib_tool/scripts/build-dist.mjs android",
+    "build:ios": "node sutra_lib_tool/scripts/build-dist.mjs ios",
+    "build:ohos": "node sutra_lib_tool/scripts/build-dist.mjs ohos",
+    "dev": "pnpm --filter sutra-web dev",
+    "dev:desktop": "pnpm --filter sutra-desktop dev",
+    "dev:app": "pnpm --filter sutra-app dev",
+    "typecheck": "pnpm -r typecheck",
+    "import:sutra": "pnpm --filter sutra-web import:sutra",
+    "build:albums": "pnpm --filter sutra-web build:albums",
+    "icons": "python3 packages/sutra-shared/scripts/make-icons.py"
   },
-  "dependencies": {
-    "@astrojs/markdown-remark": "^7.3.9",
-    "@astrojs/rss": "^4.0.19",
-    "@astrojs/sitemap": "^3.7.5",
-    "@tailwindcss/vite": "^4.3.5",
-    "astro": "^7.4.12",
-    "rehype-slug": "^6.0.0",
-    "tailwindcss": "^4.3.5"
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -1,0 +1,134 @@
+{
+ "nodes": [
+  {
+   "name": "清源行思",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "南岳怀让",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "罗浮定真",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "制空山道进",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "韶州下回田善快禅师其",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "司空山本净",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "缘素",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": [
+    7
+   ]
+  },
+  {
+   "name": "制空山道进",
+   "gen": 2,
+   "school": null,
+   "depth": 1,
+   "kids": []
+  },
+  {
+   "name": "祇陀",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": []
+  },
+  {
+   "name": "南杨慧忠",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": [
+    10
+   ]
+  },
+  {
+   "name": "耽源山真应",
+   "gen": 3,
+   "school": null,
+   "depth": 1,
+   "kids": []
+  },
+  {
+   "name": "洛阳荷泽神会",
+   "gen": 2,
+   "school": null,
+   "depth": 0,
+   "kids": [
+    12,
+    13,
+    14,
+    16
+   ]
+  },
+  {
+   "name": "法如",
+   "gen": 3,
+   "school": null,
+   "depth": 1,
+   "kids": []
+  },
+  {
+   "name": "河阳怀空",
+   "gen": 3,
+   "school": null,
+   "depth": 1,
+   "kids": []
+  },
+  {
+   "name": "乌牙山圆震",
+   "gen": 3,
+   "school": null,
+   "depth": 1,
+   "kids": [
+    15
+   ]
+  },
+  {
+   "name": "吴头陀",
+   "gen": 4,
+   "school": null,
+   "depth": 2,
+   "kids": []
+  },
+  {
+   "name": "五台山无名",
+   "gen": 3,
+   "school": null,
+   "depth": 1,
+   "kids": []
+  }
+ ]
+}

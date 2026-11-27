@@ -1,0 +1,60 @@
+# ── Python 执行期缓存 ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ── 打包与分发产物（可由源码重新生成，非必要）──────────────────────
+build/
+dist/
+sdist/
+*.egg
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+MANIFEST
+PKG-INFO
+*.whl
+
+# ── 虚拟环境 ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── 测试与静态检查缓存 ─────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# ── 编辑器与 IDE ───────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+*.rej
+.DS_Store
+.AppleDouble
+._*
+Thumbs.db
+
+# ── 本机设定与环境变数 ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── 转换期分析脚本的暫存输出 ───────────────────────────────────────
+_analysis/out/
+_analysis/*.tmp
+
+# 註：`logs/`（執行日誌）為本專案的交付内容之一，**刻意不忽略**；
+#       `schema/`、`docs/`、`CHANGELOG.md`、`config.json` 亦为必要内容。

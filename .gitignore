@@ -13,6 +13,38 @@ dist/
 _site/
 .jekyll-cache/
 
+# ── 语料产物（由 sutra_lib_tool 生成，体积大，不入库）────
+# sutra_md_zh/  sutra_md_tw/  sutra_assets/
+#   —— 简体/繁体阅读版与资源
+# 由 `sutra_lib_tool` 自 xml-p5 生成后落于仓库根，构建时按需重新生成。
+sutra_md_zh/
+sutra_md_tw/
+sutra_assets/
+
+# ── 本地索引（由 sutra-web 之脚本生成，体积大，不入库）──
+# public/index/    列表索引（筛选、卡片、分节）
+# public/content/  内容索引（正文分块）
+# 二者皆由 `pnpm --filter sutra-web build:index` / `build:content` 重建。
+sutra-web/public/index/
+sutra-web/public/content/
+
+# ── 专题档（sutra_subject/recipe/）与脉络图（sutra_subject/other/）──
+# 专题档虽为人工编纂，然其链接指向 `sutra_md_zh/sutra_md/` 之相对路径，
+# 而该库不入库，故专题档亦不入库（否则链接失效）。
+sutra_subject/
+
+# ── 签名材料（私钥与证书，不可入库）────────────────────────
+# .signing/ 内含私钥与 CSR（CSR 可入库，私钥不可）。
+.signing/*.key
+.signing/*.p12
+.signing/*.cer
+.signing/*.p8
+
+# Android 签名之 keystore（含私钥，不可入库）
+# 密码自环境变数取之：YUEZANG_KEYSTORE / YUEZANG_STORE_PASS / YUEZANG_KEY_PASS
+*.jks
+*.keystore
+
 # ── 系统 / 编辑器 ────────────────────────────────────────
 .DS_Store
 Thumbs.db
@@ -24,3 +56,6 @@ Thumbs.db
 # Python
 __pycache__/
 *.pyc
+
+yuezang.jks
+

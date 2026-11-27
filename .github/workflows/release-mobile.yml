@@ -1,0 +1,212 @@
+name: Release 阅藏经 移动端（Android / iOS）
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to retry or complete
+        required: true
+        default: v0.1
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Gradle 8.11 不支持 JDK 24+，故须用 JDK 17
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # 签名：keystore 与密码自仓库之 secrets 取之（不入版本库）
+      # 缺之则出未签名之 APK（安装时系统即拒），故于构建前先校其存在
+      - name: Set up signing
+        shell: bash
+        env:
+          YUEZANG_KEYSTORE: ${{ secrets.YUEZANG_KEYSTORE }}
+          YUEZANG_STORE_PASS: ${{ secrets.YUEZANG_STORE_PASS }}
+          YUEZANG_KEY_PASS: ${{ secrets.YUEZANG_KEY_PASS }}
+        run: |
+          if [ -z "$YUEZANG_KEYSTORE" ] || [ -z "$YUEZANG_STORE_PASS" ]; then
+            echo "✗ 未设签名材料（YUEZANG_KEYSTORE / YUEZANG_STORE_PASS）"
+            echo "  —— 请于仓库之 Settings → Secrets 设之，否则所出之 APK 无签名"
+            exit 1
+          fi
+          # keystore 之 base64 密文 → 档
+          echo "$YUEZANG_KEYSTORE" | base64 -d > "$RUNNER_TEMP/yuezang.jks"
+          chmod 600 "$RUNNER_TEMP/yuezang.jks"
+
+      - name: Check corpus sources
+        shell: bash
+        run: |
+          # 语料（sutra_md_zh / sutra_md_tw）不入版本库 —— CI 须先供数据源，
+          # 否则「Build corpus」无从导入。缺之即显式失败（勿出缺语料之包）；
+          # 数据源既定后于此步挂载（目录名或 SUTRA_MD_ROOT / SUTRA_MD_ROOT_TW）。
+          ZH="${SUTRA_MD_ROOT:-sutra_md_zh}"
+          TW="${SUTRA_MD_ROOT_TW:-sutra_md_tw}"
+          if [ ! -d "$ZH" ] || [ ! -d "$TW" ]; then
+            echo "::error::语料缺失：未找到 $ZH / $TW。请先于 CI 中提供语料数据源（详见 AGENTS.md「构建与验证」），再重跑本工作流。"
+            exit 1
+          fi
+
+      - name: Build corpus
+        run: pnpm --filter sutra-app corpus
+
+      - name: Build web assets
+        run: pnpm --filter sutra-app build
+
+      - name: Sync Capacitor
+        run: pnpm --filter sutra-app exec cap sync android
+
+      - name: Build APK
+        working-directory: sutra-app/android
+        env:
+          YUEZANG_KEYSTORE: ${{ runner.temp }}/yuezang.jks
+          YUEZANG_STORE_PASS: ${{ secrets.YUEZANG_STORE_PASS }}
+          YUEZANG_KEY_PASS: ${{ secrets.YUEZANG_KEY_PASS }}
+        run: ./gradlew assembleRelease
+
+      - name: Verify signature
+        working-directory: sutra-app/android
+        run: |
+          # 签名若缺，安装时方知，为时已晚 —— 故于上传之前先验
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          for apk in app/build/outputs/apk/release/*.apk; do
+            "$APKSIGNER" verify --verbose "$apk" | grep -E "Verifies|v1 scheme|v2 scheme"
+          done
+
+      - name: Rename APK by convention
+        shell: bash
+        run: |
+          # 依命名规范改名：sutra-android-universal-jk-v{版本}.apk
+          # （Android 之 APK 不含原生库，故为 universal —— 见 build-dist.mjs 之 platformArch）
+          VERSION=$(node -p "require('./sutra-desktop/src-tauri/tauri.conf.json').version")
+          DIR="sutra-app/android/app/build/outputs/apk/release"
+          for f in "$DIR"/*.apk; do
+            [ -e "$f" ] || continue
+            mv "$f" "$DIR/sutra-android-universal-jk-v$VERSION.apk"
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sutra-android
+          path: sutra-app/android/app/build/outputs/apk/release/sutra-android-*-jk-v*.apk
+          if-no-files-found: error
+
+  ios:
+    name: Build iOS archive
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check corpus sources
+        shell: bash
+        run: |
+          # 语料（sutra_md_zh / sutra_md_tw）不入版本库 —— CI 须先供数据源，
+          # 否则「Build corpus」无从导入。缺之即显式失败（勿出缺语料之包）；
+          # 数据源既定后于此步挂载（目录名或 SUTRA_MD_ROOT / SUTRA_MD_ROOT_TW）。
+          ZH="${SUTRA_MD_ROOT:-sutra_md_zh}"
+          TW="${SUTRA_MD_ROOT_TW:-sutra_md_tw}"
+          if [ ! -d "$ZH" ] || [ ! -d "$TW" ]; then
+            echo "::error::语料缺失：未找到 $ZH / $TW。请先于 CI 中提供语料数据源（详见 AGENTS.md「构建与验证」），再重跑本工作流。"
+            exit 1
+          fi
+
+      - name: Build corpus
+        run: pnpm --filter sutra-app corpus
+
+      - name: Build web assets
+        run: pnpm --filter sutra-app build
+
+      # `xcode-select` 在 CI 上常仍指向 CommandLineTools，须显式指定完整 Xcode
+      - name: Sync Capacitor
+        run: pnpm --filter sutra-app exec cap sync ios
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+      # 部署目标须 ≥ iOS 15（Xcode 27 之 SDK 所限），Podfile 之 post_install 已统一提升
+      - name: Build iOS
+        working-directory: sutra-app/ios/App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+        run: |
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath "$RUNNER_TEMP/ios-build" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          # 组 `Payload/` 之结构而打包为 `.ipa`（即 zip 改名）
+          # —— 与 build-dist.mjs 之 collectIpa 同
+          APP_DIR="$RUNNER_TEMP/ios-build/Build/Products/Release-iphoneos"
+          APP=$(find "$APP_DIR" -maxdepth 1 -name '*.app' | head -1)
+          if [ -z "$APP" ]; then
+            echo "✗ 未找到 .app：$APP_DIR" >&2
+            exit 1
+          fi
+          VERSION=$(node -p "require('./sutra-desktop/src-tauri/tauri.conf.json').version")
+          ARCH=$(node -p "process.arch === 'arm64' ? 'arm64' : 'x64'")
+          STAGE="$RUNNER_TEMP/ipa-stage"
+          mkdir -p "$STAGE/Payload"
+          cp -R "$APP" "$STAGE/Payload/"
+          (cd "$STAGE" && zip -qry "$RUNNER_TEMP/sutra-ios-$ARCH-jk-v$VERSION.ipa" Payload)
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sutra-ios
+          path: ${{ runner.temp }}/sutra-ios-*-jk-v*.ipa
+          if-no-files-found: error

@@ -1,0 +1,88 @@
+---
+/**
+ * 正文页：正文自**内容索引**分块供给。
+ *
+ * 索引（构建期由 `scripts/build-content-index.py` 生成）之结构：
+ *
+ *     public/content/<档号>/head.json   篇首档：元数据、块数、各块字节数
+ *     public/content/<档号>/<n>.json    第 n 块之 HTML
+ *
+ * 页面于**构建期**写入首块（故首屏无需等待网络，检索引擎亦得见
+ * 首段与各级标题）；其余各块于读者下滚近底时按需取之
+ * （见 `src/scripts/content.ts`）。
+ */
+import Reading from '../../layouts/Reading.astro';
+import { u } from '../../lib/url';
+import { fixedCategories } from 'sutra-shared/config/collections';
+import { getDocHead, getChunk, listDocIds } from '../../lib/content-index';
+
+export async function getStaticPaths() {
+  const ids = listDocIds();
+  return ids.map((id, i) => ({
+    params: { id },
+    props: { id, prev: ids[i - 1], next: ids[i + 1] },
+  }));
+}
+
+const { id, prev, next } = Astro.props;
+
+// ── 篇首档（元数据与块数）──
+const meta = getDocHead(id);
+const m = meta?.m;
+
+// ── 首块之 HTML（构建期写入，故首屏无需等待网络）──
+const firstHtml = getChunk(id, 0) ?? '';
+
+const titleOf = (docId?: string) => (docId ? getDocHead(docId)?.m.title ?? '' : '');
+const imageOf = (docId?: string) => (docId ? getDocHead(docId)?.m.imageCount ?? 0 : 0);
+
+// ── 所属集合（面包屑第二级）──
+const owner = fixedCategories[0];
+
+const metaRows = [
+  { label: '藏经', value: m?.canon ?? '' },
+  { label: '藏名', value: m?.canonName ?? '' },
+  { label: '册次', value: m?.volume ?? '' },
+  { label: '部类', value: m?.division ?? '' },
+  { label: '卷数', value: m?.juanCount ? `${m.juanCount} 卷` : '' },
+  { label: '字数', value: m?.textLength ? `${m.textLength.toLocaleString('en-US')} 字` : '' },
+  { label: '时代', value: m?.dynasty ?? '' },
+].filter((row) => row.value);
+
+/** 篇目（标题目次）：深度二、三者，锚点自内容索引取得 */
+const toc = (meta?.toc ?? [])
+  .filter((h) => h.d === 2 || h.d === 3)
+  .map((h) => ({ depth: h.d, slug: h.s, text: h.t }));
+
+const crumbs = [
+  { label: '首页', href: u('/') },
+  { label: owner.name, href: u(`/categories/${owner.slug}/`) },
+];
+if (m?.division) {
+  crumbs.push({ label: m.division, href: u(`/browse/?q=${encodeURIComponent(m.division)}`) });
+}
+crumbs.push({ label: m?.title ?? id });
+---
+
+<Reading
+  title={m?.title ?? id}
+  description={m?.summary ?? ''}
+  crumbs={crumbs}
+  eyebrow={[{ label: owner.name, href: u(`/categories/${owner.slug}/`) }]}
+  tradTitle={m?.titleTrad}
+  tags={m?.tags}
+  byline={m?.byline}
+  bylineLabel={m?.bylineLabel}
+  summary={m?.summary}
+  meta={metaRows}
+  toc={toc}
+  imageCount={m?.imageCount ?? 0}
+  footNote="回向:愿以此功德,庄严佛净土,上报四重恩,下济三途苦,若有见闻者,悉发菩提心,尽此一报身,同生极乐国."
+  prev={prev ? { title: titleOf(prev), url: u(`/read/${prev}/`), imageCount: imageOf(prev) } : undefined}
+  next={next ? { title: titleOf(next), url: u(`/read/${next}/`), imageCount: imageOf(next) } : undefined}
+  bodyClass="page-reading"
+  docId={id}
+  contentBase={import.meta.env.BASE_URL.replace(/\/+$/, '')}
+>
+  <Fragment set:html={firstHtml} />
+</Reading>

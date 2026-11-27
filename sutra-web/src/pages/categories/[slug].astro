@@ -1,0 +1,172 @@
+---
+/**
+ * 分类页：篇目自**列表索引**取之
+ *
+ * 索引（构建期由 `scripts/build-list-index.py` 生成）：
+ *
+ *     index/cards/<slug>.json   卡片索引：各集合之卡片显示字段
+ *
+ * 页面于**构建期**写入首批卡片（故无 JS 之读者亦得见内容，
+ * 且首屏不待网络）；其余由 `src/scripts/list.ts` 按需增量补入。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import ImageMark from '../../components/ImageMark.astro';
+import { fixedCategories, topics } from 'sutra-shared/config/collections';
+import { loadCards } from '../../lib/list-index';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  return fixedCategories.map((col) => ({ params: { slug: col.slug }, props: { col } }));
+}
+
+const { col } = Astro.props;
+const cards = await loadCards(col.slug);
+const total = cards.length;
+
+/** 各部类之篇数（自卡片索引实算） */
+const byDivision = new Map<string, number>();
+for (const card of cards) {
+  const key = card.v || '其他';
+  byDivision.set(key, (byDivision.get(key) ?? 0) + 1);
+}
+const divisions = [...byDivision.entries()].sort((a, b) => b[1] - a[1]);
+
+/** 各部类之代表作（取该部类首篇） */
+const representatives = divisions.slice(0, 12).map(([name, count]) => ({
+  name,
+  count,
+  doc: cards.find((c) => (c.v || '其他') === name),
+}));
+---
+
+<BaseLayout title={col.name} description={col.desc} bodyClass="page-category">
+  <PageHero kicker={`/ ${col.en}`} title={col.name} glyph={col.glyph} desc={col.desc} count={`${total.toLocaleString('en-US')} 篇`} />
+
+  {
+    divisions.length > 0 && (
+      <section class="mx-auto max-w-[1260px] px-4 pb-10 sm:px-8">
+        <div class="reveal mb-6 flex items-center gap-4">
+          <h2 class="shrink-0 font-serif text-[clamp(19px,2.2vw,24px)] font-semibold tracking-[0.08em] text-ink">部类分布</h2>
+          <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+          <span class="shrink-0 font-mono text-[11.5px] tracking-[0.14em] text-ink-3">{divisions.length} 部类</span>
+        </div>
+
+        <ul class="reveal grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {divisions.map(([name, count]) => (
+            <li>
+              <a
+                href={u(`/browse/?q=${encodeURIComponent(name)}`)}
+                class="group flex items-baseline justify-between gap-3 rounded-chip border border-line bg-panel px-4 py-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+              >
+                <span class="text-[13.5px] text-ink-2 transition-colors group-hover:text-jade">{name}</span>
+                <span class="font-mono text-[11.5px] tabular-nums text-ink-3">{count}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="mx-auto max-w-[1260px] px-4 pb-14 sm:px-8 sm:pb-20">
+    <div class="reveal mb-8.5 flex items-center gap-4">
+      <h2 class="shrink-0 font-serif text-[clamp(21px,2.5vw,27px)] font-semibold tracking-[0.08em] text-ink">篇目一览</h2>
+      <span class="h-px flex-1 bg-[linear-gradient(90deg,var(--yzj-line),transparent)]"></span>
+      <span class="shrink-0 font-mono text-[11.5px] tracking-[0.16em] text-ink-3">{total.toLocaleString('en-US')} ITEMS</span>
+    </div>
+
+    <ol
+      id="collection-list"
+      data-base={import.meta.env.BASE_URL.replace(/\/+$/, '')}
+      data-slug={col.slug}
+      class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+    >
+      {
+        cards.slice(0, 60).map((card, i) => (
+          <li class="reveal is-in flex">
+            <a
+              href={u(`/read/${card.i}/`)}
+              class="group relative flex w-full items-start gap-4 overflow-hidden rounded-card border border-line bg-panel px-5 py-5 transition-all duration-300 hover:-translate-y-[3px] hover:border-line-2 hover:bg-panel-2 hover:shadow-panel"
+            >
+              <span class="absolute inset-y-0 left-0 w-[2px] origin-top scale-y-0 bg-[linear-gradient(var(--yzj-jade),transparent)] transition-transform duration-300 group-hover:scale-y-100"></span>
+              <span class="shrink-0 pt-0.5 font-mono text-[11.5px] tabular-nums text-ink-3">{String(i + 1).padStart(3, '0')}</span>
+              <span class="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span class="flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-[17px] font-semibold tracking-[0.05em] text-ink transition-colors group-hover:text-jade">
+                  <span>{card.t}</span>
+                  {card.p > 0 && <ImageMark count={card.p} />}
+                </span>
+                <span class="font-mono text-[11.5px] text-ink-3">{card.a}{card.v && ` · ${card.v}`}</span>
+                {card.s && <span class="line-clamp-2 text-[13px] leading-relaxed text-ink-2">{card.s}</span>}
+                <span class="mt-0.5 flex flex-wrap gap-1.5">
+                  {card.c && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{card.c}</i>}
+                  {card.j > 0 && <i class="rounded-[5px] border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[10.5px] text-ink-3 not-italic">{card.j} 卷</i>}
+                </span>
+              </span>
+              <span class="mt-1 h-5 w-5 shrink-0 self-center text-ink-3 transition-all duration-300 group-hover:translate-x-1 group-hover:text-jade">
+                <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="reveal mt-9 flex flex-col items-center gap-3">
+      <button
+        id="collection-more"
+        type="button"
+        class="rounded-full border border-line bg-panel px-7 py-3 text-[14px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade hover:shadow-[0_0_0_1px_var(--yzj-line),0_0_34px_-10px_var(--yzj-jade)]"
+      >
+        载入更多
+      </button>
+      <p id="collection-hint" class="font-mono text-[11.5px] text-ink-3"></p>
+    </div>
+
+    {
+      representatives.length > 0 && (
+        <div class="reveal mt-14">
+          <h3 class="mb-5 font-serif text-[18px] font-semibold tracking-[0.08em] text-ink">各部类首篇</h3>
+          <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {representatives.map(({ name, count, doc }) =>
+              doc && (
+                <li class="flex items-baseline gap-2.5 border-b border-line-2 pb-2 text-[13px]">
+                  <span class="shrink-0 text-ink-3">{name}</span>
+                  <span class="text-ink-3">·</span>
+                  <a href={u(`/read/${doc.i}/`)} class="flex min-w-0 flex-1 items-baseline gap-1.5 truncate text-ink-2 transition-colors hover:text-jade">
+                    <span class="truncate">{doc.t}</span>
+                    {doc.p > 0 && <ImageMark count={doc.p} />}
+                  </a>
+                  <span class="ml-auto shrink-0 font-mono text-[11px] text-ink-3">{count}</span>
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+      )
+    }
+  </section>
+
+  <section class="reveal mx-auto max-w-[1260px] border-t border-line px-4 py-8.5 text-center sm:px-8 sm:py-11">
+    <p class="mb-4 text-[11.5px] tracking-[0.2em] text-ink-3">继续浏览</p>
+    <div class="flex flex-wrap justify-center gap-2.5">
+      {
+        topics.map((topic) => (
+          <a
+            href={u(`/topics/${topic.slug}/`)}
+            class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade"
+          >
+            <span class="font-serif text-jade">{topic.glyph}</span>
+            {topic.name}
+            <span class="font-mono text-[11px] text-ink-3">专辑</span>
+          </a>
+        ))
+      }
+      <a href={u('/browse/')} class="rounded-full border border-line bg-panel px-4.5 py-2.5 text-[13.5px] text-ink-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-2 hover:text-jade">大藏目录</a>
+    </div>
+  </section>
+
+  <script>
+    import '../../scripts/list.ts';
+  </script>
+</BaseLayout>

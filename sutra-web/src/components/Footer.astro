@@ -1,0 +1,110 @@
+---
+import { site, nav } from 'sutra-shared/config/site';
+import { fixedCategories, topics } from 'sutra-shared/config/collections';
+import { u } from '../lib/url';
+
+const year = new Date().getFullYear();
+const build = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 13);
+---
+
+<footer class="relative z-10 mt-8 border-t border-line bg-bg-soft/90">
+  <div class="mx-auto grid max-w-[1260px] gap-8 px-4 py-12 sm:px-8 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:py-16">
+    <div>
+      <div class="mb-4 grid h-11 w-11 -rotate-6 place-items-center rounded-[8px] bg-[linear-gradient(150deg,#c9413a,#8d2a24)] font-serif text-[21px] text-white shadow-[0_8px_22px_-12px_rgba(201,65,58,0.9)]" aria-hidden="true">
+        {site.sealChar}
+      </div>
+      <p class="mb-2.5 font-serif text-[16px] tracking-[0.1em] text-gold">「{site.motto}」</p>
+      <p class="mb-4 text-[13px] leading-relaxed text-ink-2">{site.descriptionShort}</p>
+      <p class="flex gap-3.5 font-mono text-[11px] text-ink-3">
+        <span>宗风 · {site.tradition}</span>
+        <span>卷数 · {site.stats.canonVolumes}</span>
+      </p>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-[11.5px] font-medium tracking-[0.2em] text-ink-3">一级分类</h2>
+      <ul class="grid gap-2.5">
+        {
+          fixedCategories.map((col) => (
+            <li>
+              <a href={u(`/categories/${col.slug}/`)} class="flex items-baseline gap-2 text-[13.5px] text-ink-2 transition-colors hover:text-jade">
+                {col.name}
+                <span class="font-mono text-[10.5px] text-ink-3">/ {col.en}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-[11.5px] font-medium tracking-[0.2em] text-ink-3">专辑 · 一级</h2>
+      <ul class="grid gap-2.5">
+        {
+          topics.map((topic) => (
+            <li>
+              <a href={u(`/topics/${topic.slug}/`)} class="flex items-baseline gap-2 text-[13.5px] text-ink-2 transition-colors hover:text-jade">
+                {topic.name}
+                <span class="font-mono text-[10.5px] text-ink-3">/ {topic.en}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-[11.5px] font-medium tracking-[0.2em] text-ink-3">本站</h2>
+      <ul class="grid gap-2.5">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={u(item.path)} class="text-[13.5px] text-ink-2 transition-colors hover:text-jade">
+                {item.title}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href={u('/stats/')} class="text-[13.5px] text-ink-2 transition-colors hover:text-jade">藏经概览</a>
+        </li>
+        <li>
+          <a href={u('/browse/')} class="text-[13.5px] text-ink-2 transition-colors hover:text-jade">大藏目录</a>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-[11.5px] font-medium tracking-[0.2em] text-ink-3">链接</h2>
+      <ul class="grid gap-2.5">
+        {
+          site.links.map((link) => (
+            <li>
+              <a
+                href={link.external ? link.url : u(link.url)}
+                class="flex items-baseline gap-2 text-[13.5px] text-ink-2 transition-colors hover:text-jade"
+                rel={link.external ? 'noopener' : undefined}
+                target={link.external ? '_blank' : undefined}
+              >
+                {link.title}
+                {link.external && <span class="font-mono text-[10.5px] text-ink-3">↗</span>}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-line-2">
+    <div class="mx-auto flex max-w-[1260px] flex-wrap items-center gap-2.5 px-4 py-4 font-mono text-[11px] tracking-[0.06em] text-ink-3 sm:px-8">
+      <span>© {year} {site.author}</span>
+      <span class="opacity-50">·</span>
+      <span>{site.title} · {site.tagline}</span>
+      <span class="opacity-50">·</span>
+      <span>大模型处理内容，仅供学习参考，如有错谬，请联系yuezangjing@163.com或者关注“阅藏经”公共号留言</span>
+      <span class="flex-1"></span>
+      <span class="text-jade/80">BUILD {build}</span>
+    </div>
+  </div>
+</footer>

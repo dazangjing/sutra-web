@@ -1,0 +1,39 @@
+{
+  "name": "sutra-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "阅藏经 · 移动端（Android / iOS / 鸿蒙 OHOS）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "corpus": "python3 scripts/build-corpus.py",
+    "corpus:gaiji": "python3 ../sutra-desktop/scripts/build-gaiji.py",
+    "icons": "python3 ../packages/sutra-shared/scripts/make-icons.py",
+    "sync": "cap sync",
+    "android": "cap run android",
+    "ios": "cap run ios",
+    "ohos": "node scripts/build-ohos.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/filesystem": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/preferences": "^7.0.0",
+    "@capacitor/share": "^7.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sutra-shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}

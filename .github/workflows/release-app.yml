@@ -1,4 +1,4 @@
-name: Release 阅藏经桌面端
+name: Release 阅藏经 桌面端（macOS / Windows）
 
 on:
   push:
@@ -43,24 +43,57 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: app
+        working-directory: sutra-desktop
+
+      - name: Check corpus sources
+        shell: bash
+        run: |
+          # 语料（sutra_md_zh / sutra_md_tw）不入版本库 —— CI 须先供数据源，
+          # 否则「Build corpus」无从导入。缺之即显式失败（勿出缺语料之包）；
+          # 数据源既定后于此步挂载（目录名或 SUTRA_MD_ROOT / SUTRA_MD_ROOT_TW）。
+          ZH="${SUTRA_MD_ROOT:-sutra_md_zh}"
+          TW="${SUTRA_MD_ROOT_TW:-sutra_md_tw}"
+          if [ ! -d "$ZH" ] || [ ! -d "$TW" ]; then
+            echo "::error::语料缺失：未找到 $ZH / $TW。请先于 CI 中提供语料数据源（详见 AGENTS.md「构建与验证」），再重跑本工作流。"
+            exit 1
+          fi
 
       - name: Build corpus
         run: npm run corpus
-        working-directory: app
+        working-directory: sutra-desktop
 
       - name: Build and release macOS installer
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: app
+          projectPath: sutra-desktop
           tagName: ${{ inputs.release_tag || github.ref_name }}
           releaseName: 阅藏经 ${{ inputs.release_tag || github.ref_name }}
           releaseBody: '阅藏经桌面端 ${{ inputs.release_tag || github.ref_name }}。安装包内置全量语料，可离线阅读与检索。'
           releaseDraft: false
           prerelease: false
           args: --bundles dmg
+
+      - name: Rename installer by convention
+        shell: bash
+        run: |
+          # 依命名规范改名：sutra-{平台}-{架构}-jk-v{版本}.{后缀}
+          # （与 build-dist.mjs 之 packageName 同）
+          VERSION=$(node -p "require('./sutra-desktop/src-tauri/tauri.conf.json').version")
+          ARCH=$(node -p "process.arch === 'arm64' ? 'arm64' : 'x64'")
+          SRC="sutra-desktop/src-tauri/target/release/bundle/dmg"
+          for f in "$SRC"/*.dmg; do
+            [ -e "$f" ] || continue
+            mv "$f" "$SRC/sutra-macos-$ARCH-jk-v$VERSION.dmg"
+          done
+
+      - name: Upload renamed installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: sutra-macos-installer
+          path: sutra-desktop/src-tauri/target/release/bundle/dmg/sutra-macos-*-jk-v*.dmg
+          if-no-files-found: error
 
   windows:
     if: ${{ always() && (needs.macos.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.build_macos == false && needs.macos.result == 'skipped')) }}
@@ -86,21 +119,61 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: app
+        working-directory: sutra-desktop
+
+      - name: Check corpus sources
+        shell: bash
+        run: |
+          # 语料（sutra_md_zh / sutra_md_tw）不入版本库 —— CI 须先供数据源，
+          # 否则「Build corpus」无从导入。缺之即显式失败（勿出缺语料之包）；
+          # 数据源既定后于此步挂载（目录名或 SUTRA_MD_ROOT / SUTRA_MD_ROOT_TW）。
+          ZH="${SUTRA_MD_ROOT:-sutra_md_zh}"
+          TW="${SUTRA_MD_ROOT_TW:-sutra_md_tw}"
+          if [ ! -d "$ZH" ] || [ ! -d "$TW" ]; then
+            echo "::error::语料缺失：未找到 $ZH / $TW。请先于 CI 中提供语料数据源（详见 AGENTS.md「构建与验证」），再重跑本工作流。"
+            exit 1
+          fi
 
       - name: Build corpus
         run: python scripts/build-corpus.py
-        working-directory: app
+        working-directory: sutra-desktop
 
       - name: Build and release Windows installers
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: app
+          projectPath: sutra-desktop
           tagName: ${{ inputs.release_tag || github.ref_name }}
           releaseName: 阅藏经 ${{ inputs.release_tag || github.ref_name }}
           releaseBody: '阅藏经桌面端 ${{ inputs.release_tag || github.ref_name }}。安装包内置全量语料，可离线阅读与检索。'
           releaseDraft: false
           prerelease: false
           args: --bundles msi,nsis
+
+      - name: Rename installers by convention
+        shell: bash
+        run: |
+          # 依命名规范改名：sutra-windows-{架构}-jk-v{版本}.{后缀}
+          # （与 build-dist.mjs 之 packageName 同）
+          VERSION=$(node -p "require('./sutra-desktop/src-tauri/tauri.conf.json').version")
+          ARCH=$(node -p "process.arch === 'arm64' ? 'arm64' : 'x64'")
+          BUNDLE="sutra-desktop/src-tauri/target/release/bundle"
+          for f in "$BUNDLE"/msi/*.msi; do
+            [ -e "$f" ] || continue
+            mv "$f" "$BUNDLE/msi/sutra-windows-$ARCH-jk-v$VERSION.msi"
+          done
+          # NSIS 之安装器在 nsis/ 下（应用本体之 .exe 在别处，勿取错）
+          for f in "$BUNDLE"/nsis/*.exe; do
+            [ -e "$f" ] || continue
+            mv "$f" "$BUNDLE/nsis/sutra-windows-$ARCH-jk-v$VERSION.exe"
+          done
+
+      - name: Upload renamed installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: sutra-windows-installers
+          path: |
+            sutra-desktop/src-tauri/target/release/bundle/msi/sutra-windows-*-jk-v*.msi
+            sutra-desktop/src-tauri/target/release/bundle/nsis/sutra-windows-*-jk-v*.exe
+          if-no-files-found: error

@@ -1,4 +1,4 @@
-name: Deploy 阅藏经 to GitHub Pages
+name: Deploy 阅藏经 Web 站 to GitHub Pages
 
 on:
   push:
@@ -49,12 +49,13 @@ jobs:
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
           SITE_URL: ${{ steps.pages.outputs.base_url }}
-        run: pnpm build
+        run: pnpm --filter sutra-web build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          # 产物汇于根 dist/ 下按平台分目录，Web 站在 dist/sutra-web
+          path: dist/sutra-web
 
   deploy:
     needs: build
@@ -64,5 +65,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
